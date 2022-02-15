@@ -37,7 +37,6 @@ class Auth0Middleware
         //echo $token;
         try {
             $jwksUri            = env('AUTH0_DOMAIN') . '.well-known/jwks.json';
-            //echo $jwksUri
             $jwksFetcher        = new JWKFetcher(null, [ 'base_uri' => $jwksUri ]);
             $signatureVerifier  = new AsymmetricVerifier($jwksFetcher);
             $tokenVerifier      = new TokenVerifier(env('AUTH0_DOMAIN'), env('AUTH0_AUD'), $signatureVerifier);
@@ -54,7 +53,8 @@ class Auth0Middleware
             //print_r($decoded);
         }
         catch(InvalidTokenException $e) {
-            return $this->generic(["UNAUTHORIZED"], Response::HTTP_UNAUTHORIZED);
+            //echo $e->getMessage();
+            return $this->generic([$e->getMessage()], Response::HTTP_UNAUTHORIZED);
             return response()->json('No token provided', 401);
             //throw $e;
         };

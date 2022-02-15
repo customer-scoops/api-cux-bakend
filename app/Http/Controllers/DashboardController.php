@@ -15,16 +15,15 @@ class DashboardController extends Controller
      */
     private $_dashboard;
     
-    public function __construct()
+    public function __construct(Request $request)
     {
-        $this->_dashboard = new Dashboard;
+        $this->_dashboard = new Dashboard($request->dataJwt);
     }
     public function index(Request $request){
         $data = $this->_dashboard->generalInfo($request, $request->dataJwt);
         //print_r($data);
         return $this->generic($data['datas'], $data['status']);
     }
-    
     public function indexBackCards(Request $request)
     {
         $data = $this->_dashboard->backCards($request, $request->dataJwt);
@@ -58,7 +57,5 @@ class DashboardController extends Controller
         //print_r($data);
         return $this->generic($data['datas'], $data['status']);
     }
-    
-    
-   
+
 }

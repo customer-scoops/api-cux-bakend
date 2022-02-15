@@ -12,9 +12,20 @@ class Suite
     private $_medium                = 'MEDIA';
     private $_low                   = 'BAJA';
     private $_activeSurvey          = 'banamb';
-    public function __construct()
+    private $_jwt;
+    private $_dbSelected;
+    private $_startMinNps;
+    private $_startMaxNps;
+    private $_nameClient;
+    private $_daysActiveSurvey;
+    private $_dateStartClient;
+    
+    public function __construct($_jwt)
     {
-        //
+        $this->_jwt = $_jwt;
+        $this->setDetailsClient($this->_jwt[env('AUTH0_AUD')]->client);
+        //$this->nameDbSelected($this->_jwt[env('AUTH0_AUD')]->client);
+        //$this->minMaxIndicatorNps($this->_jwt[env('AUTH0_AUD')]->client);
     }
     public function saveUpdate($request, $jwt)
     {
@@ -33,9 +44,10 @@ class Suite
             ];
         }
         try {
-            $resp = DB::table('adata_'.substr($request->survey,0,3).'_'.substr($request->survey,3,6).'_start')->where('id', $request->ticket)->update(['estado_close' => $request->status, 'det_close' => $request->detail, 'fec_close'=>date('Y-m-d')]);
+            $resp = DB::table($this->_dbSelected.'.'.'adata_'.substr($request->survey,0,3).'_'.substr($request->survey,3,6).'_start')->where('id', $request->ticket)->update(['estado_close' => $request->status, 'det_close' => $request->detail, 'fec_close'=>date('Y-m-d')]);
+            //echo $resp;
             if($resp===1){
-                $namev = DB::table('adata_'.substr($request->survey,0,3).'_'.substr($request->survey,3,6).'_start')->where('id', $request->ticket)->first();
+                $namev = DB::table($this->_dbSelected.'.'.'adata_'.substr($request->survey,0,3).'_'.substr($request->survey,3,6).'_start')->where('id', $request->ticket)->first();
                 $this->sendedmail($namev->nom, $namev->mail, $namev->token, $request->survey);
             }
             return[
@@ -49,12 +61,28 @@ class Suite
             ];
         }
     }
+    private function getCompany($client)
+    {
+        $codCustomer = $client;
+        if($client == 'vid'){
+            $codCustomer = 'VID001';
+        }
+        if($client == 'ban'){
+            $codCustomer = 'BAN001';
+        }
+        return $codCustomer;
+    }
     public function getSurvey($request,$jwt)
     {
         try{
             //$codCustomer = ($jwt[env('AUTH0_AUD')]->client === null) ? 'BAN001' : $jwt[env('AUTH0_AUD')]->client;
-            $codCustomer = ($request->get('company') !== null) ? $request->get('company'): $jwt[env('AUTH0_AUD')]->client;
-            $resp = DB::table('customer_banmedica.survey')->where('codCustomer', $codCustomer)->get();
+            $codCustomer = $jwt[env('AUTH0_AUD')]->client;
+            if($request->get('company') !== null){
+                $codCustomer = $this->getCompany($request->get('company'));
+            }
+            //$codCustomer = ($request->get('company') !== null) ? $request->get('company'): $jwt[env('AUTH0_AUD')]->client;
+            //echo $this->_dbSelected.'.'.'survey';
+            $resp = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1)->get();
             //$resp = DB::table('survey')->get();
         }catch (\Throwable $e) {
             return $data = [
@@ -69,7 +97,6 @@ class Suite
                     'name'      => $value->nomSurvey,
                     'base'      => $value->codDbase,
                     'customer'  => $value->codCustomer,
-                    //'client'    => $jwt[env('AUTH0_AUD')]->client
                 ];
             }
         }
@@ -94,13 +121,22 @@ class Suite
         $low=0;
         //
         try {
-            $client = ($request->get('company') !== null) ? $request->get('company'): $jwt[env('AUTH0_AUD')]->client;
+            //$client = ($request->get('company') !== null) ? $request->get('company'): $jwt[env('AUTH0_AUD')]->client;
+            $client = $jwt[env('AUTH0_AUD')]->client;
+            //echo $request->get('company');
+            if($request->get('company') !== null){
+                $client = $this->getCompany($request->get('company'));
+            }
+            
+            
             $survey = ($request->get('survey') === null) ? $jwt[env('AUTH0_AUD')]->survey: $request->get('survey');
             $survey = $this->buildSurvey($survey,$client);
-            $dbQuery = DB::table('customer_banmedica.' . $client . '_' . $survey);
+            
+            $dbQuery = DB::table($this->_dbSelected.'.'. $client . '_' . $survey);
             $dbQuery->where('etapaencuesta', 'P2');
             $dbQuery->where('contenido','!=', '');
-            $resp = $dbQuery->whereIn('nps', [0,1,2,3,4,5,6])->get();
+            $dbQuery->where('date','>=', $this->_dateStartClient);
+            $resp = $dbQuery->whereBetween('nps', [$this->_startMinNps,$this->_startMaxNps])->get();
         } catch (\Throwable $e) {
             return $data = [
                 'datas'     => $e->getMessage(),
@@ -148,7 +184,8 @@ class Suite
             $closedRate = round(($ticketClosed / $ticketCreated) * 100);
         return [
             'datas'  => [
-                'client'            => ($client == 'VID001') ? 'Vida Tres' : 'Banmedica',
+                'client'            => $this->_nameClient,
+                'startCalendar'     => $this->_dateStartClient,
                 'clients'           => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
                 'ticketCreated'     => (object)['high' =>$high,'medium' =>$medium, 'low' =>$low] ,
                 "ticketOpen"        => $ticketOpen,
@@ -163,27 +200,20 @@ class Suite
             'status' => Response::HTTP_OK
         ];
     }
-    private function buildSurvey($survey, $client)
-    {
-        if($client == 'VID001'){
-            //substr($survey,0,3).'_'.substr($survey,3,6)
-            return 'vid'.substr($survey,3,6);
-            
-        }
-        if($client == 'BAN001'){
-             return 'ban'.substr($survey,3,6);
-        }
-        return $survey;
-    }
     public function resumenIndicator($request, $jwt)
     {
-        
-        $validFilterKeys = array("nps"); // <-- keys habilitadas para filtrar
-        $validOrderKeys = array("nps", "date"); // <-- keys habilitadas para Ordenar
+        //echo $this->_jwt[env('AUTH0_AUD')]->client;
+        $validFilterKeys    = array("nps","csat","estado"); // <-- keys habilitadas para filtrar
+        $validOrderKeys     = array("nps", "date","csat"); // <-- keys habilitadas para Ordenar
         
         try{
-            $client = ($request->get('company') !== null) ? $request->get('company'): $jwt[env('AUTH0_AUD')]->client;
-            
+            //$client = ($request->get('company') !== null) ? $request->get('company'): $jwt[env('AUTH0_AUD')]->client;
+            $client = $jwt[env('AUTH0_AUD')]->client;
+            //echo $request->get('company');
+            if($request->get('company') !== null){
+                $client = $this->getCompany($request->get('company'));
+            }
+            //echo $client;
             /* 
             $client =  $jwt[env('AUTH0_AUD')]->client;
             // TODO validar client
@@ -195,12 +225,19 @@ class Suite
             */
             //echo $jwt[env('AUTH0_AUD')]->client.'_'.$request->get('survey');
             //exit;
+            
+            //$survey = ($request->get('survey') === null) ? $jwt[env('AUTH0_AUD')]->survey: $request->get('survey');
+            
+            
             $survey = ($request->get('survey') === null) ? $jwt[env('AUTH0_AUD')]->survey: $request->get('survey');
+            //echo $survey;
             $survey = $this->buildSurvey($survey,$client);
-            $dbQuery = DB::table($client.'_'.$survey);
+            $dbQuery = DB::table($this->_dbSelected.'.'.$client.'_'.$survey);
+            //echo $this->_dbSelected.'.'.$client.'_'.$survey;
+            
             $dbQuery->where('etapaencuesta', 'P2');
             $dbQuery->where('contenido','!=', '');
-            $dbQuery->whereBetween('nps', [0,6]);
+            $dbQuery->whereBetween('nps', [$this->_startMinNps,$this->_startMaxNps]);
             //$dbQuery = DB::table('dataSuite_banmedica');
             
             // Filtramos
@@ -227,7 +264,7 @@ class Suite
                 // TODO validar startDate
                 $dbQuery->where('date', '>', $startDate);
             } else {
-                $dbQuery->where('date', '>', date('Y-m-d', strtotime(date('Y-m-d')."-7 days")));
+                $dbQuery->where('date', '>', date('Y-m-d', strtotime(date('Y-m-d')."$this->_daysActiveSurvey days")));
             }
 
             if($request->get('endDate') !== null) {
@@ -252,7 +289,6 @@ class Suite
             }
 
             $resp = $dbQuery->paginate(10);
-            
         }catch (\Throwable $e) {
             return $data = [
                 'datas'  => $e->getMessage(),
@@ -311,7 +347,7 @@ class Suite
             }
             
             $datos = [
-            'client'            => ($client == 'VID001') ? 'Vida Tres' : 'Banmedica',
+            'client'        => $this->_nameClient,
             "total"         => $resp->total(),
             "lastPage"      => $resp->lastPage(),
             "perPage"       => $resp->perPage(),
@@ -320,7 +356,7 @@ class Suite
             "data"          => $data
         ];
         
-         if($resp->total() == 0){
+        if($resp->total() == 0){
             $datos='No existen datos para mostrar';
         }
         }
@@ -331,76 +367,74 @@ class Suite
         ];
         return $data;
     }
-    public function resumenIndicator999($jwt)
-    {
-        try{
-            $resp = DB::table('dataSuite_banmedica')->paginate(10);
-        }catch (\Throwable $e) {
-            return $data = [
-                'data'  => $e->getMessage(),
-                'status'=> Response::HTTP_UNPROCESSABLE_ENTITY
-            ];
-        }
-        if($resp)
-        {
-            foreach ($resp as $key => $value) {
-                $data[$key+1] = [
-                    "client" => array(
-                        'name' => $value->nom,
-                        'rut' => $value->rut
-                    ),
-                    "ltv"   => 7,
-                    "canal" => $value->canal,
-                    "cxv"   => 8,
-                    "nps"   => $value->nps,
-                    "cbi"   => $value->csat,
-                    "status" => $value->estado,
-                    "npsCierre" => $value->nps_cierre,
-                    "churnProb" => 5,
-                    "churnPred" => 3,
-                    "comentarios" => array(
-                        'date'      => date('Y-m-d'),
-                        'content'   => $value->conenido,
-                    ),
-                    "journeyMap" => array(
-                        "name"  => [
-                            'csat',
-                            'csat1',
-                            'csat2',
-                        ],
-                        "uv"    => [
-                            34,
-                            22,
-                            44
-                        ]
-                    ),
-                    "observaciones" => array(
-                        "date"  => date('Y-m-d'),
-                        "content"    => $value->Content
-                    ),
-                    "ejecutivo" => array(
-                        "name" => 'EJECUTIVO'
-                    )
-                ];
-            }
-        }
-        $datos = [
-            "total"         =>  $resp->total(),
-            "lastPage"      => $resp->lastPage(),
-            "perPage"       => $resp->perPage(),
-            "currentPage"   => $resp->resolveCurrentPage(),
-            "nextPage"      => $resp->nextPageUrl(),
-            "data"          => $data
-        ];
-        $data = [
-            'datas'      => $datos,
-            'status'    => Response::HTTP_OK
-        ];
-        return $data;
-    }
-    
-    
-     public function calculateProb($cbi, $nps){
+    // public function resumenIndicator999($jwt)
+    // {
+    //     try{
+    //         $resp = DB::table('dataSuite_banmedica')->paginate(10);
+    //     }catch (\Throwable $e) {
+    //         return $data = [
+    //             'data'  => $e->getMessage(),
+    //             'status'=> Response::HTTP_UNPROCESSABLE_ENTITY
+    //         ];
+    //     }
+    //     if($resp)
+    //     {
+    //         foreach ($resp as $key => $value) {
+    //             $data[$key+1] = [
+    //                 "client" => array(
+    //                     'name' => $value->nom,
+    //                     'rut' => $value->rut
+    //                 ),
+    //                 "ltv"   => 7,
+    //                 "canal" => $value->canal,
+    //                 "cxv"   => 8,
+    //                 "nps"   => $value->nps,
+    //                 "cbi"   => $value->csat,
+    //                 "status" => $value->estado,
+    //                 "npsCierre" => $value->nps_cierre,
+    //                 "churnProb" => 5,
+    //                 "churnPred" => 3,
+    //                 "comentarios" => array(
+    //                     'date'      => date('Y-m-d'),
+    //                     'content'   => $value->conenido,
+    //                 ),
+    //                 "journeyMap" => array(
+    //                     "name"  => [
+    //                         'csat',
+    //                         'csat1',
+    //                         'csat2',
+    //                     ],
+    //                     "uv"    => [
+    //                         34,
+    //                         22,
+    //                         44
+    //                     ]
+    //                 ),
+    //                 "observaciones" => array(
+    //                     "date"  => date('Y-m-d'),
+    //                     "content"    => $value->Content
+    //                 ),
+    //                 "ejecutivo" => array(
+    //                     "name" => 'EJECUTIVO'
+    //                 )
+    //             ];
+    //         }
+    //     }
+    //     $datos = [
+    //         "total"         =>  $resp->total(),
+    //         "lastPage"      => $resp->lastPage(),
+    //         "perPage"       => $resp->perPage(),
+    //         "currentPage"   => $resp->resolveCurrentPage(),
+    //         "nextPage"      => $resp->nextPageUrl(),
+    //         "data"          => $data
+    //     ];
+    //     $data = [
+    //         'datas'      => $datos,
+    //         'status'    => Response::HTTP_OK
+    //     ];
+    //     return $data;
+    // }
+    public function calculateProb($cbi, $nps){
         if(0 == $nps || $nps == 1 ){
             //$hight++;
             return  $this->_high;
@@ -412,8 +446,6 @@ class Suite
             return  $this->_low;
         }
     }
-    
-    
     private function sendedmail($nombre,$mail,$hash,$encuesta){
         $curl = curl_init();
         curl_setopt_array($curl, array(
@@ -468,7 +500,7 @@ class Suite
             "banges_csat6" => "Facilidad de acceso a medicamentos",
             "banges_csat7" => "Tiempo, Alta médica y consulta GES",
             "banges_csat8" => "Proceso de pago",
-             "banges_csat9" => "Tiempo, alta medica y seguimiento",
+            "banges_csat9" => "Tiempo, alta medica y seguimiento",
             
             "banhos_csat1" => "Información sobre orden médica", //Disponibilidad de información sobre los pasos a seguir en la Isapre al recibir la orden médica para hospitalizarte u operarte.
             "banhos_csat2" => "Claridad información presupuesto", //Claridad y detalle de la información contenida en el presupuesto entregado por la Isapre .
@@ -543,8 +575,47 @@ class Suite
             "banweb_csat3" => "Simplicidad de trámites",
             "banweb_csat4" => "Posibilidad seguimiento trámites",
             "banweb_csat5" => "Resolución satisfactoria requerimiento",
-
+            
+            
+            //MUTUAL
+            "muteri_csat1" => "Escucha y comprensión por parte del profesional",
+            "muteri_csat2" => "Información y recomendación del profesional",
+            "muteri_csat3" => "Preocupación del profesional en la información",
+            "muteri_csat4" => "Claridad del profesional para resolver dudas",
+            "muteri_csat5" => "Claridad de información de qué hacer y dónde acudir",
+            "muteri_csat6" => "Modalidad de la atención Telefónica",
+            
+            "mutges_csat1" => "Resolución de la solicitud",
+            "mutges_csat2" => "Equipo de ejecutivos y resolutores",
+            "mutges_csat3" => "Canales para generar una solicitud ",
+            "mutges_csat4" => "Claridad en la respuesta recibida",
+            "mutges_csat5" => "Plazo de entrega de respuesta a tu solicitud",
+            
+            "mutbe_csat1" => "Claridad de los documentos para que se emita el pago",
+            "mutbe_csat2" => "Facilidad para entregar la documentación requerida",
+            "mutbe_csat3" => "Información del proceso de pago",
+            "mutbe_csat4" => "Cumplimiento de la fecha y medio de pago",
+            "mutbe_csat5" => "Disponibilidad de canales para el pago de licencias",
+            
+            "mutreh_csat1" => "Tiempo espera para tu atención",
+            "mutreh_csat2" => "Amabilidad profesionales Mutual",
+            
+            "muturg_csat1" => "Tiempo espera para tu atención",
+            "muturg_csat2" => "Amabilidad profesionales Mutual",
+            
+            "muthos_csat1" => "Tiempo espera para tu atención",
+            "muthos_csat2" => "Amabilidad profesionales Mutual",
+            
+            "mutcas_csat1" => "Tiempo espera para tu atención",
+            "mutcas_csat2" => "Amabilidad profesionales Mutual",
+            
+            "mutamb_csat1" => "Tiempo espera para tu atención",
+            "mutamb_csat2" => "Amabilidad profesionales Mutual",
+            
+            "mutimg_csat1" => "Tiempo espera para tu atención",
+            "mutimg_csat2" => "Amabilidad profesionales Mutual",
         ];
+        
         if(array_key_exists($searchDriver, $datas)){
             return $datas[$searchDriver];
         }
@@ -552,7 +623,78 @@ class Suite
             $complet = explode("_",$searchDriver);
             return $complet[1];
         }
-        //return $searchDriver;
     }
     
+    
+    
+    //FUNCIONES PARA CONFIGURACION DE CLIENTES
+    private function setDetailsClient($client){
+        if($client == 'VID001' || $client == 'BAN001'){
+        //if($client == 'VID001' || $client == 'BAN001'){
+            $this->_dateStartClient = '2022-01-01';
+            $this->_dbSelected   = 'customer_banmedica';
+            $this->_startMinNps = 0;
+            $this->_startMaxNps = 6;
+            $this->_daysActiveSurvey = -7;
+            if($client == 'VID001'){
+                $this->_nameClient = 'Vida Tres';
+            }
+            if($client == 'BAN001'){
+                $this->_nameClient = 'Banmedica';
+            }
+        }
+        if($client == 'MUT001'){
+            $this->_dateStartClient = '2022-01-01';
+            $this->_dbSelected  = 'customer_colmena';
+            $this->_startMinNps = 0;
+            $this->_startMaxNps = 4;
+            $this->_nameClient = 'Mutual';
+            $this->_daysActiveSurvey = -7;
+        }
+        if($client == 'DEM001'){
+            $this->_dateStartClient = '2021-01-01';
+            $this->_dbSelected  = 'customer_demo';
+            $this->_startMinNps = 0;
+            $this->_startMaxNps = 6;
+            $this->_nameClient = 'Demo';
+            $this->_daysActiveSurvey = -365;
+        }
+    }
+    // private function nameClient($client)
+    // {
+        // if($client == 'VID001')
+        //     return 'Vida Tres';
+        // if($client == 'BAN001') 
+        //     return 'Banmedica';
+        // if($client == 'MUT001') 
+        //     return 'Mutual';
+    // }
+    //ACA SE DEBE AGREGAR EL NOMBRE DE LAS BASES DE DATOS QUE SE DEBEN CONSULTAR DE ACUERDO AL CLIENT
+    // private function nameDbSelected($client){
+    //     if($client == 'VID001' || $client == 'BAN001'){
+    //       $this->_dbSelected = 'customer_banmedica';
+    //     }
+    //     if($client == 'MUT001'){
+    //         $this->_dbSelected = 'customer_colmena';
+    //     }
+    // }
+    // private function minMaxIndicatorNps($client){
+    //     if($client == 'VID001' || $client == 'BAN001'){
+    //         $this->_startMinNps = 0;
+    //         $this->_startMaxNps = 6;
+    //     }
+    //     if($client == 'MUT001'){
+    //         $this->_startMinNps = 0;
+    //         $this->_startMaxNps = 4;
+    //     }
+    // }
+    private function buildSurvey($survey, $client)
+    {
+        if($client == 'VID001')
+            return 'vid'.substr($survey,3,6);
+        if($client == 'BAN001')
+            return 'ban'.substr($survey,3,6);
+        return $survey;
+    }
+    //FIN CONFIGURACION DE CLIENTES
 }

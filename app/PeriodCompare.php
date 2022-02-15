@@ -15,6 +15,7 @@ class PeriodCompare
     
       public function csatPreviousPeriod($db,$db2, $survey,$mes,$annio,$indicator){
         $dash = new Dashboard;
+        $dbSelected    = $dash->getDBSelect();
         $endCsat = $dash->getEndCsat($survey);
         $fieldBd = $dash->getFielInDbCsat($survey);
         
@@ -27,11 +28,11 @@ class PeriodCompare
         
         for ($i=1; $i <= $endCsat; $i++) {
         $data = DB::select("SELECT ROUND(SUM(csat$i)) AS csat FROM (SELECT ((COUNT(if($fieldBd$i = 9 OR $fieldBd$i = 10, $fieldBd$i, NULL))* 100)/COUNT(if($indicator !=99,1,NULL )))*$this->_porcentageBan AS csat$i
-        FROM customer_banmedica.$db
+        FROM  customer_banmedica.$db
         WHERE mes = $mes AND annio = $annio
         UNION
         SELECT ((COUNT(if($fieldBd$i = 9 OR $fieldBd$i = 10, $fieldBd$i, NULL))* 100)/COUNT(if($indicator !=99,1,NULL )))*$this->_porcentageBan AS csat$i
-        FROM customer_banmedica.$db2
+        FROM  customer_banmedica.$db2
         WHERE mes = $mes AND annio = $annio) AS A");
         //var_dump($data[0]->csat);
         return $data[0]->csat;
@@ -48,6 +49,7 @@ class PeriodCompare
         if (!isset($period)) {
            $period = date('Y'); 
         }
+        //echo $period;
        
         $indicatorCSAT = 'csat';
         
@@ -55,36 +57,78 @@ class PeriodCompare
         $indetifyClient = substr($request->get('survey'),0,3);
         $indetifyClient = ($filterClient == 'all') ? $indetifyClient:$filterClient;
         $db         = 'adata_'.$indetifyClient.'_'.substr($request->survey,3,6);
-        $indicatordb = ($indetifyClient == 'vid')?'ban':'vid';
+        $indicatordb = substr($request->get('survey'),0,3);
         
         $db2        = 'adata_'.$indicatordb.'_'.substr($request->survey,3,6);
+        
+
         $survey = $request->get('survey');
         //if(!isset($period) || !isset($survey))
         if(!isset($survey))
         {
             return ['datas'=>'Parametros faltantes', 'status'=>Response::HTTP_UNPROCESSABLE_ENTITY];
         }
+        
+       //echo(date('W'));
+        
         if(date('Y') != $period){
             $dateEnd = $period.'-12-31';
             $dateIni = $period.'-01-01';    
             $monthActive = 12;
             $monthPrevius = 11;
+            $weekActive = (int)(date('W'));
+            $weekPrev= $weekActive - 1;
         }
         if(date('Y') == $period){
             $dateEnd = $period.'-'.date('m-d');
             $dateIni = $period.'-01-01'; 
-            $monthActive = date('m');
+            $monthActive = (int)date('m');
+            $monthPrevius = $monthActive - 1;
+            $weekActive = (int)(date('W'));
+            $weekPrev= $weekActive - 1;
         }
+        
+        $where = " date_survey BETWEEN '$dateIni' AND '$dateEnd'";
+        $group=  " mes ";
+        $current = 1;
+        $but = null;
+        
+       
+          if($request->filterWeeks !== null ){
+             // echo 'hola';
+            $interval = is_numeric($request->filterWeeks)? $request->filterWeeks : 10;
+            //if($datafilters !== null){
+                $where= ' date_survey between date_sub(NOW(), interval 10 week) and NOW() ';
+                $group = " week ";
+                $current = 2;
+                $but = ["text"=>"Semanal", "key"=>"filterWeeks", "value"=>"10"];
+            //}
+        }
+        
+        
+        
         //echo $dateEnd.'---'.$dateIni;
         // $db,$db2, $survey, $indicatorCSAT,  $dateEnd,$dateIni, $filter, 
         // 'adata_ban_rel','adata_vid_rel', 'banrel', 'csat',  '2021-12-31', '2021-01-01','all', 'two'
         //echo $survey;
-        $dash = new Dashboard;
+        $dash = new Dashboard($jwt);
+        $dbSelected    = $dash->getDBSelect();
+        
+        $maxCsat       = $dash->getParams('_maxCsat');
+        $minCsat       = $dash->getParams('_minCsat');
+        $minMediumCsat = $dash->getParams('_minMediumCsat');
+        $maxMediumCsat = $dash->getParams('_maxMediumCsat');
+        $minMaxCsat    = $dash->getParams('_minMaxCsat');
+        $maxMaxCsat    = $dash->getParams('_maxMaxCsat');
+       
         $endCsat = $dash->getEndCsat($survey);
         $fieldBd = $dash->getFielInDbCsat($survey);
         $query = "";
         $query2 = "";
         $select = "";
+        $diff = 0;
+        
+        ($dbSelected == 'customer_colmena')? $filter = 'one' : $filter = 'all';
         
         if($filter == 'all'){
             $fieldBd = $dash->getFielInDbCsat($survey);
@@ -113,43 +157,58 @@ class PeriodCompare
                 
             }
             $query1 = "SELECT $query,date_survey, mes
-                                FROM customer_banmedica.$db as A
-                                WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2' GROUP BY mes";
+                                FROM $dbSelected.$db as A
+                                WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd'  AND etapaencuesta = 'P2' GROUP BY mes";
                                 
             $query2 = "SELECT $query2,date_survey, mes
-                                FROM customer_banmedica.$db2 as A
+                                FROM $dbSelected.$db2 as A
                                 WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2' GROUP BY mes";
             $queryPrin = "SELECT $select, mes FROM ($query1 UNION $query2) as A GROUP BY mes ORDER BY date_survey";
             //print_r($queryPrin);
             $data = DB::select($queryPrin);
         }
         
-        //ESTA PARTE NO VA
+        
         
         if($filter != 'all'){
+            
             $fieldBd = $dash->getFielInDbCsat($survey);
             $query = "";
             for ($i=1; $i <= $endCsat; $i++) {
                 if($i != $endCsat){
-                    $query .= " (COUNT(if( $fieldBd$i >= 9, $fieldBd$i, NULL))* 100)/COUNT(*) AS csat$i, ((count(if(csat$i < 7, csat$i, NULL))*100)/count(*)*$this->_porcentageBan) as detractor$i, 
-                                            ((count(if(csat$i > 8, csat$i, NULL))*100)/count(*)*$this->_porcentageBan) as promotor$i, 
-                                            ((count(if(csat$i <= 8 AND csat$i >=7, csat$i, NULL))*100)/COUNT(if($fieldBd$i !=99,1,NULL ))*$this->_porcentageBan) as neutral$i,";
+                    $query .= " COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL))* 100/COUNT(if($fieldBd$i !=99,1,NULL )) AS csat$i, 
+                                (count(if(csat$i <= $maxCsat, csat$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )) as detractor$i, 
+                                (count(if(csat$i > $maxMediumCsat AND $fieldBd$i <= $maxMaxCsat, csat$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )) as promotor$i, 
+                                (count(if(csat$i <= $maxMediumCsat AND csat$i >= $minMediumCsat, csat$i, NULL))*100)/COUNT(if($fieldBd$i !=99,1,NULL)) as neutral$i,";
                 }
                 if($i == $endCsat){
-                    $query .= " (COUNT(if( $fieldBd$i >= 9, $fieldBd$i, NULL))* 100)/COUNT(*) AS csat$i, ((count(if(csat$i < 7, csat$i, NULL))*100)/count(*)*$this->_porcentageBan) as detractor$i, 
-                                            ((count(if(csat$i > 8, csat$i, NULL))*100)/count(*)*$this->_porcentageBan) as promotor$i, 
-                                            ((count(if(csat$i <= 8 AND csat$i >=7, csat$i, NULL))*100)/COUNT(if($fieldBd$i !=99,1,NULL ))*$this->_porcentageBan) as neutral$i ";
+                    $query .= " COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL))* 100/COUNT(if($fieldBd$i !=99,1,NULL )) AS csat$i, 
+                                (count(if(csat$i <=  $maxCsat, csat$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )) as detractor$i, 
+                                (count(if(csat$i > $maxMediumCsat AND $fieldBd$i <= $maxMaxCsat, csat$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )) as promotor$i, 
+                                (count(if(csat$i <= $maxMediumCsat AND csat$i >= $minMediumCsat, csat$i, NULL))*100)/COUNT(if($fieldBd$i !=99,1,NULL )) as neutral$i ";
                 }
                 
             }
             
-            $data = DB::select("SELECT $query,date_survey, mes
-                                FROM customer_banmedica.$db as A
-                                WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2' 
+            $data = DB::select("SELECT $query,date_survey, mes,  WEEK(date_survey) AS week
+                                FROM $dbSelected.$db 
+                                WHERE $where AND etapaencuesta = 'P2' 
+                                GROUP BY $group
                                 ORDER BY date_survey");
+                                
+            // echo "SELECT $query,date_survey, mes
+            //                     FROM $dbSelected.$db 
+            //                     WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2' 
+            //                     GROUP BY mes
+            //                     ORDER BY date_survey";
         }
         $indexData = count($data);
-        $suite = new Suite;
+        $suite = new Suite($jwt);
+        
+        //echo $monthActive;
+     
+       
+        if($current == 1){
         foreach ($data as $key => $value){
              if(substr(date("F", strtotime(date('Y-'.$value->mes.'-d'))),0,3) === 'Jan'){
                  $column["period".$value->mes] = 'Ene';
@@ -160,11 +219,16 @@ class PeriodCompare
              }else if(substr(date("F", strtotime(date('Y-'.$value->mes.'-d'))),0,3) === 'Dec'){
                  $column["period".$value->mes] = 'Dic';
              }else{
-            $column["period".$value->mes] = substr(date("F", strtotime(date('Y-'.$value->mes.'-d'))),0,3);}
+            $column["period".$value->mes] = substr(date("F", strtotime(date('Y-'.$value->mes.'-d'))),0,3);
+             }
             $periods = null;
+            
+            
             if($key == 0){
                 for($i=1; $i <= $endCsat; $i++) {
                         $total=0;
+                        
+                        
                     foreach ($data as $index => $period){
                         $r      = 'csat'.$i;
                         $total  = $period->$r+$total;
@@ -175,7 +239,9 @@ class PeriodCompare
                                 $diff = 0;
                             }
                             if($monthActive > 1){
+                                //echo 'Hola';
                                 if(isset($detail["period".$monthPrevius])){
+                                    //echo $monthPrevius;
                                 $valuePrevius = $detail["period".$monthPrevius];
                                 $diff = $period->$r-$valuePrevius;
                                 }
@@ -186,12 +252,64 @@ class PeriodCompare
                         }
                     }
                     $detail["ytd"] = ROUND($total/$indexData);
-                    $detail["diff"] = $diff;
+                    $detail["diff"] = ROUND($diff);
                     $details[]=[$detail];
                     $objets=$details;
                 }
             }
         }
+        }
+        
+        if($current == 2){
+         
+        foreach ($data as $key => $value){
+            $column["period".$value->week] = $value->week ;
+            $periods = null;
+
+            if($key == 0){
+                for($i=1; $i <= $endCsat; $i++) {
+                        $total=0;
+
+                    foreach ($data as $index => $period){
+                        $r      = 'csat'.$i;
+                        $total  = $period->$r+$total;
+                        $detail["driver"]               = $suite->getInformationDriver($survey.'_'.$r);
+                        $detail["period".$period->week]  =(int)$period->$r;
+                        if($period->week == $weekActive){
+                            //echo 'Hola';
+                            if($weekActive == 1){
+                                $diff = 0;
+                            }
+                            if($weekActive > 1){
+                                //echo 'Hola';
+                                if(isset($detail["period".$weekPrev])){
+                                    
+                                $valuePrevius = $detail["period".$weekPrev];
+                                $diff = $period->$r-$valuePrevius;
+                                //echo 'prev'.$valuePrevius. 'actual '. $period->$r .'diferencia'. $diff ;
+                                }
+                                if(!isset($detail["period".$weekPrev])){
+                                    $diff = 0;
+                                }
+                            }
+                        }
+                        //  if($period->week != $weekActive){
+                        //     $diff = $detail["period".$weekPrev];  
+                        //  }
+                    }
+                    $detail["ytd"] = ROUND($total/$indexData);
+                    $detail["diff"] = ROUND($diff);
+                    $details[]=[$detail];
+                    $objets=$details;
+                }
+            }
+        }
+        }
+        
+        
+        
+        
+        
         //print_r($column);
         
         $startColumns   = ["driver" => ""];
@@ -204,9 +322,10 @@ class PeriodCompare
         
         return [
             "datas"=> 
-                ["columns" => 
-                    [$resp],
-                "values"=>$objets
+                [
+                    "callToAction"=> $but,
+                    "columns" => [$resp],
+                    "values"=>$objets
                 ], 
             "status"=>Response::HTTP_OK
             ];

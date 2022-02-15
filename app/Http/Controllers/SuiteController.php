@@ -17,11 +17,9 @@ class SuiteController extends Controller
      * @return void
      */
     private $_suite;
-    
-    public function __construct()
+    public function __construct(Request $request)
     {
-        //
-        $this->_suite = new Suite;
+        $this->_suite = new Suite($request->dataJwt);
     }
     public function getAll(Request $request)
     {
@@ -35,7 +33,7 @@ class SuiteController extends Controller
     }
     public function getSurvey(Request $request)
     {
-        $data = $this->_suite->getSurvey($request,$request->dataJwt);
+        $data = $this->_suite->getSurvey($request, $request->dataJwt);
         return $this->generic($data['datas'], $data['status']);
     }
     public function saveRegister(Request $request)
