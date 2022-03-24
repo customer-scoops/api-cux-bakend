@@ -38,7 +38,6 @@ class PeriodCompare
         return $data[0]->csat;
            
         }
-       
     }
     
     
@@ -61,15 +60,12 @@ class PeriodCompare
         
         $db2        = 'adata_'.$indicatordb.'_'.substr($request->survey,3,6);
         
-
         $survey = $request->get('survey');
         //if(!isset($period) || !isset($survey))
         if(!isset($survey))
         {
             return ['datas'=>'Parametros faltantes', 'status'=>Response::HTTP_UNPROCESSABLE_ENTITY];
         }
-        
-       //echo(date('W'));
         
         if(date('Y') != $period){
             $dateEnd = $period.'-12-31';
@@ -93,8 +89,7 @@ class PeriodCompare
         $current = 1;
         $but = null;
         
-       
-          if($request->filterWeeks !== null ){
+         if($request->filterWeeks !== null ){
              // echo 'hola';
             $interval = is_numeric($request->filterWeeks)? $request->filterWeeks : 10;
             //if($datafilters !== null){
@@ -104,8 +99,6 @@ class PeriodCompare
                 $but = ["text"=>"Semanal", "key"=>"filterWeeks", "value"=>"10"];
             //}
         }
-        
-        
         
         //echo $dateEnd.'---'.$dateIni;
         // $db,$db2, $survey, $indicatorCSAT,  $dateEnd,$dateIni, $filter, 
@@ -164,30 +157,29 @@ class PeriodCompare
                                 FROM $dbSelected.$db2 as A
                                 WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2' GROUP BY mes";
             $queryPrin = "SELECT $select, mes FROM ($query1 UNION $query2) as A GROUP BY mes ORDER BY date_survey";
-            //print_r($queryPrin);
+          
             $data = DB::select($queryPrin);
+              //echo $queryPrin;
         }
         
-        
-        
+
         if($filter != 'all'){
             
             $fieldBd = $dash->getFielInDbCsat($survey);
             $query = "";
             for ($i=1; $i <= $endCsat; $i++) {
                 if($i != $endCsat){
-                    $query .= " COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL))* 100/COUNT(if($fieldBd$i !=99,1,NULL )) AS csat$i, 
-                                (count(if(csat$i <= $maxCsat, csat$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )) as detractor$i, 
-                                (count(if(csat$i > $maxMediumCsat AND $fieldBd$i <= $maxMaxCsat, csat$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )) as promotor$i, 
-                                (count(if(csat$i <= $maxMediumCsat AND csat$i >= $minMediumCsat, csat$i, NULL))*100)/COUNT(if($fieldBd$i !=99,1,NULL)) as neutral$i,";
+                    $query .= " (COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL))-count(if($fieldBd$i <=  $maxCsat, $fieldBd$i, NULL)))* 100/COUNT(if($fieldBd$i !=99,1,NULL )) AS csat$i, 
+                                (count(if($fieldBd$i <= $maxCsat, csat$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )) as detractor$i, 
+                                (count(if($fieldBd$i > $maxMediumCsat AND $fieldBd$i <= $maxMaxCsat, $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )) as promotor$i, 
+                                (count(if($fieldBd$i <= $maxMediumCsat AND csat$i >= $minMediumCsat, $fieldBd$i, NULL))*100)/COUNT(if($fieldBd$i !=99,1,NULL)) as neutral$i,";
                 }
                 if($i == $endCsat){
-                    $query .= " COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL))* 100/COUNT(if($fieldBd$i !=99,1,NULL )) AS csat$i, 
-                                (count(if(csat$i <=  $maxCsat, csat$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )) as detractor$i, 
-                                (count(if(csat$i > $maxMediumCsat AND $fieldBd$i <= $maxMaxCsat, csat$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )) as promotor$i, 
-                                (count(if(csat$i <= $maxMediumCsat AND csat$i >= $minMediumCsat, csat$i, NULL))*100)/COUNT(if($fieldBd$i !=99,1,NULL )) as neutral$i ";
+                    $query .= " (COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL))-count(if($fieldBd$i <=  $maxCsat, $fieldBd$i, NULL)))* 100/COUNT(if($fieldBd$i !=99,1,NULL )) AS csat$i, 
+                                (count(if($fieldBd$i <=  $maxCsat, $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )) as detractor$i, 
+                                (count(if($fieldBd$i > $maxMediumCsat AND $fieldBd$i <= $maxMaxCsat, $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )) as promotor$i, 
+                                (count(if($fieldBd$i <= $maxMediumCsat AND $fieldBd$i >= $minMediumCsat, $fieldBd$i, NULL))*100)/COUNT(if($fieldBd$i !=99,1,NULL )) as neutral$i ";
                 }
-                
             }
             
             $data = DB::select("SELECT $query,date_survey, mes,  WEEK(date_survey) AS week
@@ -196,11 +188,7 @@ class PeriodCompare
                                 GROUP BY $group
                                 ORDER BY date_survey");
                                 
-            // echo "SELECT $query,date_survey, mes
-            //                     FROM $dbSelected.$db 
-            //                     WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2' 
-            //                     GROUP BY mes
-            //                     ORDER BY date_survey";
+   
         }
         $indexData = count($data);
         $suite = new Suite($jwt);
@@ -323,6 +311,7 @@ class PeriodCompare
         return [
             "datas"=> 
                 [
+                    //"type"=>"table-period",
                     "callToAction"=> $but,
                     "columns" => [$resp],
                     "values"=>$objets

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponser;
 use App\Dashboard;
+use Illuminate\Http\Response;
 
 class DashboardController extends Controller
 {
@@ -54,8 +55,22 @@ class DashboardController extends Controller
      public function  filters(Request $request)
     {
         $data = $this->_dashboard->filters($request, $request->dataJwt);
-        //print_r($data);
         return $this->generic($data['datas'], $data['status']);
     }
-
+    public function downloadExcel(Request $request)
+    {
+        $startDate  = $request->get('startDate');
+        $endDate    = $request->get('endDate');
+        $survey     = $request->get('survey');
+        if(!isset($startDate) && !isset($endDate) && !isset($survey)){return $this->generic('Not datas filters', Response::HTTP_UNPROCESSABLE_ENTITY);}
+        $resp = $this->_dashboard->downloadExcel($request, $request->dataJwt);
+        return response($resp, 200)
+                    ->header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                    ->header('Content-Disposition', 'attachment;filename="Periodo de Datos del '.$startDate.' al '.$endDate.' - '.$survey.'.xlsx"')
+                    ->header('Access-Control-Allow-Origin'      , '*')
+                    ->header('Access-Control-Allow-Methods'     , 'POST, GET, OPTIONS, PUT')
+                    ->header('Access-Control-Allow-Credentials' , 'true')
+                    ->header('Access-Control-Max-Age'           , '86400')
+                    ->header('Access-Control-Allow-Headers'     , 'Content-Type, Authorization, X-Requested-With');
+    }
 }
