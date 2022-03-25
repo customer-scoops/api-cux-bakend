@@ -1,21 +1,149 @@
-# Lumen PHP Framework
+# PASOS PARA CORRER EL BACK EN FORMA LOCAL
 
-[![Build Status](https://travis-ci.org/laravel/lumen-framework.svg)](https://travis-ci.org/laravel/lumen-framework)
-[![Total Downloads](https://poser.pugx.org/laravel/lumen-framework/d/total.svg)](https://packagist.org/packages/laravel/lumen-framework)
-[![Latest Stable Version](https://poser.pugx.org/laravel/lumen-framework/v/stable.svg)](https://packagist.org/packages/laravel/lumen-framework)
-[![Latest Unstable Version](https://poser.pugx.org/laravel/lumen-framework/v/unstable.svg)](https://packagist.org/packages/laravel/lumen-framework)
-[![License](https://poser.pugx.org/laravel/lumen-framework/license.svg)](https://packagist.org/packages/laravel/lumen-framework)
+1 - Instalar XAMPP 7.1
 
-Laravel Lumen is a stunningly fast PHP micro-framework for building web applications with expressive, elegant syntax. We believe development must be an enjoyable, creative experience to be truly fulfilling. Lumen attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as routing, database abstraction, queueing, and caching.
+[XAMPP V7.1](https://sourceforge.net/projects/xampp/files/XAMPP%20Windows/7.1.33/)
 
-## Official Documentation
+Descargar: xampp-windows-x64-7.1.33-1-VC14-installer.exe
 
-Documentation for the framework can be found on the [Lumen website](https://lumen.laravel.com/docs).
+2 - Instalar el XAMPP. Cambiar el nombre de la carpeta donde instala el XAMPP en la instalación. Por ejemplo:
 
-## Security Vulnerabilities
 
-If you discover a security vulnerability within Lumen, please send an e-mail to Taylor Otwell at taylor@laravel.com. All security vulnerabilities will be promptly addressed.
+```
+C:\{...NombreCarpetaXAMPP...}
+```
 
-## License
+3 - Abrir el XAMPP. En el servicio de Apache, hacer click en Config y luego en php.ini. En el notepad que abre buscar max_execution_time y modificar la línea por: 
 
-The Lumen framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+![SingleList](./imgsReadme/imgPto3.png)
+
+```
+max_execution_time = 300
+```
+
+4 - Clonar el repo 
+
+[Repo Back](https://github.com/customer-scoops/api-cux-bakend)
+
+En la capeta donde se instalo el XAMPP
+
+```
+C:\{...NombreCarpetaXAMPP...}\xampp\htdocs
+```
+
+5 - Iniciar MySQL en XAMPP
+
+### 6 - Solicitar la DB de prueba!!!!
+
+7 - Iniciar una consola
+
+8 - Entrar en
+
+```
+C:\{...NombreCarpetaXAMPP...}\mysql\bin
+```
+
+9 - Ejecutar 
+
+```
+mysql.exe -u root -p
+```
+
+10 - Luego ejecutar 
+
+```
+MariaDB [(none)]> create database {...NombreDB...};
+```
+
+11 - Luego
+ 
+```
+MariaDB [(none)]> use {...NombreDB...};
+```
+
+12 - Después
+
+```
+MariaDB [(none)]>  source {DireccionDescargaDB}\{NombreArchivo}.sql;
+```
+
+13 - Descargar e instalar Composer 
+
+[Composer](https://getcomposer.org/download/)
+
+14 - En la instalacion buscar el php.exe que esta en la carpeta del XAMPP 
+
+```
+C:\{...NombreCarpetaXAMPP...}\php\php.exe
+```
+
+![SingleList](./imgsReadme/imgPto14.png)
+
+15 - Entrar con la consola a 
+
+```
+C:\{...NombreCarpetaXAMPP...}\htdocs\api-cux-bakend
+```
+
+16 - Hacer 
+
+```
+composer install
+```
+
+17 - Abrir el proyecto
+
+18 - Entrar en el archivo 
+
+```
+vendor\auth0\auth0-php\src\Helpers\Tokens\TokenVerifier.php
+```
+
+19 - Comentar las lineas 112 a 130:
+
+![SingleList](./imgsReadme/imgPto19.png)
+	 
+20 - Crear un archivo
+
+```
+.env
+```
+
+21 - Copiar el contenido de 
+
+```
+.env.example
+```
+
+22 - Modificar y agregar las siguientes líneas
+```
+DB_CONNECTION={mysql}
+DB_HOST={127.0.0.1}
+DB_PORT={3306}
+DB_DATABASE={homestead}
+DB_USERNAME={homestead}
+DB_PASSWORD=
+DB_STRICT_MODE=false
+
+```
+
+### Solicitar las líneas de AUTH0!!!!
+
+23 - Iniciar los servicios de apache y mysql en el XAMPP
+
+![SingleList](./imgsReadme/imgPto23.png)
+
+24 - Abrir el Postman
+
+25 - Hacer una nueva poticion HTTP. En la pestaña Authorization colocar el token. 
+
+![SingleList](./imgsReadme/imgPto25.png)
+
+26 - Hacer la petición al endpoint 
+
+```
+http://localhost:80/api-cux-bakend/public/api/surveys
+```
+En caso de obtener una respuesta quedó el back andando
+
+![SingleList](./imgsReadme/imgPto26.png)
