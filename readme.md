@@ -99,7 +99,7 @@ composer install
 vendor\auth0\auth0-php\src\Helpers\Tokens\TokenVerifier.php
 ```
 
-19 - Comenta las lineas 112 a 130, que son las que siguen a:
+19 - Comentar las lineas 112 a 130:
 
 ![SingleList](./imgsReadme/imgPto19.png)
 	 
@@ -135,7 +135,7 @@ DB_STRICT_MODE=false
 
 24 - Abrir el Postman
 
-25 - Hacer una nueva poticion HTTP en la pestaña 
+25 - Hacer una nueva poticion HTTP. En la pestaña Authorization colocar el token. 
 
 ![SingleList](./imgsReadme/imgPto25.png)
 
