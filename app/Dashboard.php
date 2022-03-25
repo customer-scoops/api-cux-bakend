@@ -144,20 +144,21 @@ class Dashboard extends Generic
         if($this->_dbSelected  == 'customer_banmedica'){
         
             //REGION
+            //echo $this->_dbSelected.$db."_start" ;
             $data = DB::select("SELECT DISTINCT(region) 
-                                FROM ".$db."_start 
+                                FROM $this->_dbSelected.".$db."_start
                                 WHERE region != ''"); 
             $regiones = ['filter'=>'regiones','datas'=>$this->contentfilter($data, 'region')];
               
             //TRAMO
             $data = DB::select("SELECT DISTINCT(tramo) 
-                                FROM  ".$db."_start
+                                FROM  $this->_dbSelected.".$db."_start
                                 WHERE tramo != '#N/A' AND tramo != ''");
             $tramo =['filter'=>'tramo', 'datas'=>$this->contentfilter($data, 'tramo')];
             
             //NICHO
             $data = DB::select("SELECT DISTINCT(nicho) 
-                                FROM  ".$db."_start 
+                                FROM  $this->_dbSelected.".$db."_start 
                                 WHERE nicho != 'SN' and nicho != ''");
             $nicho =['filter'=>'nicho', 'datas'=>$this->contentfilter($data, 'nicho')];
              
@@ -171,7 +172,7 @@ class Dashboard extends Generic
             if($dbC == 'ges' || $dbC == 'suc' || $dbC == 'con'){
             //SUCURSAL
                 $data = DB::select("SELECT DISTINCT(nomSuc) 
-                                    FROM  ".$db."_start
+                                    FROM  $this->_dbSelected.".$db."_start
                                     where nomSuc != ''");
                 $sucursal = ['filter'=>'sucursal', 'datas'=>$this->contentfilter($data, 'nomSuc')];      
     
@@ -196,15 +197,13 @@ class Dashboard extends Generic
 
         //MUTUAL
         if($this->_dbSelected  == 'customer_colmena' && substr($survey,0,3) == 'mut'  && $survey != 'mutred'){
-          
             if($survey == "muthos" || $survey == "muturg" || $survey == "mutamb" || $survey == "mutimg" || $survey == "mutreh")
         {
             $db = 'MUT001_mutcon_resp';
             if($request->client){
                 $db = 'adata_'.trim(substr($request->client,0,3)).'_'.trim(substr($request->client,3,6));
                 $dbC = substr($request->client,3,6);
-            }
-            
+            } 
         }
             $filters = null;
             
@@ -880,14 +879,18 @@ class Dashboard extends Generic
             $data = DB::select("SELECT SUM(NPS) AS NPS FROM (SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
             COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
             (COUNT(CASE WHEN $indicador != 99 THEN $indicador END)) * 100),1)*$this->_porcentageBan AS NPS
-            FROM $this->_dbSelected.$table
-            WHERE mes = $monthAnt AND annio = $annio $datafilters
+            FROM $this->_dbSelected.$table as a
+            left join $this->_dbSelected.".$table."_start as b
+            on a.token = b.token
+            WHERE a.mes = $monthAnt AND a.annio = $annio $datafilters
             UNION
             SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
             COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
             (COUNT(CASE WHEN $indicador != 99 THEN $indicador END)) * 100),1)*$this->_porcentageVid AS NPS
-            FROM  $this->_dbSelected.$table2
-            WHERE mes = $monthAnt AND annio = $annio $datafilters) AS A");
+            FROM  $this->_dbSelected.$table2 as a
+            left join $this->_dbSelected.".$table2."_start as b
+            on a.token = b.token
+            WHERE a.mes = $monthAnt AND a.annio = $annio $datafilters) AS A");
             return round($data[0]->NPS);
         }
     }
@@ -1386,9 +1389,7 @@ class Dashboard extends Generic
         }
         
         if($data[0]->total != null){
-            //echo $data[0]->csat;
             $csatActive = $data[0]->csat;
-            //echo $csatPreviousPeriod;
             return [
             "name"          => "csat",
             "value"         => ROUND($data[0]->csat),

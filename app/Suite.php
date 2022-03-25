@@ -4,7 +4,8 @@ use Validator;
 use Freshwork\ChileanBundle\Rut;
 use Illuminate\Http\Response;
 use Illuminate\Http\Request;
-use DB;
+//use DB;
+use Illuminate\Support\Facades\DB;
 
 class Suite
 {
@@ -73,16 +74,25 @@ class Suite
         return $codCustomer;
     }
     public function getSurvey($request,$jwt)
-    {
+    {   
+    //    try {
+    //     DB::connection()->getPdo();
+    // } catch (\Throwable $th) {
+    //     echo $th->getMessage();
+    // }
+    // exit;
         try{
             //$codCustomer = ($jwt[env('AUTH0_AUD')]->client === null) ? 'BAN001' : $jwt[env('AUTH0_AUD')]->client;
             $codCustomer = $jwt[env('AUTH0_AUD')]->client;
+            //echo $codCustomer;exit;  
             if($request->get('company') !== null){
                 $codCustomer = $this->getCompany($request->get('company'));
             }
+            
             //$codCustomer = ($request->get('company') !== null) ? $request->get('company'): $jwt[env('AUTH0_AUD')]->client;
             //echo $this->_dbSelected.'.'.'survey';
             $resp = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1)->get();
+            //dd(\DB::getQueryLog());
             if($codCustomer == 'TRA001')
                 $resp = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1)->where('codsurvey','TRA_VIA')->get();
             //$resp = DB::table('survey')->get();
