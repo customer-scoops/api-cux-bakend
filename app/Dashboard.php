@@ -2071,6 +2071,11 @@ class Dashboard extends Generic
                 $csats    = $value->CSAT;
                 $npss     = $value->NPS;
             }
+            $anomaliasZ = $this->setTextAnomalias($npsz);
+            $anomaliasM = $this->setTextAnomalias($npsm);
+            $anomaliasX = $this->setTextAnomalias($npsx);
+            $anomaliasB = $this->setTextAnomalias($npsb);
+            $anomaliasS = $this->setTextAnomalias($npss);
         }
 
         return [
@@ -2089,8 +2094,8 @@ class Dashboard extends Generic
                             [
                                 "type" => "NPS",
                                 "value" => $npsz,
-                                "aditionalText" => "%",
-                                "textColor" => $this->setTextAnomalias($npsz)
+                                "aditionalText" => "%".$anomaliasZ['text'],
+                                "textColor" => $anomaliasZ['color']
                             ],
                             [
                                 "type" => "CSAT",
@@ -2112,8 +2117,8 @@ class Dashboard extends Generic
                             [
                                 "type" => "NPS",
                                 "value" => $npsm,
-                                "aditionalText" => "%",
-                                "textColor" => $this->setTextAnomalias($npsm)
+                                "aditionalText" => "%".$anomaliasM['text'],
+                                "textColor" => $anomaliasM['color']
                             ],
                             [
                                 "type" => "CSAT",
@@ -2135,8 +2140,8 @@ class Dashboard extends Generic
                             [
                                 "type" => "NPS",
                                 "value" => $npsx,
-                                "aditionalText" => "%",
-                                "textColor" => $this->setTextAnomalias($npsx)
+                                "aditionalText" => "%".$anomaliasX['text'],
+                                "textColor" => $anomaliasX['color']
                             ],
                             [
                                 "type" => "CSAT",
@@ -2158,8 +2163,8 @@ class Dashboard extends Generic
                             [
                                 "type" => "NPS",
                                 "value" => $npsb,
-                                "aditionalText" => "%",
-                                "textColor" => $this->setTextAnomalias($npsb)
+                                "aditionalText" => "%".$anomaliasB['text'],
+                                "textColor" => $anomaliasB['color']
                             ],
                             [
                                 "type" => "CSAT",
@@ -2181,8 +2186,8 @@ class Dashboard extends Generic
                             [
                                 "type" => "NPS",
                                 "value" => $npss,
-                                "aditionalText" => "%",
-                                "textColor" => $this->setTextAnomalias($npss)
+                                "aditionalText" => "%".$anomaliasS['text'],
+                                "textColor" => $anomaliasS['color']
                             ],
                             [
                                 "type" => "CSAT",
@@ -2279,6 +2284,9 @@ class Dashboard extends Generic
             $promedioM =  round($quantityM * 100 / ($quantityF + $quantityM));
         }
 
+        $anomaliasF = $this->setTextAnomalias($npsF);
+        $anomaliasM = $this->setTextAnomalias($npsM);
+
         return [
             "height" => 4,
             "width" => 4,
@@ -2295,8 +2303,8 @@ class Dashboard extends Generic
                             [
                                 "type" => "NPS",
                                 "value" => ROUND($npsF),
-                                "aditionalText" => "%",
-                                "textColor" => $this->setTextAnomalias($npsF)
+                                "aditionalText" => "%".$anomaliasF['text'],
+                                "textColor" => $anomaliasF['color']
                             ],
                             [
                                 "type" => "CSAT",
@@ -2318,8 +2326,8 @@ class Dashboard extends Generic
                             [
                                 "type" => "NPS",
                                 "value" => $npsM,
-                                "aditionalText" => "%",
-                                "textColor" => $this->setTextAnomalias($npsM)
+                                "aditionalText" => "%".$anomaliasM['text'],
+                                "textColor" => $anomaliasM['color']
                             ],
                             [
                                 "type" => "CSAT",
@@ -4552,12 +4560,12 @@ class Dashboard extends Generic
     private function setTextAnomalias($value)
     {
         if ($this->_valueMinAnomalias >= $value) {
-            return 'rgb(254, 69, 96)';
+            return ['color'=>'rgb(254, 69, 96)','text'=>'▼'];
         }
         if ($this->_valueMaxAnomalias <= $value) {
-            return 'rgb(254, 69, 96)';
+            return ['color'=>'rgb(23, 199, 132)','text'=>'▲'];
         }
-        return 'rgb(23, 199, 132)';
+        return ['color'=>'rgb(0,0,0)','text'=>''];
     }
 
     //DETAILS DASH
