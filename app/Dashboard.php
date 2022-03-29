@@ -155,25 +155,25 @@ class Dashboard extends Generic
             //REGION
             //echo $this->_dbSelected.$db."_start" ;
             $data = DB::select("SELECT DISTINCT(region) 
-                                FROM $this->_dbSelected." . $db . "_start
+                                FROM $this->_dbSelected.".$db."_start
                                 WHERE region != ''");
             $regiones = ['filter' => 'regiones', 'datas' => $this->contentfilter($data, 'region')];
 
             //TRAMO
             $data = DB::select("SELECT DISTINCT(tramo) 
-                                FROM  $this->_dbSelected." . $db . "_start
+                                FROM  $this->_dbSelected.".$db."_start
                                 WHERE tramo != '#N/A' AND tramo != ''");
             $tramo = ['filter' => 'tramo', 'datas' => $this->contentfilter($data, 'tramo')];
 
             //NICHO
             $data = DB::select("SELECT DISTINCT(nicho) 
-                                FROM  $this->_dbSelected." . $db . "_start 
+                                FROM  $this->_dbSelected.".$db."_start 
                                 WHERE nicho != 'SN' and nicho != ''");
             $nicho = ['filter' => 'nicho', 'datas' => $this->contentfilter($data, 'nicho')];
 
             //GENERO
             $data = DB::select("SELECT  DISTINCT($this->_fieldSex)
-                                FROM  $this->_dbSelected." . $db . "_start
+                                FROM  $this->_dbSelected.".$db."_start
                                 Where $this->_fieldSex != '#N/D' AND $this->_fieldSex !=''");
             $genero = ['filter' => 'genero', 'datas' => $this->contentfilter($data, $this->_fieldSex)];
 
@@ -181,7 +181,7 @@ class Dashboard extends Generic
             if ($dbC == 'ges' || $dbC == 'suc' || $dbC == 'con') {
                 //SUCURSAL
                 $data = DB::select("SELECT DISTINCT(nomSuc) 
-                                    FROM  $this->_dbSelected." . $db . "_start
+                                    FROM  $this->_dbSelected.".$db."_start
                                     where nomSuc != ''");
                 $sucursal = ['filter' => 'sucursal', 'datas' => $this->contentfilter($data, 'nomSuc')];
 
@@ -217,7 +217,7 @@ class Dashboard extends Generic
 
             if ($dbC == 'be' || $dbC == 'ges') {
                 $data = DB::select("SELECT DISTINCT(macroseg)
-                                    FROM $this->_dbSelected.adata_mut_" . $dbC . "_start
+                                    FROM $this->_dbSelected.adata_mut_".$dbC."_start
                                     WHERE macroseg != '0' and macroseg != '9' and macroseg != '8'");
 
                 // foreach($data as $value){
@@ -230,7 +230,7 @@ class Dashboard extends Generic
 
             if ($dbC == 'eri' || $dbC == 'cas') {
                 $data = DB::select("SELECT DISTINCT(tatencion)
-                                    FROM $this->_dbSelected.adata_mut_" . $dbC . "_start
+                                    FROM $this->_dbSelected.adata_mut_".$dbC."_start
                                     WHERE tatencion != '0' ");
 
                 // foreach($data as $value){
@@ -675,7 +675,7 @@ class Dashboard extends Generic
 
                     ];
                 }
-
+                //print_r($otherGraph);
                 $data[] = [
                     'client'        => $this->_nameClient, 'clients'  => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
                     "title"         => ucwords(strtolower($value['name'])),
@@ -872,16 +872,16 @@ class Dashboard extends Generic
             COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
             (COUNT(CASE WHEN $indicador != 99 THEN $indicador END)) * 100),1)*$this->_porcentageBan AS NPS
             FROM $this->_dbSelected.$table as a
-            left join $this->_dbSelected." . $table . "_start as b
-            on a.token = b.token
+            left join $this->_dbSelected.".$table."_start AS b
+            ON a.token = b.token
             WHERE a.mes = $monthAnt AND a.annio = $annio $datafilters
             UNION
             SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
             COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
             (COUNT(CASE WHEN $indicador != 99 THEN $indicador END)) * 100),1)*$this->_porcentageVid AS NPS
             FROM  $this->_dbSelected.$table2 as a
-            left join $this->_dbSelected." . $table2 . "_start as b
-            on a.token = b.token
+            left join $this->_dbSelected." . $table2 . "_start AS b
+            ON a.token = b.token
             WHERE a.mes = $monthAnt AND a.annio = $annio $datafilters) AS A");
             return round($data[0]->NPS);
         }
@@ -891,7 +891,7 @@ class Dashboard extends Generic
       
         if($filter == 'all'){              
 
-            $data = DB::select("select sum(NPSS) as total from (SELECT round(SUM(NPS)) AS NPSS FROM (SELECT ROUND(((COUNT(CASE WHEN $indicador  BETWEEN 9 AND 10 THEN 1 END) -
+            $data = DB::select("SELECT sum(NPSS) as total from (SELECT round(SUM(NPS)) AS NPSS FROM (SELECT ROUND(((COUNT(CASE WHEN $indicador  BETWEEN 9 AND 10 THEN 1 END) -
                                 COUNT(CASE WHEN $indicador  BETWEEN 0 AND 6 THEN 1 END)) /
                                 (COUNT($indicador ) - COUNT(CASE WHEN $indicador =99 THEN 1 END)) * 100),1)*$this->_porcentageBan AS NPS, mes, annio
                                 FROM $this->_dbSelected.$table
@@ -908,7 +908,7 @@ class Dashboard extends Generic
         }
 
         if ($filter != 'all') {
-            $data = DB::select("select sum(NPS) as total from (SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
+            $data = DB::select("SELECT sum(NPS) as total from (SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
                                 COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
                                 (COUNT($indicador) - COUNT(CASE WHEN $indicador=99 THEN 1 END)) * 100),1) AS NPS, mes, annio
                                 FROM $this->_dbSelected.$table
@@ -2887,8 +2887,8 @@ class Dashboard extends Generic
 
         return $resp;
     }
-    
-    private function ces($db, $datafilters, $mes, $annio, $ces){
+  
+    private function ces($db,$filter, $mes, $annio, $ces){
         $data = null;   
         $str = substr($db,10,3);
     
@@ -2897,24 +2897,42 @@ class Dashboard extends Generic
         (COUNT(if($ces between  6 and  7 , $ces, NULL)) - COUNT(if($ces between  1 and  4 , $ces, NULL)))/COUNT(if(ces !=99,1,NULL ))* 100 AS CES 
         FROM $this->_dbSelected.$db as a
         WHERE mes = $mes AND annio = $annio");
+
+        $cesPrev = $this->cesPreviousPeriod($db, $mes, $annio);
         } 
+
         if($data == null || $data[0]->Total == null){
             return [
                 "name"          => "CES",
                 "value"         => "N/A",
+                "m2m"           => "0"
             ];
         }
         
         if($data[0]->Total != null){
             return [
-            "name"          => "CES",
-            "value"         => ROUND($data[0]->CES),
+            "name"      => "CES",
+            "value"     => ROUND($data[0]->CES),
+            "m2m"       => ROUND($data[0]->CES)-ROUND($cesPrev['AntCes']),
         ];
         } 
     }
    
-    private function getDetailsAntiquity($db, $db2,$month,$year,$npsInDb,$csatInDb, $dateIni, $dateEnd,$fieldFilter, $datafilters = null, $filter)
+    private function cesPreviousPeriod($db,$mes,$annio){
+        $data = [];
+        $monthAnt = $mes - 1;
+        if ($monthAnt == 0) {
+            $monthAnt = 12;
+            $annio = $annio - 1;
+        }
+        $data = DB::select("SELECT COUNT(*) as Total,
+        (COUNT(if(ces between  6 and  7 , ces, NULL)) - COUNT(if(ces between  1 and  4 , ces, NULL)))/COUNT(if(ces !=99,1,NULL ))* 100 AS CES 
+        FROM $this->_dbSelected.$db as a 
+        WHERE mes = $monthAnt AND annio = $annio");
 
+        return ['AntCes' => $data[0]->CES];
+    }
+    private function getDetailsAntiquity($db, $db2,$month,$year,$npsInDb,$csatInDb, $dateIni, $dateEnd,$fieldFilter, $datafilters = null, $filter)
     {
         $db2     = $this->primaryTable($db);
         if ($datafilters)
@@ -3066,6 +3084,7 @@ class Dashboard extends Generic
         group by $group, a.mes, a.annio 
         )As a group by $group, a.mes, a.annio  ORDER BY $group, a.annio, a.mes";
         }
+        
         if ($filterClient != 'all') {
             $query = "SELECT UPPER($indicatorBD) as $indicatorName, b.mes,b.annio,date_survey,
             round((count(case when nps = 9 OR nps =10 then 1 end)-count(case when nps between  0 and  6 then 1 end)) / count(case when nps != 99 then 1 end) *100) as nps
@@ -4713,7 +4732,7 @@ class Dashboard extends Generic
             $name = 'Mutual';
             $nameCsat1 = 'Tiempo espera para tu atención';
             $nameCsat2 = 'Amabilidad profesionales';
-            $dataCes              = $this->ces($db, $datafilters, date('m'), date('Y'), $request->survey);
+            //$dataCes              = $this->ces($db, $datafilters, date('m'), date('Y'), $request->survey);
             $dataNPSGraph         = $this->graphNps($db, date('m'), date('Y'), $npsInDb, $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
             $dataCsat1Graph       = $this->graphCsatMutual($db, date('m'), date('Y'), 'csat1', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
             $dataCsat2Graph       = $this->graphCsatMutual($db, date('m'), date('Y'), 'csat2', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
