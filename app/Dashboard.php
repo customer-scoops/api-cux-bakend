@@ -2100,7 +2100,8 @@ class Dashboard extends Generic
                             [
                                 "type" => "CSAT",
                                 "value" => $csatz,
-                                "aditionalText" => "%"
+                                "aditionalText" => "%",
+                                "textColor"=> 'rgb(0,0,0)'
                             ],
                             [
                                 "type" => "Cantidad de respuestas",
@@ -2309,7 +2310,8 @@ class Dashboard extends Generic
                             [
                                 "type" => "CSAT",
                                 "value" => $csatF,
-                                "aditionalText" => "%"
+                                "aditionalText" => "%",
+                                "textColor"=> 'rgb(0,0,0)'
                             ],
                             [
                                 "type" => "Respuestas",
@@ -4113,17 +4115,17 @@ class Dashboard extends Generic
             [
                 "text" => "NPS",
                 "key" => "nps",
-                "cellColor" => "#17C784",
+                "cellColor" => "rgb(0,0,0)",
             ],
             [
                 "text" => "CSAT",
                 "key" => "csat",
-                "cellColor" => "#17C784"
+                "cellColor" => "rgb(0,0,0)",
             ],
             [
                 "text" => "Cantidad de respuesta",
                 "key" => "quantity",
-                "cellColor" => "#17C784"
+                "cellColor" => "rgb(0,0,0)",
             ]
         ];
         return [
