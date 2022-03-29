@@ -688,7 +688,7 @@ class Dashboard extends Generic
             'status'    => Response::HTTP_OK
         ];
     }
-
+    }
     //OKK
 
     // private function infoJorneyMaps($db, $dateIni, $dateEnd, $survey, $filter){
