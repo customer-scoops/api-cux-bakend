@@ -4605,8 +4605,7 @@ class Dashboard extends Generic
             if($request->client == null){
                 $graphCSATDrivers     = $this->GraphCSATDrivers($db, $db2, trim($request->survey), $csatInDb,$endDateFilterMonth, $startDateFilterMonth,  'all','two', $datafilters, $group);
             }
-            //echo 'Hola: '.$request->survey;
-            //if(($request->client == 'vid' || $request->client == 'ban')){
+           
                 if ($db == 'adata_ban_ven' || $db == 'adata_vid_ven'){
                     $super = $this->npsByIndicator($db,$dateEnd,$dateIni,$filterClient,'nomSuper','nomSuper','supervisor','supervisor', 'Supervisor',4);
                     $venta = $this->npsByIndicator($db,$dateEnd, $dateIni,$filterClient,'nomFuerVent','nomFuerVent','FuerzaVenta', 'FuerzaVenta','Fuerza de venta',4);
@@ -4623,16 +4622,16 @@ class Dashboard extends Generic
                     $regiones   = $this->npsByRegiones($db,$dateEnd, $dateIni,$filterClient,'ubicSuc','regiones','Regiones y Region Metropolitana', $filterClient);
                     $sucNpsCsat = $this->npsCsatbyIndicator($db,$dateEnd, $dateIni,'nomSuc', 'Sucursal', 'csat3', 'csat4',6,$filterClient);
                     $rankingSuc = $this->rankingSucursal($db,'nomsuc', 'Sucursal', $endDateFilterMonth, $startDateFilterMonth, $filterClient,'8');
-                    // if ($db == 'adata_ban_suc'){
-                    //     $db = 'adata_ban_con';    
-                    //     $ges = $this->npsByIndicator($db,$dateEnd, $dateIni,$filterClient,'canal','canal','canal', 'canal','Canal',2);
-                    // }
-                    // if ($db == 'adata_vid_suc'){
-                    //     $db = 'adata_vid_con';    
-                    //     $ges = $this->npsByIndicator($db,$dateEnd, $dateIni,$filterClient,'canal','canal','canal', 'canal','Canal',2);
-                    // }
+                    if ($db == 'adata_ban_suc'){
+                        $db = 'adata_ban_con';    
+                        $ges = $this->npsByIndicator($db,$dateEnd, $dateIni,$filterClient,'canal','canal','canal', 'canal','Canal',2);
+                    }
+                    if ($db == 'adata_vid_suc'){
+                        $db = 'adata_vid_con';    
+                        $ges = $this->npsByIndicator($db,$dateEnd, $dateIni,$filterClient,'canal','canal','canal', 'canal','Canal',2);
+                    }
                 }
-            //}
+           
             
             $welcome            = $this->welcome($indetifyClient, $filterClient, $request->survey);
             $performance        = $this->cardsPerformace($dataNps, $dataCsat, substr($request->survey,0,3), $datafilters);
