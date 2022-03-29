@@ -370,65 +370,65 @@ class Dashboard extends Generic
     }
 
 
-    // public function detailsDashCxWord($request,$jwt)
-    // {
-    //     //$startDate = $request->get('startDate');
-    //     //$endDate = $request->get('endDate');
+    public function detailsDashCxWord($request,$jwt)
+    {
+        //$startDate = $request->get('startDate');
+        //$endDate = $request->get('endDate');
 
-    //     $request->merge([
-    //         'startDate' => date('Y-m-d',strtotime(date('Y-m-01')."- $this->_periodCxWord month")),
-    //         'endDate'   => date('Y-m-d'),
-    //     ]);
-    //     //if(!isset($startDate)&& !isset($endDate) && !isset($survey)){return ['datas'=>'unauthorized', 'status'=>Response::HTTP_NOT_ACCEPTABLE];}
-    //     return ['datas'     => [$this->cxIntelligence($request),$this->wordCloud($request)],
-    //             'status'    => Response::HTTP_OK
-    //             ];
-    // }
+        $request->merge([
+            'startDate' => date('Y-m-d',strtotime(date('Y-m-01')."- $this->_periodCxWord month")),
+            'endDate'   => date('Y-m-d'),
+        ]);
+        //if(!isset($startDate)&& !isset($endDate) && !isset($survey)){return ['datas'=>'unauthorized', 'status'=>Response::HTTP_NOT_ACCEPTABLE];}
+        return ['datas'     => [$this->cxIntelligence($request),$this->wordCloud($request)],
+                'status'    => Response::HTTP_OK
+                ];
+    }
 
-    // private function wordCloud($request)
-    // {
-    //     $request->merge([
-    //         'startDate' => date('Y-m-d',strtotime(date('Y-m-01')."- $this->_periodCxWord month")),
-    //         'endDate'   => date('Y-m-d'),
-    //     ]);
-    //     $survey = $request->get('survey');
+    private function wordCloud($request)
+    {
+        $request->merge([
+            'startDate' => date('Y-m-d',strtotime(date('Y-m-01')."- $this->_periodCxWord month")),
+            'endDate'   => date('Y-m-d'),
+        ]);
+        $survey = $request->get('survey');
 
-    //     $value = \Cache::get('word'.$survey.$request->get('startDate').$request->get('endDate'));
-    //     //$value = \Cache::pull('word'.$survey.$request->get('startDate').$request->get('endDate'));
-    //     if($value)
-    //         return $value;
+        $value = \Cache::get('word'.$survey.$request->get('startDate').$request->get('endDate'));
+        //$value = \Cache::pull('word'.$survey.$request->get('startDate').$request->get('endDate'));
+        if($value)
+            return $value;
 
-    //     $dataTextMining = $this->textMining($request);
+        $dataTextMining = $this->textMining($request);
 
-    //     if($survey != 'travia'){
-    //     foreach ($dataTextMining['datas']->values as $value){
-    //         foreach($value as $key => $detail){
-    //             foreach($detail as $key1 => $index){
-    //             isset($index->percentaje3)?$this->setAnomaliasTextAnalitics( $index->percentaje3, $index->nps3, $index->word3, $index->group3): null ;
-    //             }
-    //         }
-    //     }
-    //     }
-    //     if($dataTextMining['datas'] == null ){
-    //         $wordCloud = '';
-    //     }
-    //     if($dataTextMining['datas'] !== null ){
-    //         $wordCloud = ($dataTextMining['datas']->wordCloud);
-    //     }
+        if($survey != 'travia'){
+        foreach ($dataTextMining['datas']->values as $value){
+            foreach($value as $key => $detail){
+                foreach($detail as $key1 => $index){
+                isset($index->percentaje3)?$this->setAnomaliasTextAnalitics( $index->percentaje3, $index->nps3, $index->word3, $index->group3): null ;
+                }
+            }
+        }
+        }
+        if($dataTextMining['datas'] == null ){
+            $wordCloud = '';
+        }
+        if($dataTextMining['datas'] !== null ){
+            $wordCloud = ($dataTextMining['datas']->wordCloud);
+        }
 
-    //     $resp = [
-    //         "height"=> 4,
-    //         "width"=> 4,
-    //         "type"=> "word-cloud",
-    //         "props"=> [
-    //           "text"=> "Word cloud",
-    //           "icon"=> "arrow-right",
-    //           "wordCloud"=> $wordCloud
-    //         ]
-    //     ];
-    //     \Cache::put('word'.$survey.$request->get('startDate').$request->get('endDate'), $resp, $this->expiresAtCache);
-    //     return $resp;
-    // }
+        $resp = [
+            "height"=> 4,
+            "width"=> 4,
+            "type"=> "word-cloud",
+            "props"=> [
+              "text"=> "Word cloud",
+              "icon"=> "arrow-right",
+              "wordCloud"=> $wordCloud
+            ]
+        ];
+        \Cache::put('word'.$survey.$request->get('startDate').$request->get('endDate'), $resp, $this->expiresAtCache);
+        return $resp;
+    }
 
     private function cxIntelligence($request)
     {
@@ -1968,35 +1968,35 @@ class Dashboard extends Generic
         return $resp;
     }
 
-    // public function textMining($request){
+    public function textMining($request){
 
-    //     $startDate = $request->get('startDate');
-    //     $endDate = $request->get('endDate');
-    //     $survey = $request->get('survey');
+        $startDate = $request->get('startDate');
+        $endDate = $request->get('endDate');
+        $survey = $request->get('survey');
 
-    //     if(substr($survey,0,3) == 'mut'){
+        if(substr($survey,0,3) == 'mut'){
 
-    //         return ['datas'=>'unauthorized', 'status'=>Response::HTTP_NOT_ACCEPTABLE];
-    //     }
-    //     //if(!isset($startDate)&& !isset($endDate) && !isset($survey)){return ['datas'=>'unauthorized', 'status'=>Response::HTTP_NOT_ACCEPTABLE];}
-    //     $curl = curl_init();
-    //     curl_setopt_array($curl, array(
-    //     CURLOPT_URL =>"https://customerscoops.com/text_mining/text_analytics_new.php?startDate=$startDate&endDate=$endDate&survey=$survey",
-    //     CURLOPT_RETURNTRANSFER => true,
-    //     CURLOPT_ENCODING => '',
-    //     CURLOPT_MAXREDIRS => 10,
-    //     CURLOPT_TIMEOUT => 0,
-    //     CURLOPT_FOLLOWLOCATION => true,
-    //     CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-    //     CURLOPT_CUSTOMREQUEST => 'GET',
-    //     //CURLOPT_POSTFIELDS => array('nom' => $nombre,'mail' => $mail,'token' => $hash,'encuesta' => $encuesta),
-    //     ));
-    //     $response = curl_exec($curl);
-    //     curl_close($curl);
+            return ['datas'=>'unauthorized', 'status'=>Response::HTTP_NOT_ACCEPTABLE];
+        }
+        //if(!isset($startDate)&& !isset($endDate) && !isset($survey)){return ['datas'=>'unauthorized', 'status'=>Response::HTTP_NOT_ACCEPTABLE];}
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+        CURLOPT_URL =>"https://customerscoops.com/text_mining/text_analytics_new.php?startDate=$startDate&endDate=$endDate&survey=$survey",
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'GET',
+        //CURLOPT_POSTFIELDS => array('nom' => $nombre,'mail' => $mail,'token' => $hash,'encuesta' => $encuesta),
+        ));
+        $response = curl_exec($curl);
+        curl_close($curl);
 
-    //     if($response)
-    //         return ['datas'=>json_decode($response), 'status'=>Response::HTTP_OK];
-    // }
+        if($response)
+            return ['datas'=>json_decode($response), 'status'=>Response::HTTP_OK];
+    }
 
     private function detailGeneration($db, $indicatorNPS, $indicatorCSAT, $dateIni, $dateEnd, $filter, $datafilters = null, $indetifyClient)
     {
@@ -4631,7 +4631,7 @@ class Dashboard extends Generic
             $detailGender       = $this->detailsGender($db, $npsInDb, $csatInDb, $endDateFilterMonth, $startDateFilterMonth,  $filterClient, $datafilters, $indetifyClient);
             $detailGeneration   = $this->detailGeneration($db, $npsInDb, $csatInDb, $endDateFilterMonth, $startDateFilterMonth, $filterClient,  $datafilters, $indetifyClient);
             $datasStatsByTaps   = $this->statsByTaps($db, $db2, date('m'), date('Y'), $npsInDb, $csatInDb, $startDateFilterMonth, $endDateFilterMonth, $datafilters, $filterClient, $indetifyClient);
-            $wordCloud          = null; //$this->wordCloud($request);
+            $wordCloud          = $this->wordCloud($request); //null; 
             $detailsProcedencia = $super;
             $box14              = $venta;
             $box15              = $call;
@@ -4706,7 +4706,7 @@ class Dashboard extends Generic
             $welcome            = $this->welcome(($request->client !== null) ? 'tra' : $request->client, $filterClient, ($request->client !== null) ? $request->client : $request->survey, $db);
             $performance        = $this->cardsPerformace($dataNps, $dataisn, substr($request->survey, 0, 3), $datafilters);
             $npsConsolidado     = $this->graphNpsIsn($dataisn, $this->ButFilterWeeks);
-            $npsVid             = null; //$this->wordCloud($request);
+            $npsVid             =  $this->wordCloud($request); //null;
             $csatJourney        = $this->CSATJourney($graphCSATDrivers);
             $csatDrivers        = $this->graphCLTransvip($dataCL);
             $cx                 = $this->graphCbiResp($datasCbiResp);
