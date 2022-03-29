@@ -1,4 +1,5 @@
 # PASOS PARA CORRER EL BACK EN FORMA LOCAL
+## Sólo para Windows.
 
 1 - Instalar XAMPP 7.1
 
