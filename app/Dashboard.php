@@ -131,6 +131,7 @@ class Dashboard extends Generic
         $tramo =            [];
         $nicho =            [];
         $sucursal =         [];
+        $web =              [];
         $macrosegmento =    [];
         $modAtencion =      [];
         $tipoCliente =      [];
@@ -188,6 +189,16 @@ class Dashboard extends Generic
                 return ['filters' => [(object)$regiones, (object)$genero, (object)$tramo, (object)$nicho, (object)$sucursal], 'status' => Response::HTTP_OK];
             }
 
+            if ($dbC == 'web'){
+                //SITIOWEB
+                $data = DB::select("SELECT DISTINCT(sitioWeb)
+                                    FROM $this->_dbSelected." . $db . "_start
+                                    where sitioWeb != ''");
+                $web = ['filter' => 'web', 'datas' => $this->contentfilter($data, 'sitioWeb')];
+
+                return ['filters' => [(object)$regiones, (object)$genero, (object)$tramo, (object)$nicho, (object)$web], 'status' => Response::HTTP_OK];
+            }
+
             return ['filters' => [(object)$regiones, (object)$genero, (object)$tramo, (object)$nicho], 'status' => Response::HTTP_OK];
         }
 
@@ -220,9 +231,6 @@ class Dashboard extends Generic
                                     FROM $this->_dbSelected.adata_mut_".$dbC."_start
                                     WHERE macroseg != '0' and macroseg != '9' and macroseg != '8'");
 
-                // foreach($data as $value){
-                //     $macros[$value->nomMacro] = $value->macroseg;
-                // }
                 $this->_fieldSelectInQuery = 'macroseg';
 
                 $macrosegmento = ['filter' => 'Macrosegmento', 'datas' => $this->contentfilter($data, 'macroseg')];
@@ -233,24 +241,17 @@ class Dashboard extends Generic
                                     FROM $this->_dbSelected.adata_mut_".$dbC."_start
                                     WHERE tatencion != '0' ");
 
-                // foreach($data as $value){
-                //     $atencion[$value->nomModalidad] = $value->tatencion;
-                // }
                 $this->_fieldSelectInQuery = 'tatencion';
 
                 $modAtencion = ['filter' => 'ModalidadAtencion', 'datas' => $this->contentfilter($data, 'tatencion')];
 
                 return ['filters' => [(object)$modAtencion], 'status' => Response::HTTP_OK];
-                //$sucursal = ['filter'=>'sucursal', 'datas'=>$this->contentfilter($data, 'nomSuc')];
             }
 
             if ($dbC == 'ges') {
                 $data = DB::select("SELECT DISTINCT(tipcliente)
                                     FROM $this->_dbSelected.adata_mut_" . $dbC . "_start ");
 
-                // foreach($data as $value){
-                //     $cliente[$value->nomTipoCliente] = $value->tipcliente;
-                // }
                 $this->_fieldSelectInQuery = 'tipcliente';
 
                 $tipoCliente = ['filter' => 'TipoCliente', 'datas' => $this->contentfilter($data, 'tipcliente')];
@@ -259,10 +260,6 @@ class Dashboard extends Generic
             if ($dbC == 'ges') {
                 $data = DB::select("SELECT DISTINCT(canal)
                                     FROM $this->_dbSelected.adata_mut_" . $dbC . "_start");
-
-                // foreach($data as $value){
-                //     $canal[$value->nomCanalGes] = $value->canal;
-                // }
                 $this->_fieldSelectInQuery = 'canal';
 
                 $tipoCanal = ['filter' => 'Canal', 'datas' => $this->contentfilter($data, 'canal')];
@@ -280,7 +277,6 @@ class Dashboard extends Generic
 
                 $tipAtencion = ['filter' => 'TipoAtencion', 'datas' => $this->contentfilter($data, 'tatencion')];
 
-                //return ['filters'=>[(object)$tipAtencion], 'status'=>Response::HTTP_OK];
             }
 
             if ($dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh') {
@@ -297,9 +293,6 @@ class Dashboard extends Generic
             if ($dbC == 'hos') {
                 $data = DB::select("SELECT DISTINCT(catencion)
                                 FROM $this->_dbSelected.adata_mut_" . $dbC . "_start");
-                // foreach($data as $value){
-                //         $cenAtencion[$value->nomCentro] = $value->catencion;
-                //     }
                 $this->_fieldSelectInQuery = 'catencion';
 
                 $CenAtencionn = ['filter' => 'CentroAtencion', 'datas' => $this->contentfilter($data, 'catencion')];
@@ -309,7 +302,6 @@ class Dashboard extends Generic
 
             return ['filters' => [(object)$macrosegmento], 'status' => Response::HTTP_OK];
         }
-
 
         //TRANSVIP
 
@@ -372,8 +364,6 @@ class Dashboard extends Generic
 
     public function detailsDashCxWord($request,$jwt)
     {
-        //$startDate = $request->get('startDate');
-        //$endDate = $request->get('endDate');
 
         $request->merge([
             'startDate' => date('Y-m-d',strtotime(date('Y-m-01')."- $this->_periodCxWord month")),
@@ -1271,8 +1261,11 @@ class Dashboard extends Generic
     }   
 
     //OKK
-    private function csatPreviousPeriod($table, $mes, $annio, $indicador, $filter)
+    private function csatPreviousPeriod($table, $mes, $annio, $indicador, $filter, $datafilters)
     {
+        // if ($datafilters)
+        // $datafilters = " AND $datafilters";
+
         $monthAnt       = $mes - 1;
         if ($monthAnt == 0) {
             $monthAnt   = 12;
@@ -1299,12 +1292,16 @@ class Dashboard extends Generic
             $indicador2 = $indicador;
             $data = DB::select("SELECT SUM(CSAT) AS CSAT 
             FROM (SELECT ((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN $indicador END)*100)/COUNT(CASE WHEN $indicador2 != 99 THEN $indicador2 END))*$this->_porcentageBan as CSAT
-            FROM $this->_dbSelected.$table
-            WHERE mes = $monthAnt AND annio = $annio 
+            from $this->_dbSelected.$table as a
+            left join $this->_dbSelected." . $table . "_start as b
+            on a.token = b.token
+            WHERE a.mes = $monthAnt AND a.annio = $annio  $datafilters
             UNION 
             SELECT ((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN $indicador END)*100)/COUNT(CASE WHEN $indicador2 != 99 THEN $indicador2 END))*$this->_porcentageVid as CSAT
-            FROM $this->_dbSelected.$table2
-            WHERE mes = $monthAnt AND annio = $annio ) AS A");
+            from $this->_dbSelected.$table2 as a
+            left join $this->_dbSelected.".$table2."_start as b
+            on a.token = b.token
+            WHERE a.mes = $monthAnt AND a.annio = $annio $datafilters ) AS A");
 
         }
 
@@ -1318,7 +1315,7 @@ class Dashboard extends Generic
     {
         $table2 = '';
         if ($datafilters)
-            $datafilters = " AND $datafilters";
+        $datafilters = " AND $datafilters";
 
         if ($filter != 'all') {
             if (substr($table, 6, 3) != 'mut') {
@@ -1346,12 +1343,11 @@ class Dashboard extends Generic
         if ($filter == 'all') {
             $table2 = $this->primaryTable($table);
             $indicador2 = $indicador;
-
+            //echo $datafilters; 
             $data = DB::select("SELECT SUM(total) AS total, SUM(csat) AS csat, $this->_fieldSelectInQuery
             FROM (  SELECT count(*) as total, date_survey, a.mes, a.annio,
                      ((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN $indicador END)*100)/COUNT(CASE WHEN $indicador2 != 99 THEN $indicador2 END))*$this->_porcentageBan as csat, $this->_fieldSelectInQuery
             FROM $this->_dbSelected.$table as a
-
             INNER JOIN $this->_dbSelected.".$table."_start as b  ON a.token  =  b.token 
             WHERE a.mes = $mes AND a.annio = $annio  $datafilters
             GROUP BY a.mes, a.annio
@@ -1364,7 +1360,7 @@ class Dashboard extends Generic
             GROUP BY a.mes, a.annio) AS A ");
         }
 
-        $csatPreviousPeriod = $this->csatPreviousPeriod($table, $mes, $annio, $indicador, $filter);
+        $csatPreviousPeriod = $this->csatPreviousPeriod($table, $mes, $annio, $indicador, $filter,  $datafilters);
 
         $csatActive = 0;
 
@@ -3084,7 +3080,7 @@ class Dashboard extends Generic
         group by $group, a.mes, a.annio 
         )As a group by $group, a.mes, a.annio  ORDER BY $group, a.annio, a.mes";
         }
-        
+
         if ($filterClient != 'all') {
             $query = "SELECT UPPER($indicatorBD) as $indicatorName, b.mes,b.annio,date_survey,
             round((count(case when nps = 9 OR nps =10 then 1 end)-count(case when nps between  0 and  6 then 1 end)) / count(case when nps != 99 then 1 end) *100) as nps
@@ -3151,13 +3147,11 @@ class Dashboard extends Generic
             }
 
             if ($value->annio == '2021' && $value->mes >= 1) {
-
                 $countLY += 1;
                 $sumLY += ROUND($value->nps);
             }
 
             if ($value->annio == '2022') {
-
                 $count += 1;
                 $sum += ROUND($value->nps);
             }
@@ -4217,6 +4211,7 @@ class Dashboard extends Generic
         $where .= $this->structfilter($request, 'canal',      'Canal',             $where);
         $where .= $this->structfilter($request, 'tatencion',  'TipoAtencion',      $where);
         $where .= $this->structfilter($request, 'catencion',  'CentroAtencion',    $where);
+        $where .= $this->structfilter($request, 'sitioWeb',   'Web',               $where);
 
         //TRANSVIP
         $where .= $this->structfilter($request, 'tipocliente',       'tipoCliente',       $where);
@@ -4629,13 +4624,7 @@ class Dashboard extends Generic
                         "Hospitalización"=>"muthos"
             ]; 
         }
-        $peso = 1;
-        if ($request->client == 'vid'){
-            $peso = 0.23;
-        }
-        if ($request->client == 'ban') {
-            $peso = 0.77;
-        }
+       
         $rankingSuc = null;
         $ges = null;
         $ejecutivo = null;
