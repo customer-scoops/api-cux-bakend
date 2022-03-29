@@ -4661,16 +4661,19 @@ class Dashboard extends Generic
             if ($db == 'adata_ban_ven' || $db == 'adata_vid_ven') {
                 $super = $this->npsByIndicator($db, $dateEnd, $dateIni, $filterClient, 'nomSuper', 'nomSuper', 'supervisor', 'supervisor', 'Supervisor', 4);
                 $venta = $this->npsByIndicator($db, $dateEnd, $dateIni, $filterClient, 'nomFuerVent', 'nomFuerVent', 'FuerzaVenta', 'FuerzaVenta', 'Fuerza de venta', 4);
-            } if ($db == 'adata_ban_asi' || $db == 'adata_vid_asi' || $db == 'adata_vid_con' || $db == 'adata_ban_con') {
+            } 
+            if ($db == 'adata_ban_asi' || $db == 'adata_vid_asi' || $db == 'adata_vid_con' || $db == 'adata_ban_con') {
                 $call = $this->npsByIndicator($db, $dateEnd, $dateIni, $filterClient, 'dirLlamada', 'dirLlamada', 'llamada', 'llamada', 'Llamadas', 2);
-                $sucNpsCsat = $this->npsCsatbyIndicator($db, $dateEnd, $dateIni, 'nombreEjecutivo', 'Ejecutivo', 'csat2', 'csat3', 6, $peso);
-            } if ($db == 'adata_ban_con' || $db == 'adata_vid_con') {
+                $sucNpsCsat = $this->npsCsatbyIndicator($db, $dateEnd, $dateIni, 'nombreEjecutivo', 'Ejecutivo', 'csat2', 'csat3', 6, $filterClient);
+            } 
+            if ($db == 'adata_ban_con' || $db == 'adata_vid_con') {
                 $ejecutivo = $this->npsByIndicator($db, $dateEnd, $dateIni, $filterClient, "DISTINCT(UPPER(nombreEjecutivo)like 'Ext%')", 'nombreEjecutivo', 'CountExt', "(nombreEjecutivo NOT like 'Ext%')", 'Ejecutivos', 2);
-            } if ($db == 'adata_ban_suc' || $db == 'adata_vid_suc') {
-                $sucursal   = $this->npsNew($db, $dateEnd, $dateIni, 4, $peso);
-                $regiones   = $this->npsByRegiones($db, $dateEnd, $dateIni, $filterClient, 'ubicSuc', 'regiones', 'Regiones y Region Metropolitana', $peso);
-                $sucNpsCsat = $this->npsCsatbyIndicator($db, $dateEnd, $dateIni, 'nomSuc', 'Sucursal', 'csat3', 'csat4', 6, $peso);
-                $rankingSuc = $this->rankingSucursal($db, 'nomsuc', 'Sucursal', $endDateFilterMonth, $startDateFilterMonth, $filterClient, $peso, '8');
+            } 
+            if ($db == 'adata_ban_suc' || $db == 'adata_vid_suc') {
+                $sucursal   = $this->npsNew($db, $dateEnd, $dateIni, 4, $filterClient);
+                $regiones   = $this->npsByRegiones($db, $dateEnd, $dateIni, $filterClient, 'ubicSuc', 'regiones', 'Regiones y Region Metropolitana');
+                $sucNpsCsat = $this->npsCsatbyIndicator($db, $dateEnd, $dateIni, 'nomSuc', 'Sucursal', 'csat3', 'csat4', 6, $filterClient);
+                $rankingSuc = $this->rankingSucursal($db, 'nomsuc', 'Sucursal', $endDateFilterMonth, $startDateFilterMonth, $filterClient, 8);
                 if ($db == 'adata_ban_suc') {
                     $db = 'adata_ban_con';
                     $ges = $this->npsByIndicator($db, $dateEnd, $dateIni, $filterClient, 'canal', 'canal', 'canal', 'canal', 'Canal', 2);
@@ -4773,7 +4776,7 @@ class Dashboard extends Generic
             $wordCloud          = $this->globales($db, date('m'), date('Y'), 'sentido', 'Sentido', 'cbi', 'ins', 4, $datafilters);
             $closedLoop         = $this->globales($db, date('m'), date('Y'), 'tiposervicio', 'Vehículo', 'cbi', 'ins', 4, $datafilters);
             $detailGender       = $this->globales($db, date('m'), date('Y'), 'sucursal', 'Sucursal', 'cbi', 'ins', 4, $datafilters);
-            $detailGeneration   = $this->rankingSucursal($db, 'convenio', 'Convenio', $endDateFilterMonth, $startDateFilterMonth, $filterClient, '1', '6');
+            $detailGeneration   = $this->rankingSucursal($db, 'convenio', 'Convenio', $endDateFilterMonth, $startDateFilterMonth, $filterClient, 6);
             $detailsProcedencia = $this->graphINS($tiempoVehiculo, $coordAnden, $tiempoAeropuerto, $tiempoLlegadaAnden);
             $box14              = $this->graphCsatTransvip($drivers);
             $box15              = null;
