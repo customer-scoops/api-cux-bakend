@@ -2124,7 +2124,8 @@ class Dashboard extends Generic
                             [
                                 "type" => "CSAT",
                                 "value" => $csatm,
-                                "aditionalText" => "%"
+                                "aditionalText" => "%",
+                                "textColor"=> 'rgb(0,0,0)'
                             ],
                             [
                                 "type" => "Cantidad de respuestas",
@@ -2147,7 +2148,8 @@ class Dashboard extends Generic
                             [
                                 "type" => "CSAT",
                                 "value" => $csatx,
-                                "aditionalText" => "%"
+                                "aditionalText" => "%",
+                                "textColor"=> 'rgb(0,0,0)'
                             ],
                             [
                                 "type" => "Cantidad de respuestas",
@@ -2171,6 +2173,7 @@ class Dashboard extends Generic
                                 "type" => "CSAT",
                                 "value" => $csatb,
                                 "aditionalText" => "%",
+                                "textColor"=> 'rgb(0,0,0)'
                             ],
                             [
                                 "type" => "Cantidad de respuestas",
@@ -2193,7 +2196,8 @@ class Dashboard extends Generic
                             [
                                 "type" => "CSAT",
                                 "value" => $csats,
-                                "aditionalText" => "%"
+                                "aditionalText" => "%",
+                                "textColor"=> 'rgb(0,0,0)'
                             ],
                             [
                                 "type" => "Cantidad de respuestas",
@@ -2334,7 +2338,8 @@ class Dashboard extends Generic
                             [
                                 "type" => "CSAT",
                                 "value" => $csatM,
-                                "aditionalText" => "%"
+                                "aditionalText" => "%",
+                                "textColor"=> 'rgb(0,0,0)'
                             ],
                             [
                                 "type" => "Respuestas",
