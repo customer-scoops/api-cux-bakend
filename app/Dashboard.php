@@ -644,8 +644,7 @@ class Dashboard extends Generic
         ];
     }
 
-    public function generalInfo($request, $jwt)
-    {
+    public function generalInfo($request, $jwt){
         $indicators = new Suite($this->_jwt);
         $data = [];
         $surveys = $indicators->getSurvey($request, $jwt);
@@ -665,10 +664,6 @@ class Dashboard extends Generic
                 if(substr($value['base'],0,3) == 'mut'){
                     $otherGraph = [$this->infoCsat($db,date('m'),date('Y'), $csatInDb,$this->_initialFilter), $this->ces($db,$this->_initialFilter,date('m'),date('Y'), $cesInDb)];
                 } 
-                // else if ($value['base'] == 'muteri'){
-                //     $otherGraph = [$this->ces($db,$this->_initialFilter,date('m'),date('Y'), $csatInDb)];
-                // } 
-                //var_dump($otherGraph);
 
                 if (substr($value['base'],0,3) == 'tra'){
                     $db = 'adata_tra_via';
@@ -680,82 +675,91 @@ class Dashboard extends Generic
 
                     ];
                 }
+
+                $data[] = [
+                    'client'        => $this->_nameClient, 'clients'  => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
+                    "title"         => ucwords(strtolower($value['name'])),
+                    "identifier"    => $value['base'],
+                    "nps"           => $this->infoNps($db,date('m'),date('Y'),$npsInDb,$this->_initialFilter),
+                    "journeyMap"    => $this->GraphCSATDrivers($db,$db2,$value['base'],$csatInDb,date('Y-m-d'),date('Y-m-01'),$this->_initialFilter,'one'),
+                    "otherGraphs"   => $otherGraph
+                ];
             }
         }
-
+    }
         return [
             'datas'     => $data,
             'status'    => Response::HTTP_OK
         ];
-    }
-    }
+        }
+    
     //OKK
 
-    // private function infoJorneyMaps($db, $dateIni, $dateEnd, $survey, $filter){
-    //     $db2 = $this->primaryTable($db);
+    private function infoJorneyMaps($db, $dateIni, $dateEnd, $survey, $filter){
+        $db2 = $this->primaryTable($db);
         
-    //     $endCsat = $this->getEndCsat($survey);
+        $endCsat = $this->getEndCsat($survey);
        
-    //     if($endCsat){
-    //         if($filter == 'all'){
-    //             $fieldBd = $this->getFielInDbCsat($survey);
-    //             $fieldBd2 = $this->getFielInDbCsat($survey);
-    //             //$fieldBd2 = ($db == 'adata_ban_web')?'csat':$fieldBd;
-    //             $query = "";
-    //             $query2 = "";
-    //             for ($i=1; $i <= $endCsat; $i++) {
-    //                 if($i != $endCsat){
-    //                     $query .= " AVG($fieldBd$i)*$this->_porcentageBan AS csat$i, ";
-    //                     $query2 .= " AVG($fieldBd2$i)*$this->_porcentageVid AS csat$i, ";
-    //                 }
-    //                 if($i == $endCsat){
-    //                     $query .= " AVG($fieldBd$i)*$this->_porcentageBan AS csat$i ";
-    //                     $query2 .= " AVG($fieldBd2$i)*$this->_porcentageVid AS csat$i ";
-    //                 }
-    //             }
-    //             $data = DB::select("SELECT $query FROM (SELECT $query,date_survey
-    //                                 FROM $this->_dbSelected.$db as A
-    //                                 WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2' 
-    //                                 UNION
-    //                                 SELECT $query2,date_survey
-    //                                 FROM $this->_dbSelected.$db2 as A
-    //                                 WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'
-    //                                 ORDER BY date_survey) AS A");
-    //         }
-    //         if($filter != 'all'){
-    //             $fieldBd = $this->getFielInDbCsat($survey);
-    //             $query = "";
-    //             for ($i=1; $i <= $endCsat; $i++) {
-    //                 if($i != $endCsat){
-    //                     $query .= " AVG($fieldBd$i) AS csat$i, ";
-    //                 }
-    //                 if($i == $endCsat){
-    //                     $query .= " AVG($fieldBd$i) AS csat$i ";
-    //                 }
+        if($endCsat){
+            if($filter == 'all'){
+                $fieldBd = $this->getFielInDbCsat($survey);
+                $fieldBd2 = $this->getFielInDbCsat($survey);
+                //$fieldBd2 = ($db == 'adata_ban_web')?'csat':$fieldBd;
+                $query = "";
+                $query2 = "";
+                for ($i=1; $i <= $endCsat; $i++) {
+                    if($i != $endCsat){
+                        $query .= " AVG($fieldBd$i)*$this->_porcentageBan AS csat$i, ";
+                        $query2 .= " AVG($fieldBd2$i)*$this->_porcentageVid AS csat$i, ";
+                    }
+                    if($i == $endCsat){
+                        $query .= " AVG($fieldBd$i)*$this->_porcentageBan AS csat$i ";
+                        $query2 .= " AVG($fieldBd2$i)*$this->_porcentageVid AS csat$i ";
+                    }
+                }
+                $data = DB::select("SELECT $query FROM (SELECT $query,date_survey
+                                    FROM $this->_dbSelected.$db as A
+                                    WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2' 
+                                    UNION
+                                    SELECT $query2,date_survey
+                                    FROM $this->_dbSelected.$db2 as A
+                                    WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'
+                                    ORDER BY date_survey) AS A");
+            }
+            if($filter != 'all'){
+                $fieldBd = $this->getFielInDbCsat($survey);
+                $query = "";
+                for ($i=1; $i <= $endCsat; $i++) {
+                    if($i != $endCsat){
+                        $query .= " AVG($fieldBd$i) AS csat$i, ";
+                    }
+                    if($i == $endCsat){
+                        $query .= " AVG($fieldBd$i) AS csat$i ";
+                    }
                     
-    //             }
-    //             $data = DB::select("SELECT $query,date_survey
-    //                                 FROM $this->dbSelected.$db as A
-    //                                 WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2' 
-    //                                 ORDER BY date_survey");
-    //         }
-    //         $journey =[];
-    //         $indicator = new Suite($this->_jwt);
+                }
+                $data = DB::select("SELECT $query,date_survey
+                                    FROM $this->dbSelected.$db as A
+                                    WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2' 
+                                    ORDER BY date_survey");
+            }
+            $journey =[];
+            $indicator = new Suite($this->_jwt);
            
-    //         foreach ($data[0] as $key => $value) {
+            foreach ($data[0] as $key => $value) {
              
-    //             $journey[] = [
-    //                 'text'  => $indicator->getInformationDriver($survey.'_'.$key),
-    //                 'values' => round($value,2),
-    //                 ];
-    //         }
+                $journey[] = [
+                    'text'  => $indicator->getInformationDriver($survey.'_'.$key),
+                    'values' => round($value,2),
+                    ];
+            }
     
-    //         return $journey;
-    //     }
-    //     if(!$endCsat){
-    //         return null;
-    //     }
-    // }
+            return $journey;
+        }
+        if(!$endCsat){
+            return null;
+        }
+    }
 
     public function getEndCsat($survey){
 
