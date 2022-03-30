@@ -11,14 +11,6 @@ use DB;
 use App\Suite;
 use App\Generic;
 use Carbon\Carbon;
-
-function console_log($data) {
-    $output = $data;
-    if (is_array($output))
-        $output = implode(',', $output);
-
-    echo "<script>console.log('Result: " . $output . "' );</script>";
-}
 class Dashboard extends Generic
 {
     private $_activeSurvey = 'banrel';
@@ -166,7 +158,7 @@ class Dashboard extends Generic
                                 FROM $this->_dbSelected.".$db."_start
                                 WHERE region != ''");
             $regiones = ['filter' => 'regiones', 'datas' => $this->contentfilter($data, 'region')];
-            console_log($data);
+            
             //TRAMO
             $data = DB::select("SELECT DISTINCT(tramo) 
                                 FROM  $this->_dbSelected.".$db."_start
