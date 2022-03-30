@@ -638,7 +638,7 @@ class Dashboard extends Generic
         $indicators = new Suite($this->_jwt);
         $data = [];
         $surveys = $indicators->getSurvey($request, $jwt);
-        print_r($surveys);
+        //print_r($surveys);
         if ($surveys['status'] == 200) {
             foreach ($surveys['datas'] as $key => $value) {
                
@@ -648,7 +648,7 @@ class Dashboard extends Generic
                 $npsInDb = 'nps';
                 $csatInDb = 'csat';
                 $cesInDb = 'ces';
-                
+                $infoNps = $this->infoNps($db,date('m'),date('Y'),$npsInDb,$this->_initialFilter); 
                 $otherGraph = [$this->infoCsat($db,date('m'),date('Y'), $csatInDb,$this->_initialFilter)];
                 
                 if(substr($value['base'],0,3) == 'mut'){
@@ -665,12 +665,19 @@ class Dashboard extends Generic
 
                     ];
                 }
+                
+                if (substr($value['base'],0,3) == 'jet'){
+                    // echo $db;
+                    $infoNps = $this->cbiResp($db, '', date('Y-m-d'),date('Y-m-01'));
+                    $otherGraph = [$this->infoCsat($db,date('m'),date('Y'), $csatInDb,$this->_initialFilter)];
+                }
+
                 //print_r($otherGraph);
                 $data[] = [
                     'client'        => $this->_nameClient, 'clients'  => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
                     "title"         => ucwords(strtolower($value['name'])),
                     "identifier"    => $value['base'],
-                    "nps"           => $this->infoNps($db,date('m'),date('Y'),$npsInDb,$this->_initialFilter),
+                    "nps"           => $infoNps,
                     "journeyMap"    => $this->GraphCSATDrivers($db,$db2,$value['base'],$csatInDb,date('Y-m-d'),date('Y-m-01'),$this->_initialFilter,'one'),
                     "otherGraphs"   => $otherGraph
                 ];
@@ -781,6 +788,9 @@ class Dashboard extends Generic
             "demdem" => "8",
             //transvip
             "travia" => "11",
+            //JetSmart
+            "jetvia" => "8",
+            "jetcom" => "6",
         ];
         if (array_key_exists($survey, $datas)) {
             return $datas[$survey];
@@ -1530,7 +1540,7 @@ class Dashboard extends Generic
     }
 
 
-    private function cbiResp($datafilters, $dateIni, $dateEnd)
+    private function cbiResp($db, $datafilters, $dateIni, $dateEnd)
     {
         if (substr($datafilters, 30, 3) == 'NOW') {
             $datafilters = '';
@@ -1541,25 +1551,39 @@ class Dashboard extends Generic
         
         $data = DB::select("SELECT count(case when cbi between 4 and 5 then 1 end)*100/count(case when cbi != 99 then 1 end) as cbi,
             count(case when cbi != 99 then 1 end) as Total, a.mes, a.annio, date_survey 
-            from customer_colmena.adata_tra_via as a
-            left join customer_colmena.adata_tra_via_start as b 
+            from $this->_dbSelected.$db as a
+            left join $this->_dbSelected." . $db . "_start as b 
             on a.token = b.token 
             WHERE etapaencuesta = 'P2' and date_survey BETWEEN '$dateEnd' AND'$dateIni' $datafilters
             group by  mes, annio
             order by annio, mes");
 
-        $acumuladoResp = 0;
-        foreach ($data as $key => $value) {
-            $acumuladoResp += (int)$value->Total;
-            $cbiResp[] = [
-                'xLegend'   => (string)$value->mes . '-' . $value->annio . '(' . $value->Total . ')',
-                'values'    => [
-                    "cbi"               => (int)$value->cbi,
-                    "total"             => (int)$value->Total,
-                    "acumuladoResp"     => (int)$acumuladoResp,
-                ],
-            ];
-        }
+        if(substr($db,6,3 == 'tra')){
+            $acumuladoResp = 0;
+            foreach ($data as $key => $value) {
+                $acumuladoResp += (int)$value->Total;
+                $cbiResp[] = [
+                    'xLegend'   => (string)$value->mes . '-' . $value->annio . '(' . $value->Total . ')',
+                    'values'    => [
+                        "cbi"               => (int)$value->cbi,
+                        "total"             => (int)$value->Total,
+                        "acumuladoResp"     => (int)$acumuladoResp,
+                    ],
+                ];
+            }
+    }
+
+    if(substr($db,6,3 == 'jet')){
+        // $npsActive = (isset($data[0]->NPS)) ? $data[0]->NPS : 0;             
+        // $npsPreviousPeriod = $this->npsPreviousPeriod($table, $mes, $annio, $indicador, $datafilters);             
+        // return [                 
+        //     "name"=> "cbi",
+        //     "value"=> 'N/A',
+        //     "percentage"=> $npsActive - $npsPreviousPeriod,                 
+        //     "smAvg"=> $this->AVGLast6MonthNPS($table, $table2, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter)
+        //              ];
+    }
+
 
         return $cbiResp;
     }
@@ -4812,7 +4836,7 @@ class Dashboard extends Generic
             $datasStatsByTaps   = null;
             $dataCL             = $this->closedloopTransvip($datafilters, $dateIni, $dateEnd);
             //REVISAR QUERYS SE DEMORAN 2 SEG DESDE ACA
-            $datasCbiResp       = $this->cbiResp($datafilters, $dateIni, $dateEnd);
+            $datasCbiResp       = $this->cbiResp($db,$datafilters, $dateIni, $dateEnd);
             $drivers            = $this->csatsDriversTransvip($db, trim($request->survey), $dateIni, $dateEnd, $datafilters);
             $graphCSATDrivers   = $this->GraphCSATDrivers($db, '', trim($request->survey), $csatInDb, $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters, $group);
             $dataisn            = $this->NpsIsnTransvip($db, date('m'), date('Y'), $npsInDb, $csatInDb, $datafilters, $group, $dateIni, $dateEnd);
@@ -5020,8 +5044,8 @@ class Dashboard extends Generic
         if ($client == 'JET001') {
            $this->_dbSelected          = 'customer_jetsmart';
            $this->_initialFilter       = 'one';
-           $this->_fieldSelectInQuery  = 'sex';
-           $this->_fieldSex            = 'sex';
+           $this->_fieldSelectInQuery  = 'gen';
+           $this->_fieldSex            = 'gen';
            $this->_minNps              = 0;
            $this->_maxNps              = 6;
            $this->_minMediumNps        = 7;

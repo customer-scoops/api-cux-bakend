@@ -75,7 +75,7 @@ class Suite
     }
     public function getSurvey($request,$jwt)
     {   
-        echo $this->_dbSelected;
+        // echo $this->_dbSelected;
     //    try {
     //     DB::connection()->getPdo();
     // } catch (\Throwable $th) {
