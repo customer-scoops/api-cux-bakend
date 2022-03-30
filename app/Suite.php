@@ -75,6 +75,7 @@ class Suite
     }
     public function getSurvey($request,$jwt)
     {   
+        echo $this->_dbSelected;
     //    try {
     //     DB::connection()->getPdo();
     // } catch (\Throwable $th) {
@@ -610,6 +611,14 @@ class Suite
             $this->_startMinNps = 0;
             $this->_startMaxNps = 6;
             $this->_nameClient = 'Transvip';
+            $this->_daysActiveSurvey = -7;
+        }
+        if($client == 'JET001'){
+            $this->_dateStartClient = '2022-01-01';
+            $this->_dbSelected  = 'customer_jetsmart';
+            $this->_startMinNps = 0;
+            $this->_startMaxNps = 6;
+            $this->_nameClient = 'JetSmart';
             $this->_daysActiveSurvey = -7;
         }
     }
