@@ -1181,9 +1181,6 @@ class Dashboard extends Generic
             }
         }
 
-
-
-
         return $graphNPS;
     }
 
