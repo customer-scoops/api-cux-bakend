@@ -1103,22 +1103,44 @@ class Dashboard extends Generic
         }
 
         if ($data) {
-            foreach ($data as $key => $value) {
-                if ($struct != 'one') {
-                    $graphNPS[] = [
-                        'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
-                        'values' => [
-                            "promoters"     => round($value->promotor),
-                            "neutrals"      => 100 - (round($value->promotor) + round($value->detractor)),
-                            "detractors"    => round($value->detractor),
-                            "nps"           => round($value->NPS)
-                        ],
-                    ];
+            if ($data[0]->total === null) {
+                foreach ($data as $key => $value) {
+                    if ($struct != 'one') {
+                        $graphNPS[] = [
+                            'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
+                            'values' => [
+                                "promoters"     => round($value->promotor),
+                                "neutrals"      => 100 - (round($value->promotor) + round($value->detractor)),
+                                "detractors"    => round($value->detractor),
+                                "nps"           => round($value->NPS)
+                            ],
+                        ];
+                    }
+                    if ($struct == 'one') {
+                        $graphNPS[] = [
+                            "value" => $value->NPS
+                        ];
+                    }
                 }
-                if ($struct == 'one') {
-                    $graphNPS[] = [
-                        "value" => $value->NPS
-                    ];
+            }
+            if ($data[0]->total === null) {
+                foreach ($data as $key => $value) {
+                    if ($struct != 'one') {
+                        $graphNPS[] = [
+                            'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
+                            'values' => [
+                                "promoters"     => round($value->promotor),
+                                "neutrals"      => 100 - (round($value->promotor) + round($value->detractor)),
+                                "detractors"    => round($value->detractor),
+                                "nps"           => round($value->NPS)
+                            ],
+                        ];
+                    }
+                    if ($struct == 'one') {
+                        $graphNPS[] = [
+                            "value" => $value->NPS
+                        ];
+                    }
                 }
             }
         }
@@ -1141,28 +1163,6 @@ class Dashboard extends Generic
                     ];
                 }
         }
-
-        if ($data[0]->total === null) {
-            foreach ($data as $key => $value) {
-                if ($struct != 'one') {
-                    $graphNPS[] = [
-                        'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
-                        'values' => [
-                            "promoters"     => round($value->promotor),
-                            "neutrals"      => 100 - (round($value->promotor) + round($value->detractor)),
-                            "detractors"    => round($value->detractor),
-                            "nps"           => round($value->NPS)
-                        ],
-                    ];
-                }
-                if ($struct == 'one') {
-                    $graphNPS[] = [
-                        "value" => $value->NPS
-                    ];
-                }
-            }
-        }
-
         return $graphNPS;
     }
 
