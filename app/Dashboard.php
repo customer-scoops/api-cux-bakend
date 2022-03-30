@@ -1043,7 +1043,6 @@ class Dashboard extends Generic
             $datafilters = " AND $datafilters";
 
         $graphNPS   = [];
-
         
         if ($filter != 'all') {
             $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
@@ -1062,23 +1061,6 @@ class Dashboard extends Generic
                                 WHERE  $where $datafilters 
                                 GROUP BY $group2
                                 ORDER BY date_survey ASC");
-
-        // echo "SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
-        // COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) / 
-        // (COUNT($indicador) - COUNT(CASE WHEN $indicador=99 THEN 1 END)) * 100),1) AS NPS, 
-        // count(if($indicador < 7, $indicador, NULL)) as Cdet,
-        // count(if($indicador> 8 AND $indicador <=10, $indicador, NULL)) as Cpro,
-        // count(if($indicador=8 OR $indicador=7, $indicador, NULL)) as Cneu,              
-        // count(*) as total, 
-        // ((count(if($indicador < 7, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as detractor, 
-        // ((count(if($indicador = 9 OR $indicador =10, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as promotor, 
-        // ((count(if($indicador <= 8 AND $indicador >=7, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as neutral,              
-        // a.mes, a.annio, WEEK(date_survey) AS week,$this->_fieldSelectInQuery  
-        // FROM $this->_dbSelected.$table as a
-        // INNER JOIN $this->_dbSelected." . $table . "_start as b ON a.token = b.token 
-        // WHERE  $where $datafilters 
-        // GROUP BY $group2
-        // ORDER BY date_survey ASC";
         }
 
         if ($filter == 'all') {
