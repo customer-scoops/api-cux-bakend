@@ -1043,8 +1043,7 @@ class Dashboard extends Generic
             $datafilters = " AND $datafilters";
 
         $graphNPS   = [];
-
-        //if($table != 'adata_mut_red'){
+        
         if ($filter != 'all') {
             $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
                                 COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) / 
@@ -1065,7 +1064,6 @@ class Dashboard extends Generic
         }
 
         if ($filter == 'all') {
-
             $indicador2 = $indicador;
 
             $data = DB::select("SELECT SUM(NPS) AS NPS, SUM(total) as total,SUM(detractor) as detractor,SUM(promotor) as promotor,SUM(neutral) as neutral, mes , annio, sum(Cdet) as Cdet, sum(Cpro) as Cpro, sum(Cneu) as Cneu, WEEK(date_survey) AS week, $this->_fieldSelectInQuery
@@ -1124,8 +1122,27 @@ class Dashboard extends Generic
                 }
             }
         }
+       
+        if ($data === null) {
+                if ($struct != 'one') {
+                    $graphNPS[] = [
+                        'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (0)',
+                        'values' => [
+                            "promoters"     => 0,
+                            "neutrals"      => 0,
+                            "detractors"    => 0,
+                            "nps"           => 0,
+                        ],
+                    ];
+                }
+                if ($struct == 'one') {
+                    $graphNPS[] = [
+                        "value" => 0
+                    ];
+                }
+        }
 
-        if ($data === null || $data[0]->total === null) {
+        if ($data[0]->total === null) {
             foreach ($data as $key => $value) {
                 if ($struct != 'one') {
                     $graphNPS[] = [
@@ -1146,7 +1163,6 @@ class Dashboard extends Generic
             }
         }
 
-        //var_dump($graphNPS);
         return $graphNPS;
     }
 
@@ -3076,7 +3092,7 @@ class Dashboard extends Generic
         }
         if ($filterClient == 'all') {
             $query = "SELECT SUM(nps) AS nps, mes, annio, $indicatorName FROM (
-        SELECT UPPER($indicatorBD) as $indicatorName, b.mes,b.annio,date_survey, 
+        SELECT $indicatorBD as $indicatorName, b.mes,b.annio,date_survey, 
         round((count(case when nps = 9 OR nps =10 then 1 end)-count(case when nps between 0 and 6 then 1 end)) / 
         count(case when nps != 99 then 1 end) *100)*$this->_porcentageBan as nps 
         from $this->_dbSelected." . $db . "_start as a 
@@ -3085,7 +3101,7 @@ class Dashboard extends Generic
         where $whereInd!= '' and date_survey between '2021-01-01' and '$startDate' and etapaencuesta = 'P2' $where
         group by $group, a.mes, a.annio
         UNION 
-        SELECT UPPER($indicatorBD) as $indicatorName, b.mes,b.annio,date_survey, 
+        SELECT $indicatorBD as $indicatorName, b.mes,b.annio,date_survey, 
         round((count(case when nps = 9 OR nps =10 then 1 end)-count(case when nps between 0 and 6 then 1 end)) / 
         count(case when nps != 99 then 1 end) *100)*$this->_porcentageVid as nps 
         from $this->_dbSelected." . $db2 . "_start as a
@@ -3097,7 +3113,7 @@ class Dashboard extends Generic
         }
 
         if ($filterClient != 'all') {
-            $query = "SELECT UPPER($indicatorBD) as $indicatorName, b.mes,b.annio,date_survey,
+            $query = "SELECT $indicatorBD as $indicatorName, b.mes,b.annio,date_survey,
             round((count(case when nps = 9 OR nps =10 then 1 end)-count(case when nps between  0 and  6 then 1 end)) / count(case when nps != 99 then 1 end) *100) as nps
             from $this->_dbSelected." . $db . "_start as a
             left join $this->_dbSelected.$db as b
@@ -4687,7 +4703,7 @@ class Dashboard extends Generic
             } 
             if ($db == 'adata_ban_asi' || $db == 'adata_vid_asi' || $db == 'adata_vid_con' || $db == 'adata_ban_con') {
                 $call = $this->npsByIndicator($db, $dateEnd, $dateIni, $filterClient, 'dirLlamada', 'dirLlamada', 'llamada', 'llamada', 'Llamadas', 2);
-                $sucNpsCsat = $this->npsCsatbyIndicator($db, $dateEnd, $dateIni, 'nombreEjecutivo', 'Ejecutivo', 'csat2', 'csat3', 6, $filterClient);
+                $sucNpsCsat = $this->npsCsatbyIndicator($db, $dateEnd, $dateIni, 'UPPER(nombreEjecutivo)', 'Ejecutivo', 'csat2', 'csat3', 6, $filterClient);
             } 
             if ($db == 'adata_ban_con' || $db == 'adata_vid_con') {
                 $ejecutivo = $this->npsByIndicator($db, $dateEnd, $dateIni, $filterClient, "DISTINCT(UPPER(nombreEjecutivo)like 'Ext%')", 'nombreEjecutivo', 'CountExt', "(nombreEjecutivo NOT like 'Ext%')", 'Ejecutivos', 2);
