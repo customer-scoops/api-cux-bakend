@@ -183,7 +183,8 @@ class Dashboard extends Generic
                 //SUCURSAL
                 $data = DB::select("SELECT DISTINCT(nomSuc) 
                                     FROM  $this->_dbSelected.".$db."_start
-                                    where nomSuc != ''");
+                                    where nomSuc != ''
+                                    ORDER BY nomSuc");
                 $sucursal = ['filter' => 'sucursal', 'datas' => $this->contentfilter($data, 'nomSuc')];
 
                 return ['filters' => [(object)$regiones, (object)$genero, (object)$tramo, (object)$nicho, (object)$sucursal], 'status' => Response::HTTP_OK];
@@ -2001,6 +2002,12 @@ class Dashboard extends Generic
         $csatx      = 0;
         $csatb      = 0;
         $csats      = 0;
+
+        $anomaliasZ = 0;
+        $anomaliasM = 0;
+        $anomaliasX = 0;
+        $anomaliasB = 0;
+        $anomaliasS = 0;
 
         if ($datafilters)
             $datafilters = " AND $datafilters";
@@ -4229,11 +4236,12 @@ class Dashboard extends Generic
         $where = '';
 
         //BANMEDICA
-        $where .= $this->structfilter($request, 'sex',    'genero',   $where);
-        $where .= $this->structfilter($request, 'region', 'regiones', $where);
-        $where .= $this->structfilter($request, 'nicho',  'nicho',    $where);
-        $where .= $this->structfilter($request, 'tramo',  'tramo',    $where);
-        $where .= $this->structfilter($request, 'nomSuc', 'sucursal', $where);
+        $where .= $this->structfilter($request, 'sex',       'genero',   $where);
+        $where .= $this->structfilter($request, 'region',    'regiones', $where);
+        $where .= $this->structfilter($request, 'nicho',     'nicho',    $where);
+        $where .= $this->structfilter($request, 'tramo',     'tramo',    $where);
+        $where .= $this->structfilter($request, 'nomSuc',    'sucursal', $where);
+        $where .= $this->structfilter($request, 'sitioWeb',  'Web',      $where);
 
         //MUTUAL
         $where .= $this->structfilter($request, 'macroseg',   'Macrosegmento',     $where);
@@ -4242,7 +4250,6 @@ class Dashboard extends Generic
         $where .= $this->structfilter($request, 'canal',      'Canal',             $where);
         $where .= $this->structfilter($request, 'tatencion',  'TipoAtencion',      $where);
         $where .= $this->structfilter($request, 'catencion',  'CentroAtencion',    $where);
-        $where .= $this->structfilter($request, 'sitioWeb',   'Web',               $where);
 
         //TRANSVIP
         $where .= $this->structfilter($request, 'tipocliente',       'tipoCliente',       $where);
