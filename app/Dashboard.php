@@ -196,7 +196,7 @@ class Dashboard extends Generic
                                     where sitioWeb != ''");
                 $web = ['filter' => 'web', 'datas' => $this->contentfilter($data, 'sitioWeb')];
 
-                return ['filters' => [(object)$regiones, (object)$genero, (object)$tramo, (object)$nicho, (object)$web], 'status' => Response::HTTP_OK];
+                return ['filters' => [(object)$regiones, (object)$genero, (object)$tramo, (object)$web], 'status' => Response::HTTP_OK];
             }
 
             return ['filters' => [(object)$regiones, (object)$genero, (object)$tramo, (object)$nicho], 'status' => Response::HTTP_OK];
@@ -1123,7 +1123,7 @@ class Dashboard extends Generic
                     }
                 }
             }
-            if ($data[0]->total === null) {
+            if ($data[0]->total !== null) {
                 foreach ($data as $key => $value) {
                     if ($struct != 'one') {
                         $graphNPS[] = [
