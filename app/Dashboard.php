@@ -643,44 +643,43 @@ class Dashboard extends Generic
             foreach ($surveys['datas'] as $key => $value) {
                
                 if ($value['base'] != 'mutred'){
-                $db = 'adata_'.substr($value['base'],0,3).'_'.substr($value['base'],3,6);
-                $db2 = $this->primaryTable($db);
-                $npsInDb = 'nps';
-                $csatInDb = 'csat';
-                $cesInDb = 'ces';
-                $infoNps = $this->infoNps($db,date('m'),date('Y'),$npsInDb,$this->_initialFilter); 
-                $otherGraph = [$this->infoCsat($db,date('m'),date('Y'), $csatInDb,$this->_initialFilter)];
-                
-                if(substr($value['base'],0,3) == 'mut'){
-                    $otherGraph = [$this->infoCsat($db,date('m'),date('Y'), $csatInDb,$this->_initialFilter), $this->ces($db,$this->_initialFilter,date('m'),date('Y'), $cesInDb)];
-                } 
-
-                if (substr($value['base'],0,3) == 'tra'){
-                    $db = 'adata_tra_via';
-                    $datas = $this->npsPreviousPeriod('adata_tra_via',date('m'),date('Y'),'csat','' );
-                    $isn =  [
-                        "name"          => "INS",
-                        "value"         => $datas['insAct'],
-                        "percentage"    => $datas['insAct']-$datas['ins'],
-
-                    ];
-                }
-                
-                if (substr($value['base'],0,3) == 'jet'){
-                    // echo $db;
-                    $infoNps = $this->cbiResp($db, '', date('Y-m-d'),date('Y-m-01'));
+                    $db = 'adata_'.substr($value['base'],0,3).'_'.substr($value['base'],3,6);
+                    $db2 = $this->primaryTable($db);
+                    $npsInDb = 'nps';
+                    $csatInDb = 'csat';
+                    $cesInDb = 'ces';
+                    $infoNps = $this->infoNps($db,date('m'),date('Y'),$npsInDb,$this->_initialFilter); 
                     $otherGraph = [$this->infoCsat($db,date('m'),date('Y'), $csatInDb,$this->_initialFilter)];
-                }
+                    
+                    if(substr($value['base'],0,3) == 'mut'){
+                        $otherGraph = [$this->infoCsat($db,date('m'),date('Y'), $csatInDb,$this->_initialFilter), $this->ces($db,$this->_initialFilter,date('m'),date('Y'), $cesInDb)];
+                    } 
 
-                //print_r($otherGraph);
-                $data[] = [
-                    'client'        => $this->_nameClient, 'clients'  => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
-                    "title"         => ucwords(strtolower($value['name'])),
-                    "identifier"    => $value['base'],
-                    "nps"           => $infoNps,
-                    "journeyMap"    => $this->GraphCSATDrivers($db,$db2,$value['base'],$csatInDb,date('Y-m-d'),date('Y-m-01'),$this->_initialFilter,'one'),
-                    "otherGraphs"   => $otherGraph
-                ];
+                    if (substr($value['base'],0,3) == 'tra'){
+                        $db = 'adata_tra_via';
+                        $datas = $this->npsPreviousPeriod('adata_tra_via',date('m'),date('Y'),'csat','' );
+                        $isn =  [
+                            "name"          => "INS",
+                            "value"         => $datas['insAct'],
+                            "percentage"    => $datas['insAct']-$datas['ins'],
+
+                        ];
+                    }
+                    
+                    if (substr($value['base'],0,3) == 'jet'){
+                        $infoNps = $this->cbiResp($db, '', date('Y-m-d'),date('Y-m-01'));
+                        $otherGraph = [$this->infoNps($db,date('m'),date('Y'),$npsInDb,$this->_initialFilter) ,$this->infoCsat($db,date('m'),date('Y'), $csatInDb,$this->_initialFilter),$this->ces($db,$this->_initialFilter,date('m'),date('Y'), $cesInDb)];
+                    }
+
+                    //print_r($otherGraph);
+                    $data[] = [
+                        'client'        => $this->_nameClient, 'clients'  => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
+                        "title"         => ucwords(strtolower($value['name'])),
+                        "identifier"    => $value['base'],
+                        "nps"           => $infoNps,
+                        "journeyMap"    => $this->GraphCSATDrivers($db,$db2,$value['base'],$csatInDb,date('Y-m-d'),date('Y-m-01'),$this->_initialFilter,'one'),
+                        "otherGraphs"   => $otherGraph
+                    ];
             }
         }
     }
@@ -887,6 +886,50 @@ class Dashboard extends Generic
         }
     }
 
+    //Función CBI periodo previo para JetSmart
+
+    private function cbiPreviousPeriod($table, $mes, $annio, $indicador, $datafilters)
+    {
+        $datafilters = str_replace(' AND date_survey between date_sub(NOW(), interval 9 week) and NOW()', '', $datafilters);
+        
+        $monthAnt = $mes - 1;
+        if ($monthAnt == 0) {
+            $monthAnt = 12;
+            $annio = $annio - 1;
+        }
+
+        //$table2 = $this->primaryTable($table);
+
+        if ($this->_dbSelected == 'customer_jetsmart') {
+
+            $data = DB::select("SELECT ROUND((COUNT(CASE WHEN $indicador BETWEEN 4 AND 5 THEN 1 END)  /
+            (COUNT(CASE WHEN $indicador != 99 THEN $indicador END)) * 100)) AS CBI
+            FROM $this->_dbSelected.$table 
+            WHERE mes = $monthAnt AND annio = $annio $datafilters");
+            return $data;
+        }
+
+    }
+
+    //Función promedio 6 mese CBI
+
+    private function AVGLast6MonthCBI($table,$dateIni,$dateEnd,$indicador){
+        // echo "SELECT sum(CBI) as total from (SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN 4 AND 5 THEN 1 END)) /
+        // (COUNT($indicador) - COUNT(CASE WHEN $indicador=99 THEN 1 END)) * 100)) AS CBI, mes, annio
+        // FROM $this->_dbSelected.$table
+        // WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' 
+        // group by annio, mes) as a";
+
+            $data = DB::select("SELECT sum(CBI) as total from (SELECT 
+                    ROUND(((COUNT(CASE WHEN $indicador BETWEEN 4 AND  5 THEN 1 END)) 
+                    /(COUNT($indicador) - COUNT(CASE WHEN $indicador=99 THEN 1 END)) * 100)) AS CBI, mes, annio
+                    FROM $this->_dbSelected.$table
+                    WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' 
+                    group by annio, mes) as a");
+
+        return (int)($data[0]->total / 6);
+    }
+
     private function AVGLast6MonthNPS($table,$table2,$dateIni,$dateEnd,$indicador, $filter){
       
         if($filter == 'all'){              
@@ -1008,6 +1051,18 @@ class Dashboard extends Generic
             }
             if (substr($table, 6, 3) == 'tra')
                 $npsPreviousPeriod = $npsPreviousPeriod['nps'];
+            if(substr($table, 6, 3) == 'jet'){
+                return [
+                    "name"              => "pepe",
+                    "value"             => round($npsActive),
+                    "percentage"        => $npsActive - round($npsPreviousPeriod),
+                    "smAvg"             => $this->AVGLast6MonthNPS($table, $table2, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter),
+                    "percentageNPSAC"   => $npsActive,
+                    'NPSPReV'           => $npsPreviousPeriod,
+                    'mes'               => $mes,
+                    'annio'             => $annio,
+                ];
+            }
             return [
                 "name"              => "nps",
                 "value"             => round($npsActive),
@@ -1539,6 +1594,43 @@ class Dashboard extends Generic
         return  $closedLoopTransvip;
     }
 
+    // Grph CBI para jestmart
+    private function graphCbi($table, $mes, $annio, $indicador, $dateIni, $dateEnd, $filter, $struct = 'two', $datafilters = null, $group = null)
+    {
+        if ($datafilters)
+        $datafilters = " AND $datafilters";
+    //echo 'Ini: '.$dateIni.'End: '.$dateEnd;
+    $graphCBI = array();
+
+ 
+    $data = DB::select("SELECT COUNT(if( $indicador between 4 and 5, $indicador, NULL))/COUNT(CASE WHEN $indicador != 99 THEN $indicador END)*100 AS cbi, 
+            a.mes, a.annio, date_survey, $this->_fieldSelectInQuery 
+            FROM $this->_dbSelected.$table as a
+            INNER JOIN $this->_dbSelected." . $table . "_start as b on a.token = b. token 
+            WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni'  $datafilters
+            GROUP BY a.mes
+            ORDER BY date_survey asc");
+      
+    if (!empty($data)) {
+        foreach ($data as $key => $value) {
+            // echo '---'.$value->csat;
+            if ($struct != 'one') {
+                $graphCBI[] = [
+                    'xLegend'  => (string)$value->mes . '-' . $value->annio,
+                    'values'   => [
+                        'cbi' => (string)ROUND($value->cbi)
+                    ]
+                ];
+            }
+            if ($struct == 'one') {
+                $graphCBI[] = [
+                    "value" => (string)ROUND($value->cbi)
+                ];
+            }
+        }
+    }
+    return $graphCBI;
+    }
 
     private function cbiResp($db, $datafilters, $dateIni, $dateEnd)
     {
@@ -1571,21 +1663,32 @@ class Dashboard extends Generic
                     ],
                 ];
             }
-    }
+            return $cbiResp;
+        }
 
-    if(substr($db,6,3 == 'jet')){
-        // $npsActive = (isset($data[0]->NPS)) ? $data[0]->NPS : 0;             
-        // $npsPreviousPeriod = $this->npsPreviousPeriod($table, $mes, $annio, $indicador, $datafilters);             
-        // return [                 
-        //     "name"=> "cbi",
-        //     "value"=> 'N/A',
-        //     "percentage"=> $npsActive - $npsPreviousPeriod,                 
-        //     "smAvg"=> $this->AVGLast6MonthNPS($table, $table2, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter)
-        //              ];
-    }
-
-
-        return $cbiResp;
+        if(substr($db,6,3) == 'jet'){
+           
+            $monthAct = date('m');
+            $annioAct = date('Y');
+            
+            $cbiSmAvg = $this->AVGLast6MonthCBI($db, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), 'cbi', $datafilters);
+            $cbiActive = DB::select("SELECT ROUND((COUNT(CASE WHEN cbi BETWEEN 4 AND 5 THEN 1 END)  /
+                        (COUNT(CASE WHEN cbi != 99 THEN 'cbi' END)) * 100)) AS CBI
+                        FROM $this->_dbSelected.$db 
+                        WHERE mes = $monthAct AND annio = $annioAct $datafilters");
+            
+            $cbiPreviousPeriod = $this->cbiPreviousPeriod($db, date('m'), date('Y'), 'cbi', $datafilters);
+            $generalDataCbi = [                 
+                "name"=> "cbi", //Ver después como hacemos
+                "value"=> (int)$cbiActive[0]->CBI,
+                "percentage"=> $cbiActive[0]->CBI - $cbiPreviousPeriod[0]->CBI,                 
+                "smAvg"=> $cbiSmAvg,
+            ];
+            $generalDataCbi['graph'] = $this->graphCbi($db, date('m'), date('Y'), 'cbi', date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")),  $datafilters, 'one');
+            //print_r($generalDataCbi);
+            return $generalDataCbi;
+        }
+        
     }
 
 
@@ -2948,14 +3051,14 @@ class Dashboard extends Generic
     private function ces($db,$filter, $mes, $annio, $ces){
         $data = null;   
         $str = substr($db,10,3);
-    
-        if($str == 'ges' || $str == 'eri'){
-        $data = DB::select("SELECT COUNT(*) as Total,
-        (COUNT(if($ces between  6 and  7 , $ces, NULL)) - COUNT(if($ces between  1 and  4 , $ces, NULL)))/COUNT(if(ces !=99,1,NULL ))* 100 AS CES 
-        FROM $this->_dbSelected.$db as a
-        WHERE mes = $mes AND annio = $annio");
-
-        $cesPrev = $this->cesPreviousPeriod($db, $mes, $annio);
+        
+        if($str == 'ges' || $str == 'eri' || $str == 'com'){
+          
+            $data = DB::select("SELECT COUNT(*) as Total,
+                    (COUNT(if($ces between  $this->limFac1Ces and  $this->limFac2Ces  , $ces, NULL)) - COUNT(if($ces between $this->limDif1Ces and $this->limDif2Ces , $ces, NULL)))/COUNT(if(ces !=99,1,NULL ))* 100 AS CES 
+                    FROM $this->_dbSelected.$db as a
+                    WHERE mes = $mes AND annio = $annio");
+                    $cesPrev = $this->cesPreviousPeriod($db, $mes, $annio);
         } 
 
         if($data == null || $data[0]->Total == null){
@@ -2982,13 +3085,15 @@ class Dashboard extends Generic
             $monthAnt = 12;
             $annio = $annio - 1;
         }
+
         $data = DB::select("SELECT COUNT(*) as Total,
-        (COUNT(if(ces between  6 and  7 , ces, NULL)) - COUNT(if(ces between  1 and  4 , ces, NULL)))/COUNT(if(ces !=99,1,NULL ))* 100 AS CES 
+        (COUNT(if(ces between  $this->limFac1Ces and  $this->limFac2Ces , ces, NULL)) - COUNT(if(ces between $this->limDif1Ces and $this->limDif2Ces, ces, NULL)))/COUNT(if(ces !=99,1,NULL ))* 100 AS CES 
         FROM $this->_dbSelected.$db as a 
         WHERE mes = $monthAnt AND annio = $annio");
 
         return ['AntCes' => $data[0]->CES];
     }
+
     private function getDetailsAntiquity($db, $db2,$month,$year,$npsInDb,$csatInDb, $dateIni, $dateEnd,$fieldFilter, $datafilters = null, $filter)
     {
         $db2     = $this->primaryTable($db);
@@ -4992,6 +5097,10 @@ class Dashboard extends Generic
             $this->_imageClient         = 'https://customerscoops.com/assets/companies-images/mutual_logo.png';
             $this->_nameClient          = 'Mutual';
             $this->ButFilterWeeks       = [["text" => "Anual", "key" => "filterWeeks", "value" => ""], ["text" => "Semanal", "key" => "filterWeeks", "value" => "10"]];
+            $this->limDif1Ces           = 1;
+            $this->limDif2Ces           = 4;
+            $this->limFac1Ces           = 6;
+            $this->limFac2Ces           = 7;
         }
 
         if ($client == 'DEM001') {
@@ -5062,6 +5171,10 @@ class Dashboard extends Generic
            $this->_imageClient         = 'https://customerscoops.com/assets/companies-images/logo_cs.png';
            $this->_nameClient          = 'JetSmart';
            $this->ButFilterWeeks       = '';
+           $this->limDif1Ces           = 1;
+           $this->limDif2Ces           = 2;
+           $this->limFac1Ces           = 4;
+           $this->limFac2Ces           = 5;
         }
     }
 }
