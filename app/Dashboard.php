@@ -1029,7 +1029,7 @@ class Dashboard extends Generic
         }
 
 
-        if (($data == null) || $data[0]->total === null) {
+        if (($data == null) || $data[0]->total == null || $data[0]->total == 0) {
             $npsActive = (isset($data[0]->NPS)) ? $data[0]->NPS : 0;
             $npsPreviousPeriod = $this->npsPreviousPeriod($table, $mes, $annio, $indicador, $datafilters);
             return [
