@@ -1033,7 +1033,7 @@ class Dashboard extends Generic
             $npsActive = (isset($data[0]->NPS)) ? $data[0]->NPS : 0;
             $npsPreviousPeriod = $this->npsPreviousPeriod($table, $mes, $annio, $indicador, $datafilters);
             return [
-                "name"          => "tito",
+                "name"          => "nps",
                 "value"         => 'N/A',
                 "promotors"     => 0,
                 "neutrals"      => 0,
@@ -1053,7 +1053,7 @@ class Dashboard extends Generic
                 $npsPreviousPeriod = $npsPreviousPeriod['nps'];
             if(substr($table, 6, 3) == 'jet'){
                 return [
-                    "name"              => "tito",
+                    "name"              => "nps",
                     "value"             => round($npsActive),
                     "percentage"        => $npsActive - round($npsPreviousPeriod),
                     "smAvg"             => $this->AVGLast6MonthNPS($table, $table2, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter),
@@ -4984,11 +4984,11 @@ class Dashboard extends Generic
             $welcome            = $this->welcome(($request->client !== null) ? 'jet' : $request->client, $filterClient, ($request->client !== null) ? $request->client : $request->survey, $db);
             $performance        = $this->graphCbi($db, date('m'), date('Y'), 'cbi', date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")),  $datafilters, 'one');//$this->cardsPerformace($dataNps, $dataisn, substr($request->survey, 0, 3), $datafilters);
             $npsConsolidado     = null; //$this->graphNpsIsn($dataisn, $this->ButFilterWeeks);
-            $npsVid             = $this->wordCloud($request); //null;
+            $npsVid             = null; //$this->wordCloud($request); //null;
             $csatJourney        = null; //$this->CSATJourney($graphCSATDrivers);
             $csatDrivers        = null; //$this->graphCLTransvip($dataCL);
             $cx                 = null; //$this->graphCbiResp($datasCbiResp);
-            $wordCloud          = $this->globales($db, date('m'), date('Y'), 'sentido', 'Sentido', 'cbi', 'ins', 4, $datafilters);
+            $wordCloud          = null; //$this->globales($db, date('m'), date('Y'), 'sentido', 'Sentido', 'cbi', 'ins', 4, $datafilters);
             $closedLoop         = null; //$this->globales($db, date('m'), date('Y'), 'tiposervicio', 'Vehículo', 'cbi', 'ins', 4, $datafilters);
             $detailGender       = null; //$this->globales($db, date('m'), date('Y'), 'sucursal', 'Sucursal', 'cbi', 'ins', 4, $datafilters);
             $detailGeneration   = null; //$this->rankingSucursal($db, 'convenio', 'Convenio', $endDateFilterMonth, $startDateFilterMonth, $filterClient, 6);
