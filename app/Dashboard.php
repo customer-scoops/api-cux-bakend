@@ -1012,7 +1012,7 @@ class Dashboard extends Generic
                 "name"              => "nps",
                 "value"             => round($npsActive),
                 "promotors"         => round($data[0]->promotor),
-                "neutrals"          => round($data[0]->neutral),
+                "neutrals"          => 100-(round($data[0]->promotor)+round($data[0]->detractor)),
                 "detractors"        => round($data[0]->detractor),
                 "percentage"        => $npsActive - round($npsPreviousPeriod),
                 "smAvg"             => $this->AVGLast6MonthNPS($table, $table2, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter),
@@ -3139,7 +3139,7 @@ class Dashboard extends Generic
         on a.token = b.token 
         where $whereInd!= '' and date_survey between '2021-01-01' and '$startDate' and etapaencuesta = 'P2' $where
         group by $group, a.mes, a.annio 
-        )As a group by $group, a.mes, a.annio  ORDER BY $group, a.annio, a.mes";
+        )As a group by $indicatorName, a.mes, a.annio  ORDER BY $indicatorName, a.annio, a.mes";
         }
 
         if ($filterClient != 'all') {
