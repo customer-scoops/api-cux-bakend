@@ -1594,6 +1594,7 @@ class Dashboard extends Generic
         return  $closedLoopTransvip;
     }
 
+    // Funciones para JETSMART
     // Grph CBI para jestmart
     private function graphCbi($table, $mes, $annio, $indicador, $dateIni, $dateEnd, $filter, $struct = 'two', $datafilters = null, $group = null)
     {
@@ -1632,52 +1633,319 @@ class Dashboard extends Generic
     return $graphCBI;
     }
 
+    //Función para valores de los gráficos de CES
+
+    private function graphCes($table, $mes, $annio, $indicador, $dateIni, $dateEnd, $filter, $struct = 'two', $datafilters = null)
+    {
+        if ($datafilters)
+            $datafilters = " AND $datafilters";
+        //echo 'Ini: '.$dateIni.'End: '.$dateEnd;
+        $graphCES = array();
+
+        if (substr($table, 10, 3) == 'com') {
+        $data = DB::select("SELECT (COUNT(if($indicador between  $this->limFac1Ces and  $this->limFac2Ces  , $indicador, NULL)) - 
+                            COUNT(if($indicador between $this->limDif1Ces and $this->limDif2Ces , $indicador, NULL)))
+                            /COUNT(CASE WHEN $indicador != 99 THEN $indicador END)* 100 AS ces, 
+                            a.mes, a.annio, date_survey, gen 
+                            FROM $this->_dbSelected.$table as a
+                            INNER JOIN $this->_dbSelected." . $table . "_start as b on a.token = b. token 
+                            WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni'  $datafilters
+                            GROUP BY a.mes
+                            ORDER BY date_survey asc");
+        }
+
+        if (!empty($data)) {
+            foreach ($data as $key => $value) {
+                // echo '---'.$value->csat;
+                if ($struct != 'one') {
+                    $graphCES[] = [
+                        'xLegend'  => (string)$value->mes . '-' . $value->annio,
+                        'values'   => [
+                            'ces' => (string)ROUND($value->ces)
+                        ]
+                    ];
+                }
+                if ($struct == 'one') {
+                    $graphCES[] = [
+                        "value" => (string)ROUND($value->csat)
+                    ];
+                }
+            }
+        }
+        return $graphCES;
+    }
+
     // Graph CBI propiedades para mandar al front
 
-    private function graphCbiStruct($datacbi)
+    private function graphsStruct($data, $width, $key)
     {
         return [
-            "height" => 4,
-            "width" => 12,
+            "height" => 3,
+            "width" => $width,
             "type" => "chart",
             "props" => [
                 "callToAction" => null,
                 "icon" => "arrow-right",
-                "text" => "CBI",
+                "text" => strtoupper($key),
                 "chart" => [
                     "fields" => [
                         [
                             "type" => "bar",
-                            "key" => "cbi",
-                            "text" => "CBI",
+                            "key" => $key,
+                            "text" => strtoupper($key),
                             "bgColor" => "#FFB203",
                         ],
                         // [
-                        //     "type" => "bar",
-                        //     "key" => "ins",
-                        //     "text" => "INS",
-                        //     "bgColor" => " #17C784",
+                        //     "type" => "reference-line",
+                        //     "text" => "Esperado",
+                        //     "strokeColor" => "purple",
+                        //     "value" => 70,
                         // ],
-                        [
-                            "type" => "reference-line",
-                            "text" => "Esperado",
-                            "strokeColor" => "purple",
-                            "value" => 70,
-                        ],
-                        [
-                            "type" => "reference-line",
-                            "text" => "Sobre lo esperado",
-                            "strokeColor" => "red",
-                            "value" => 75,
-                        ],
+                        // [
+                        //     "type" => "reference-line",
+                        //     "text" => "Sobre lo esperado",
+                        //     "strokeColor" => "red",
+                        //     "value" => 75,
+                        // ],
                     ],
-                    "values" => $datacbi,
+                    "values" => $data,
                 ]
             ]
 
         ];
     }
 
+    private function detailLaboralSit($db, $indicatorNPS, $indicatorCSAT, $indicatorGroup ,$dateIni, $dateEnd, $filter, $datafilters = null)
+    {
+        $quantityz  = 0;
+        $quantitym  = 0;
+        $quantityx  = 0;
+        $quantityb  = 0;
+        $quantitys  = 0;
+
+        $npsz       = 0;
+        $npsm       = 0;
+        $npsx       = 0;
+        $npsb       = 0;
+        $npss       = 0;
+
+        $csatz      = 0;
+        $csatm      = 0;
+        $csatx      = 0;
+        $csatb      = 0;
+        $csats      = 0;
+
+        $anomaliasZ = 0;
+        $anomaliasM = 0;
+        $anomaliasX = 0;
+        $anomaliasB = 0;
+        $anomaliasS = 0;
+
+        if ($datafilters)
+            $datafilters = " AND $datafilters";
+
+        if (substr($db, 10, 3) == 'via') {
+
+            // echo "SELECT COUNT(*) as Total,  
+            // ROUND(((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
+            // COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
+            // (COUNT(a.$indicatorNPS) - COUNT(CASE WHEN a.$indicatorNPS=99 THEN 1 END)) * 100),1) AS NPS, 
+            // ROUND(COUNT(if($indicatorCSAT between  9 and  10 , $indicatorCSAT, NULL))* 100/COUNT(if($indicatorCSAT !=99,1,NULL ))) AS CSAT, laboral, 
+            // $this->_fieldSelectInQuery
+            // FROM $this->_dbSelected.$db as a 
+            // LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token 
+            // WHERE date_survey BETWEEN  $dateEnd' AND '$dateIni' AND nps!= 99  $datafilters
+            // GROUP BY (a.laboral = 1), (a.laboral = 2), (a.laboral = 3), (a.laboral = 4), (a.laboral = 5)";
+            $data = DB::select("SELECT COUNT(*) as Total,  
+            ROUND(((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
+            COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
+            (COUNT(a.$indicatorNPS) - COUNT(CASE WHEN a.$indicatorNPS=99 THEN 1 END)) * 100),1) AS NPS, 
+            ROUND(COUNT(if($indicatorCSAT between  9 and  10 , $indicatorCSAT, NULL))* 100/COUNT(if($indicatorCSAT !=99,1,NULL ))) AS CSAT, laboral, 
+            $this->_fieldSelectInQuery
+            FROM $this->_dbSelected.$db as a 
+            LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token 
+            WHERE date_survey BETWEEN  '$dateEnd' AND '$dateIni' AND nps!= 99  $datafilters
+            GROUP BY (a.laboral = 1), (a.laboral = 2), (a.laboral = 3), (a.laboral = 4), (a.laboral = 5)");
+
+            foreach ($data as $key => $value) {
+                //var_dump($value->age);
+                if ($value->laboral == 1) {
+                    $this->setAnomalias($value->NPS, '1');
+                    // $this->setAnomalias($value->CSAT, 'GEN Z');
+                    $quantityz = $value->Total;
+                    $csatz = $value->CSAT;
+                    $npsz = $value->NPS;
+                }
+                if ($value->laboral == 2) {
+                    $this->setAnomalias($value->NPS, '2');
+                    //$this->setAnomalias($value->CSAT, 'GEN MILLE');
+                    $quantitym = $value->Total;
+                    $csatm     = $value->CSAT;
+                    $npsm      = $value->NPS;
+                }
+                if ($value->laboral == 3) {
+                    $this->setAnomalias($value->NPS, '3');
+                    // $this->setAnomalias($value->CSAT, 'GEN X');
+                    $quantityx = $value->Total;
+                    $csatx    = $value->CSAT;
+                    $npsx     = $value->NPS;
+                }
+                if ($value->laboral == 4) {
+                    $this->setAnomalias($value->NPS, '4');
+                    // $this->setAnomalias($value->CSAT, 'GEN BB');
+                    $quantityb = $value->Total;
+                    $csatb    = $value->CSAT;
+                    $npsb     = $value->NPS;
+                }
+                if ($value->laboral == 5) {
+                    $this->setAnomalias($value->NPS, '5');
+                    //$this->setAnomalias($value->CSAT, 'GEN SIL');
+                    $quantitys = $value->Total;
+                    $csats    = $value->CSAT;
+                    $npss     = $value->NPS;
+                }
+                $anomaliasZ = $this->setTextAnomalias($npsz);
+                $anomaliasM = $this->setTextAnomalias($npsm);
+                $anomaliasX = $this->setTextAnomalias($npsx);
+                $anomaliasB = $this->setTextAnomalias($npsb);
+                $anomaliasS = $this->setTextAnomalias($npss);
+            }
+
+            return [
+                "height" => 3,
+                "width" => 12,
+                "type" => "compare-list",
+                "props" => [
+                    "icon" => "arrow-right",
+                    "text" => "STATS by Generation",
+                    "compareList" => [
+                        [
+                            "icon" => "genz",
+                            "percentage" => 'GEN Z',
+                            "quantity" =>  '14 - 22',
+                            "items" => [
+                                [
+                                    "type" => "NPS",
+                                    "value" => $npsz,
+                                    "aditionalText" => "%".$anomaliasZ['text'],
+                                    "textColor" => $anomaliasZ['color']
+                                ],
+                                [
+                                    "type" => "CSAT",
+                                    "value" => $csatz,
+                                    "aditionalText" => "%",
+                                    "textColor"=> 'rgb(0,0,0)'
+                                ],
+                                [
+                                    "type" => "Cantidad de respuestas",
+                                    "value" =>  $quantityz,
+                                    "textColor" => '#000'
+                                ]
+                            ],
+                        ],
+                        [
+                            "icon" => "genmille",
+                            "percentage" =>  'GEN MILLE',
+                            "quantity"  => '23 - 38',
+                            "items" => [
+                                [
+                                    "type" => "NPS",
+                                    "value" => $npsm,
+                                    "aditionalText" => "%".$anomaliasM['text'],
+                                    "textColor" => $anomaliasM['color']
+                                ],
+                                [
+                                    "type" => "CSAT",
+                                    "value" => $csatm,
+                                    "aditionalText" => "%",
+                                    "textColor"=> 'rgb(0,0,0)'
+                                ],
+                                [
+                                    "type" => "Cantidad de respuestas",
+                                    "value" =>  $quantitym,
+                                    "textColor" => '#000'
+                                ]
+                            ],
+                        ],
+                        [
+                            "icon" => "genx",
+                            "percentage" => 'GEN X',
+                            "quantity" =>   '39 - 54',
+                            "items" => [
+                                [
+                                    "type" => "NPS",
+                                    "value" => $npsx,
+                                    "aditionalText" => "%".$anomaliasX['text'],
+                                    "textColor" => $anomaliasX['color']
+                                ],
+                                [
+                                    "type" => "CSAT",
+                                    "value" => $csatx,
+                                    "aditionalText" => "%",
+                                    "textColor"=> 'rgb(0,0,0)'
+                                ],
+                                [
+                                    "type" => "Cantidad de respuestas",
+                                    "value" =>  $quantityx,
+                                    "textColor" => '#000'
+                                ]
+                            ],
+                        ],
+                        [
+                            "icon" => "genbb",
+                            "percentage" => 'GEN BB',
+                            "quantity" =>   '55 - 73',
+                            "items" => [
+                                [
+                                    "type" => "NPS",
+                                    "value" => $npsb,
+                                    "aditionalText" => "%".$anomaliasB['text'],
+                                    "textColor" => $anomaliasB['color']
+                                ],
+                                [
+                                    "type" => "CSAT",
+                                    "value" => $csatb,
+                                    "aditionalText" => "%",
+                                    "textColor"=> 'rgb(0,0,0)'
+                                ],
+                                [
+                                    "type" => "Cantidad de respuestas",
+                                    "value" =>  $quantityb,
+                                    "textColor" => '#000'
+                                ]
+                            ],
+                        ],
+                        [
+                            "icon" => "gensil",
+                            "percentage" => 'GEN SIL',
+                            "quantity" =>   '74 - 91',
+                            "items" =>   [
+                                [
+                                    "type" => "NPS",
+                                    "value" => $npss,
+                                    "aditionalText" => "%".$anomaliasS['text'],
+                                    "textColor" => $anomaliasS['color']
+                                ],
+                                [
+                                    "type" => "CSAT",
+                                    "value" => $csats,
+                                    "aditionalText" => "%",
+                                    "textColor"=> 'rgb(0,0,0)'
+                                ],
+                                [
+                                    "type" => "Cantidad de respuestas",
+                                    "value" =>  $quantitys,
+                                    "textColor" => '#000'
+                                ]
+                            ],
+                        ],
+                    ],
+                ]
+            ];
+        }
+    }
+
+    // Fin Funciones para JETSMART
 
     private function cbiResp($db, $datafilters, $dateIni, $dateEnd)
     {
@@ -5026,13 +5294,17 @@ class Dashboard extends Generic
 
         if ($this->_dbSelected  == 'customer_jetsmart') {
 
+            $dataNPSGraph = $this->graphNps($db, date('m'), date('Y'), $npsInDb, $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
+            $dataCsatGraph = $this->graphCsat($db, date('m'), date('Y'), $csatInDb, $dateIni, $dateEnd,  $filterClient, 'two' ,$datafilters);
+            $dataCesGraph = $this->graphCes($db, date('m'), date('Y'), 'ces', $dateIni, $dateEnd,  $filterClient, 'two' ,$datafilters);
+        
             $name = 'JetSmart';
             $datasStatsByTaps   = null;
             $dataCL             = null; //$this->closedloopTransvip($datafilters, $dateIni, $dateEnd);
             //REVISAR QUERYS SE DEMORAN 2 SEG DESDE ACA
             $datasCbiResp       = null; //$this->cbiResp($db,$datafilters, $dateIni, $dateEnd);
             $drivers            = null; //$this->csatsDriversTransvip($db, trim($request->survey), $dateIni, $dateEnd, $datafilters);
-            $graphCSATDrivers   = null; //$this->GraphCSATDrivers($db, '', trim($request->survey), $csatInDb, $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters, $group);
+            $graphCSATDrivers   = $this->GraphCSATDrivers($db, '', trim($request->survey), $csatInDb, $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters, $group);
             $dataisn            = $this->graphCbi($db, date('m'), date('Y'), 'cbi', $dateIni, $dateEnd, $datafilters, 'two');
             $tiempoVehiculo     = null; //$this->NpsIsnTransvip($db, date('m'), date('Y'), $npsInDb, 'csat2', $datafilters, null, $dateIni, $dateEnd);
             $coordAnden         = null; //$this->NpsIsnTransvip($db, date('m'), date('Y'), $npsInDb, 'csat3', $datafilters, null, $dateIni, $dateEnd);
@@ -5041,16 +5313,17 @@ class Dashboard extends Generic
             $tiempoLlegadaAnden = null; //$this->NpsIsnTransvip($db, date('m'), date('Y'), $npsInDb, 'csat5', $datafilters, null, $dateIni, $dateEnd);
             $welcome            = $this->welcome(($request->client !== null) ? 'tra' : $request->client, $filterClient, ($request->client !== null) ? $request->client : $request->survey, $db);
             $performance        = null; //$this->cardsPerformace($dataNps, $dataisn, substr($request->survey, 0, 3), $datafilters);
-            $npsConsolidado     = $this->graphCbiStruct($dataisn);
-            $npsVid             = null; //$this->wordCloud($request); //null;
-            $csatJourney        = null; //$this->CSATJourney($graphCSATDrivers);
-            $csatDrivers        = null; //$this->graphCLTransvip($dataCL);
-            $cx                 = null; //$this->graphCbiResp($datasCbiResp);
-            $wordCloud          = null; //$this->globales($db, date('m'), date('Y'), 'sentido', 'Sentido', 'cbi', 'ins', 4, $datafilters);
+            $npsConsolidado     = $this->graphsStruct($dataisn, 12, 'cbi');
+            $npsVid             = $this->cardNpsBanmedica('JetSmart', $dataNPSGraph); //NPS
+            $csatJourney        = $this->graphsStruct($dataCsatGraph, 6, 'csat');//Csat
+            $csatDrivers        = substr($db, 10, 3) == 'com' ? $this->graphsStruct($dataCesGraph, 6, 'ces') : null; //$this->graphCLTransvip($dataCL); //Ces
+            $cx                 = $this->CSATJourney($graphCSATDrivers);
+            $wordCloud          = null; // //$this->globales($db, date('m'), date('Y'), 'sentido', 'Sentido', 'cbi', 'ins', 4, $datafilters);
             $closedLoop         = null; //$this->globales($db, date('m'), date('Y'), 'tiposervicio', 'Vehículo', 'cbi', 'ins', 4, $datafilters);
             $detailGender       = null; //$this->globales($db, date('m'), date('Y'), 'sucursal', 'Sucursal', 'cbi', 'ins', 4, $datafilters);
-            $detailGeneration   = null; //$this->rankingSucursal($db, 'convenio', 'Convenio', $endDateFilterMonth, $startDateFilterMonth, $filterClient, 6);
-            $detailsProcedencia = null; //$this->graphINS($tiempoVehiculo, $coordAnden, $tiempoAeropuerto, $tiempoLlegadaAnden);
+            //Cuadros stats de aca en adelante 
+            $detailGeneration   = null; //$this->detailGeneration($db, $npsInDb, $csatInDb, $endDateFilterMonth, $startDateFilterMonth, $filterClient,  $datafilters, $indetifyClient);
+            $detailsProcedencia = substr($db, 10, 3) == 'via' ? $this->detailLaboralSit($db, 'nps', 'csat', 'laboral' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters = null, $indetifyClient) : null;
             $box14              = null; //$this->graphCsatTransvip($drivers);
             $box15              = null;
             $box16              = null;
@@ -5206,7 +5479,7 @@ class Dashboard extends Generic
             $this->_minMaxCsat          = 6;
             $this->_maxMaxCsat          = 7;
             $this->_obsNps              = 'obs';
-            $this->_imageClient         = 'https://customerscoops.com/assets/companies-images/logo_cs.png';
+            $this->_imageClient         = 'https://customerscoops.com/assets/companies-images/logo_transvip.svg';
             $this->_nameClient          = 'Transvip';
             $this->ButFilterWeeks       = [["text" => "Anual", "key" => "filterWeeks", "value" => ""], ["text" => "Semanal", "key" => "filterWeeks", "value" => "10"]];
         }
@@ -5230,7 +5503,7 @@ class Dashboard extends Generic
            $this->_minMaxCsat          = 9;
            $this->_maxMaxCsat          = 10;
            $this->_obsNps              = 'obs';
-           $this->_imageClient         = 'https://customerscoops.com/assets/companies-images/logo_cs.png';
+           $this->_imageClient         = 'https://customerscoops.com/assets/companies-images/logo_transvip.svg';
            $this->_nameClient          = 'JetSmart';
            $this->ButFilterWeeks       = '';
            $this->limDif1Ces           = 1;
