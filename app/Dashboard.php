@@ -362,63 +362,63 @@ class Dashboard extends Generic
     }
 
 
-    public function detailsDashCxWord($request,$jwt)
-    {
+    // public function detailsDashCxWord($request,$jwt)
+    // {
 
-        $request->merge([
-            'startDate' => date('Y-m-d',strtotime(date('Y-m-01')."- $this->_periodCxWord month")),
-            'endDate'   => date('Y-m-d'),
-        ]);
-        //if(!isset($startDate)&& !isset($endDate) && !isset($survey)){return ['datas'=>'unauthorized', 'status'=>Response::HTTP_NOT_ACCEPTABLE];}
-        return ['datas'     => [$this->cxIntelligence($request),$this->wordCloud($request)],
-                'status'    => Response::HTTP_OK
-                ];
-    }
+    //     $request->merge([
+    //         'startDate' => date('Y-m-d',strtotime(date('Y-m-01')."- $this->_periodCxWord month")),
+    //         'endDate'   => date('Y-m-d'),
+    //     ]);
+    //     //if(!isset($startDate)&& !isset($endDate) && !isset($survey)){return ['datas'=>'unauthorized', 'status'=>Response::HTTP_NOT_ACCEPTABLE];}
+    //     return ['datas'     => [$this->cxIntelligence($request),$this->wordCloud($request)],
+    //             'status'    => Response::HTTP_OK
+    //             ];
+    // }
 
-    private function wordCloud($request)
-    {
-        $request->merge([
-            'startDate' => date('Y-m-d',strtotime(date('Y-m-01')."- $this->_periodCxWord month")),
-            'endDate'   => date('Y-m-d'),
-        ]);
-        $survey = $request->get('survey');
+    // private function wordCloud($request)
+    // {
+    //     $request->merge([
+    //         'startDate' => date('Y-m-d',strtotime(date('Y-m-01')."- $this->_periodCxWord month")),
+    //         'endDate'   => date('Y-m-d'),
+    //     ]);
+    //     $survey = $request->get('survey');
 
-        $value = \Cache::get('word'.$survey.$request->get('startDate').$request->get('endDate'));
-        //$value = \Cache::pull('word'.$survey.$request->get('startDate').$request->get('endDate'));
-        if($value)
-            return $value;
+    //     $value = \Cache::get('word'.$survey.$request->get('startDate').$request->get('endDate'));
+    //     //$value = \Cache::pull('word'.$survey.$request->get('startDate').$request->get('endDate'));
+    //     if($value)
+    //         return $value;
 
-        $dataTextMining = $this->textMining($request);
+    //     $dataTextMining = $this->textMining($request);
 
-        if($survey != 'travia'){
-        foreach ($dataTextMining['datas']->values as $value){
-            foreach($value as $key => $detail){
-                foreach($detail as $key1 => $index){
-                isset($index->percentaje3)?$this->setAnomaliasTextAnalitics( $index->percentaje3, $index->nps3, $index->word3, $index->group3): null ;
-                }
-            }
-        }
-        }
-        if($dataTextMining['datas'] == null ){
-            $wordCloud = '';
-        }
-        if($dataTextMining['datas'] !== null ){
-            $wordCloud = ($dataTextMining['datas']->wordCloud);
-        }
+    //     if($survey != 'travia'){
+    //     foreach ($dataTextMining['datas']->values as $value){
+    //         foreach($value as $key => $detail){
+    //             foreach($detail as $key1 => $index){
+    //             isset($index->percentaje3)?$this->setAnomaliasTextAnalitics( $index->percentaje3, $index->nps3, $index->word3, $index->group3): null ;
+    //             }
+    //         }
+    //     }
+    //     }
+    //     if($dataTextMining['datas'] == null ){
+    //         $wordCloud = '';
+    //     }
+    //     if($dataTextMining['datas'] !== null ){
+    //         $wordCloud = ($dataTextMining['datas']->wordCloud);
+    //     }
 
-        $resp = [
-            "height"=> 4,
-            "width"=> 4,
-            "type"=> "word-cloud",
-            "props"=> [
-              "text"=> "Word cloud",
-              "icon"=> "arrow-right",
-              "wordCloud"=> $wordCloud
-            ]
-        ];
-        \Cache::put('word'.$survey.$request->get('startDate').$request->get('endDate'), $resp, $this->expiresAtCache);
-        return $resp;
-    }
+    //     $resp = [
+    //         "height"=> 4,
+    //         "width"=> 4,
+    //         "type"=> "word-cloud",
+    //         "props"=> [
+    //           "text"=> "Word cloud",
+    //           "icon"=> "arrow-right",
+    //           "wordCloud"=> $wordCloud
+    //         ]
+    //     ];
+    //     \Cache::put('word'.$survey.$request->get('startDate').$request->get('endDate'), $resp, $this->expiresAtCache);
+    //     return $resp;
+    // }
 
     private function cxIntelligence($request)
     {
@@ -1067,7 +1067,7 @@ class Dashboard extends Generic
                 "name"              => "nps",
                 "value"             => round($npsActive),
                 "promotors"         => round($data[0]->promotor),
-                "neutrals"          => round($data[0]->neutral),
+                "neutrals"          => 100 - (round($data[0]->detractor) + round($data[0]->promotor)),
                 "detractors"        => round($data[0]->detractor),
                 "percentage"        => $npsActive - round($npsPreviousPeriod),
                 "smAvg"             => $this->AVGLast6MonthNPS($table, $table2, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter),
@@ -1599,8 +1599,8 @@ class Dashboard extends Generic
     {
         if ($datafilters)
         $datafilters = " AND $datafilters";
-    //echo 'Ini: '.$dateIni.'End: '.$dateEnd;
-    $graphCBI = array();
+
+        $graphCBI = array();
 
  
     $data = DB::select("SELECT COUNT(if( $indicador between 4 and 5, $indicador, NULL))/COUNT(CASE WHEN $indicador != 99 THEN $indicador END)*100 AS cbi, 
@@ -1631,6 +1631,53 @@ class Dashboard extends Generic
     }
     return $graphCBI;
     }
+
+    // Graph CBI propiedades para mandar al front
+
+    private function graphCbiStruct($datacbi)
+    {
+        return [
+            "height" => 4,
+            "width" => 12,
+            "type" => "chart",
+            "props" => [
+                "callToAction" => null,
+                "icon" => "arrow-right",
+                "text" => "CBI",
+                "chart" => [
+                    "fields" => [
+                        [
+                            "type" => "bar",
+                            "key" => "cbi",
+                            "text" => "CBI",
+                            "bgColor" => "#FFB203",
+                        ],
+                        // [
+                        //     "type" => "bar",
+                        //     "key" => "ins",
+                        //     "text" => "INS",
+                        //     "bgColor" => " #17C784",
+                        // ],
+                        [
+                            "type" => "reference-line",
+                            "text" => "Esperado",
+                            "strokeColor" => "purple",
+                            "value" => 70,
+                        ],
+                        [
+                            "type" => "reference-line",
+                            "text" => "Sobre lo esperado",
+                            "strokeColor" => "red",
+                            "value" => 75,
+                        ],
+                    ],
+                    "values" => $datacbi,
+                ]
+            ]
+
+        ];
+    }
+
 
     private function cbiResp($db, $datafilters, $dateIni, $dateEnd)
     {
@@ -4883,7 +4930,7 @@ class Dashboard extends Generic
             $detailGender       = $this->detailsGender($db, $npsInDb, $csatInDb, $endDateFilterMonth, $startDateFilterMonth,  $filterClient, $datafilters, $indetifyClient);
             $detailGeneration   = $this->detailGeneration($db, $npsInDb, $csatInDb, $endDateFilterMonth, $startDateFilterMonth, $filterClient,  $datafilters, $indetifyClient);
             $datasStatsByTaps   = $this->statsByTaps($db, $db2, date('m'), date('Y'), $npsInDb, $csatInDb, $startDateFilterMonth, $endDateFilterMonth, $datafilters, $filterClient, $indetifyClient);
-            $wordCloud          = $this->wordCloud($request); //null; 
+            $wordCloud          = null; //$this->wordCloud($request); //null; 
             $detailsProcedencia = $super;
             $box14              = $venta;
             $box15              = $call;
@@ -4957,11 +5004,11 @@ class Dashboard extends Generic
             $welcome            = $this->welcome(($request->client !== null) ? 'tra' : $request->client, $filterClient, ($request->client !== null) ? $request->client : $request->survey, $db);
             $performance        = $this->cardsPerformace($dataNps, $dataisn, substr($request->survey, 0, 3), $datafilters);
             $npsConsolidado     = $this->graphNpsIsn($dataisn, $this->ButFilterWeeks);
-            $npsVid             = $this->wordCloud($request); //null;
+            $npsVid             = null; //$this->wordCloud($request); //null;
             $csatJourney        = $this->CSATJourney($graphCSATDrivers);
             $csatDrivers        = $this->graphCLTransvip($dataCL);
             $cx                 = $this->graphCbiResp($datasCbiResp);
-            $wordCloud          = $this->globales($db, date('m'), date('Y'), 'sentido', 'Sentido', 'cbi', 'ins', 4, $datafilters);
+            $wordCloud          = null; //$this->globales($db, date('m'), date('Y'), 'sentido', 'Sentido', 'cbi', 'ins', 4, $datafilters);
             $closedLoop         = $this->globales($db, date('m'), date('Y'), 'tiposervicio', 'Vehículo', 'cbi', 'ins', 4, $datafilters);
             $detailGender       = $this->globales($db, date('m'), date('Y'), 'sucursal', 'Sucursal', 'cbi', 'ins', 4, $datafilters);
             $detailGeneration   = $this->rankingSucursal($db, 'convenio', 'Convenio', $endDateFilterMonth, $startDateFilterMonth, $filterClient, 6);
@@ -4981,9 +5028,20 @@ class Dashboard extends Generic
 
             $name = 'JetSmart';
             $datasStatsByTaps   = null;
-            $welcome            = $this->welcome(($request->client !== null) ? 'jet' : $request->client, $filterClient, ($request->client !== null) ? $request->client : $request->survey, $db);
-            $performance        = $this->graphCbi($db, date('m'), date('Y'), 'cbi', date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")),  $datafilters, 'one');//$this->cardsPerformace($dataNps, $dataisn, substr($request->survey, 0, 3), $datafilters);
-            $npsConsolidado     = null; //$this->graphNpsIsn($dataisn, $this->ButFilterWeeks);
+            $dataCL             = null; //$this->closedloopTransvip($datafilters, $dateIni, $dateEnd);
+            //REVISAR QUERYS SE DEMORAN 2 SEG DESDE ACA
+            $datasCbiResp       = null; //$this->cbiResp($db,$datafilters, $dateIni, $dateEnd);
+            $drivers            = null; //$this->csatsDriversTransvip($db, trim($request->survey), $dateIni, $dateEnd, $datafilters);
+            $graphCSATDrivers   = null; //$this->GraphCSATDrivers($db, '', trim($request->survey), $csatInDb, $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters, $group);
+            $dataisn            = $this->graphCbi($db, date('m'), date('Y'), 'cbi', $dateIni, $dateEnd, $datafilters, 'two');
+            $tiempoVehiculo     = null; //$this->NpsIsnTransvip($db, date('m'), date('Y'), $npsInDb, 'csat2', $datafilters, null, $dateIni, $dateEnd);
+            $coordAnden         = null; //$this->NpsIsnTransvip($db, date('m'), date('Y'), $npsInDb, 'csat3', $datafilters, null, $dateIni, $dateEnd);
+            //HASTA ACA
+            $tiempoAeropuerto   = null; //$this->NpsIsnTransvip($db, date('m'), date('Y'), $npsInDb, 'csat6', $datafilters, null, $dateIni, $dateEnd);
+            $tiempoLlegadaAnden = null; //$this->NpsIsnTransvip($db, date('m'), date('Y'), $npsInDb, 'csat5', $datafilters, null, $dateIni, $dateEnd);
+            $welcome            = $this->welcome(($request->client !== null) ? 'tra' : $request->client, $filterClient, ($request->client !== null) ? $request->client : $request->survey, $db);
+            $performance        = null; //$this->cardsPerformace($dataNps, $dataisn, substr($request->survey, 0, 3), $datafilters);
+            $npsConsolidado     = $this->graphCbiStruct($dataisn);
             $npsVid             = null; //$this->wordCloud($request); //null;
             $csatJourney        = null; //$this->CSATJourney($graphCSATDrivers);
             $csatDrivers        = null; //$this->graphCLTransvip($dataCL);
@@ -5001,7 +5059,7 @@ class Dashboard extends Generic
             $box19              = null;
             $box20              = null;
             $box21              = null;
-            $npsBan             = $this->cxIntelligence($request);
+            $npsBan             = null; //$this->cxIntelligence($request);
         }
 
         $filters = $this->filters($request, $jwt);
