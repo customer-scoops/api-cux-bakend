@@ -681,7 +681,7 @@ class Dashboard extends Generic
                     $otherGraph = [$this->infoCsat($db,date('m'),date('Y'), $csatInDb,$this->_initialFilter)];
                     
                     if(substr($value['base'],0,3) == 'mut'){
-                        $otherGraph = [$this->infoCsat($db,date('m'),date('Y'), $csatInDb,$this->_initialFilter), $this->ces($db,$this->_initialFilter,date('m'),date('Y'), $cesInDb)];
+                        $otherGraph = [$this->infoCsat($db,date('m'),date('Y'), $csatInDb,$this->_initialFilter), $this->ces($db,date('m'),date('Y'), $cesInDb)];
                     } 
 
                     if (substr($value['base'],0,3) == 'tra'){
@@ -697,7 +697,7 @@ class Dashboard extends Generic
                     
                     if (substr($value['base'],0,3) == 'jet'){
                         $infoNps = $this->cbiResp($db, '', date('Y-m-d'),date('Y-m-01'));
-                        $otherGraph = [$this->infoNps($db,date('m'),date('Y'),$npsInDb,$this->_initialFilter) ,$this->infoCsat($db,date('m'),date('Y'), $csatInDb,$this->_initialFilter),$this->ces($db,$this->_initialFilter,date('m'),date('Y'), $cesInDb)];
+                        $otherGraph = [$this->infoNps($db,date('m'),date('Y'),$npsInDb,$this->_initialFilter) ,$this->infoCsat($db,date('m'),date('Y'), $csatInDb,$this->_initialFilter),$this->ces($db,date('m'),date('Y'), $cesInDb)];
                     }
 
                     //print_r($otherGraph);
@@ -1055,6 +1055,7 @@ class Dashboard extends Generic
             WHERE a.mes = $mes AND a.annio = $annio $datafilters
             GROUP BY a.mes, a.annio
             ORDER BY date_survey ASC");
+
         }
 
 
@@ -3079,16 +3080,21 @@ class Dashboard extends Generic
         return $resp;
     }
   
-    private function ces($db,$filter, $mes, $annio, $ces){
+    private function ces($db,$mes, $annio, $ces, $datafilters=null){
         $data = null;   
         $str = substr($db,10,3);
+
+        if ($datafilters)
+            $datafilters = " AND $datafilters";
         
         if($str == 'ges' || $str == 'eri' || $str == 'com'){
           
             $data = DB::select("SELECT COUNT(*) as Total,
                     (COUNT(if($ces between  $this->limFac1Ces and  $this->limFac2Ces  , $ces, NULL)) - COUNT(if($ces between $this->limDif1Ces and $this->limDif2Ces , $ces, NULL)))/COUNT(if(ces !=99,1,NULL ))* 100 AS CES 
                     FROM $this->_dbSelected.$db as a
-                    WHERE mes = $mes AND annio = $annio");
+                    LEFT JOIN $this->_dbSelected." . $db . "_start as b 
+                    on a.token = b.token
+                    WHERE a.mes = $mes AND a.annio = $annio $datafilters");
                     $cesPrev = $this->cesPreviousPeriod($db, $mes, $annio);
         } 
 
@@ -3109,7 +3115,11 @@ class Dashboard extends Generic
         } 
     }
    
-    private function cesPreviousPeriod($db,$mes,$annio){
+    private function cesPreviousPeriod($db,$mes,$annio,$datafilters =null){
+
+        if ($datafilters)
+            $datafilters = " AND $datafilters";
+
         $data = [];
         $monthAnt = $mes - 1;
         if ($monthAnt == 0) {
@@ -3120,7 +3130,9 @@ class Dashboard extends Generic
         $data = DB::select("SELECT COUNT(*) as Total,
         (COUNT(if(ces between  $this->limFac1Ces and  $this->limFac2Ces , ces, NULL)) - COUNT(if(ces between $this->limDif1Ces and $this->limDif2Ces, ces, NULL)))/COUNT(if(ces !=99,1,NULL ))* 100 AS CES 
         FROM $this->_dbSelected.$db as a 
-        WHERE mes = $monthAnt AND annio = $annio");
+        LEFT JOIN $this->_dbSelected." . $db . "_start as b 
+        on a.token = b.token
+        WHERE a.mes = $monthAnt AND a.annio = $annio $datafilters");
 
         return ['AntCes' => $data[0]->CES];
     }
@@ -4440,15 +4452,15 @@ class Dashboard extends Generic
         return $where;
     }
 
-    private function cardsPerformace($dataNps, $dataCsat, $survey, $datafilters)
+    private function cardsPerformace($dataNps, $dataCsat, $survey, $datafilters,$dataCes = null)
     {
         if ($datafilters)
             $datafilters = " AND $datafilters";
 
-        if ($this->_dbSelected == 'customer_colmena') {
-            $name = 'CES';
-            $val = 'N/A';
-            $percentage = 0;
+        if ($this->_dbSelected == 'customer_colmena' &&  $survey == 'mut') {    
+            $name = $dataCes['name'];
+            $val = $dataCes['value'];
+            $percentage = $dataCes['m2m'];
         }
         
         if($this->_dbSelected == 'customer_colmena' && $survey == 'tra'){
@@ -4463,6 +4475,7 @@ class Dashboard extends Generic
             $val = $dataCsat['value'];
             $percentage =  (int)$dataCsat['percentage'];
         }
+
         $this->_valueMinAnomalias = (int)$dataNps['value'] - 20;
         $this->_valueMaxAnomalias = (int)$dataNps['value'] + 30;
 
@@ -4939,7 +4952,7 @@ class Dashboard extends Generic
             $name = 'Mutual';
             $nameCsat1 = 'Tiempo espera para tu atención';
             $nameCsat2 = 'Amabilidad profesionales';
-            //$dataCes              = $this->ces($db, $datafilters, date('m'), date('Y'), $request->survey);
+            $dataCes              = $this->ces($db, date('m'), date('Y'), 'ces', $datafilters);
             $dataNPSGraph         = $this->graphNps($db, date('m'), date('Y'), $npsInDb, $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
             $dataCsat1Graph       = $this->graphCsatMutual($db, date('m'), date('Y'), 'csat1', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
             $dataCsat2Graph       = $this->graphCsatMutual($db, date('m'), date('Y'), 'csat2', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
@@ -4961,7 +4974,7 @@ class Dashboard extends Generic
           
 
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient,$request->survey, $db);
-            $performance        = $this->cardsPerformace($dataNps, $dataCsat, substr($request->survey, 0, 3), $datafilters);
+            $performance        = $this->cardsPerformace($dataNps, $dataCsat, substr($request->survey, 0, 3), $datafilters, $dataCes );
             $npsConsolidado     = $this->cardNpsConsolidado($name, $dataNPSGraph, $this->ButFilterWeeks);
             $npsBan             = null;
             $npsVid             = null;
