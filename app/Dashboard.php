@@ -705,7 +705,7 @@ class Dashboard extends Generic
                         'client'        => $this->_nameClient, 'clients'  => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
                         "title"         => ucwords(strtolower($value['name'])),
                         "identifier"    => $value['base'],
-                        "nps"           => $infoNps,
+                        "principalIndicator" => [$infoNps],
                         "journeyMap"    => $this->GraphCSATDrivers($db,$db2,$value['base'],$csatInDb,date('Y-m-d'),date('Y-m-01'),$this->_initialFilter,'one'),
                         "otherGraphs"   => $otherGraph
                     ];
@@ -1064,6 +1064,7 @@ class Dashboard extends Generic
             return [
                 "name"          => "nps",
                 "value"         => 'N/A',
+                "percentageGraph"=>true,
                 "promotors"     => 0,
                 "neutrals"      => 0,
                 "detractors"    => 0,
@@ -1095,6 +1096,7 @@ class Dashboard extends Generic
             return [
                 "name"              => "nps",
                 "value"             => round($npsActive),
+                "percentageGraph"   => true,
                 "promotors"         => round($data[0]->promotor),
                 "neutrals"          => 100-(round($data[0]->promotor)+round($data[0]->detractor)),
                 "detractors"        => round($data[0]->detractor),
@@ -2997,15 +2999,15 @@ class Dashboard extends Generic
             return   "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola</span>¡Este es tu Dashboard de la Encuesta $nameEncuesta!</span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'><img width='120px' src='$this->_imageVid'/></span></div>";
         }
 
-        if($filterClient == 'one' && $nameEncuesta !== 'Ambulatorios' && $nameEncuesta !== 'Imagenologia (img)' && $nameEncuesta !== 'Urgencias' && $nameEncuesta !== 'Rehabilitacion' && $nameEncuesta != 'Hospitalizacion'){ 
-            return   "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola</span>¡Este es tu Dashboard de la Encuesta $nameEncuesta!</span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'><img width='120px' src='$this->_imageClient'/></span></div>";
-        }
+        // if($filterClient == 'one' && $nameEncuesta !== 'Ambulatorios' && $nameEncuesta !== 'Imagenologia (img)' && $nameEncuesta !== 'Urgencias' && $nameEncuesta !== 'Rehabilitacion' && $nameEncuesta != 'Hospitalizacion'){ 
+        //     return   "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola</span>¡Este es tu Dashboard de la Encuesta $nameEncuesta!</span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'><img width='120px' src='$this->_imageClient'/></span></div>";
+        // }
         if($client == 'mut' &&  $filterClient != 'all'){
             return   "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola</span>¡Este es tu Dashboard de la Encuesta $nameEncuesta!</span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'><img width='120px' src='$this->_imageClient'/></span></div>";
         }
-        if ($table == 'MUT001_mutcon_resp') {
-            return  "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola</span>¡Este es tu Dashboard Consolidado !</span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'><img width='120px'  src='$this->_imageClient'/></span></div>";
-        }
+        // if ($table == 'MUT001_mutcon_resp') {
+        //     return  "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola</span>¡Este es tu Dashboard Consolidado !</span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'><img width='120px'  src='$this->_imageClient'/></span></div>";
+        // }
         return  "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola</span>¡Este es tu Dashboard Consolidado !</span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'><img width='120px' src='$this->_imageBan'/><img width='120px' src='$this->_imageVid'/></span></div>";
     }
 
@@ -4017,6 +4019,7 @@ class Dashboard extends Generic
     private function ranking($db, $indicatordb, $indicator, $endDateFilterMonth, $startDateFilterMonth, $filterClient, $datafilters, $width, $limit){
         
         if($filterClient != 'all'){
+        
             $querydataTop = "SELECT UPPER($indicatordb) as  $indicator,
                             round((count(case when nps = 9 OR nps =10 then 1 end)-count(case when nps between  0 and  6 then 1 end)) / count(case when nps != 99 then 1 end) *100) as CNPS,
                             b.annio
@@ -4027,8 +4030,7 @@ class Dashboard extends Generic
                             group by  $indicator
                             order by CNPS DESC
                             LIMIT $limit ";
-                        
-        
+
             $querydataBottom = "SELECT * from (SELECT UPPER($indicatordb) as  $indicator, count(UPPER($indicatordb)) as total,
                                 round((count(case when nps = 9 OR nps =10 then 1 end)-count(case when nps between  0 and  6 then 1 end)) / count(case when nps != 99 then 1 end) *100) as CNPS,
                                 b.annio
@@ -4088,8 +4090,9 @@ class Dashboard extends Generic
 
        $dataTop = DB::select($querydataTop);
        $dataBottom = DB::select($querydataBottom);
-       $arrayTop = 0;
-       $arrayBottom = 0;
+       $arrayTop = [];
+       $arrayBottom = [];
+
         if($dataTop){
                 foreach ($dataTop as $key => $value){
                     $arrayTop[]= $value-> $indicator.' - '.$value->CNPS.'%';
@@ -4108,7 +4111,7 @@ class Dashboard extends Generic
             "type" => "lists",
             "props" => [
                 "icon" => "arrow-right",
-                "text" => "RANKING By  $indicator",
+                "text" => "RANKING By $indicator",
                 "lists" => [
                     [
                         "header" => "Top Five ",
@@ -4821,24 +4824,24 @@ class Dashboard extends Generic
         if(substr($request->survey,0,3) == 'jet'){
             $db = 'adata_'.substr($request->survey,0,3).'_'.trim(substr($request->survey,3,6));
         }
-        
-        $tipeSurvey = $request->survey;
-        $clientes = null;
+     
+        //$tipeSurvey = $request->survey;
+        //$clientes = null;
 
-        if ($tipeSurvey == "muthos" || $tipeSurvey == "muturg" || $tipeSurvey == "mutamb" || $tipeSurvey == "mutimg" || $tipeSurvey == "mutreh") {
-            $db = 'MUT001_mutcon_resp';
+        // if ($tipeSurvey == "muthos" || $tipeSurvey == "muturg" || $tipeSurvey == "mutamb" || $tipeSurvey == "mutimg" || $tipeSurvey == "mutreh") {
+        //     $db = 'MUT001_mutcon_resp';
 
-            if ($request->client) {
-                $db = 'adata_' . trim(substr($request->client, 0, 3)) . '_' . trim(substr($request->client, 3, 6));
-            }
-            $clientes = [
-                        "Ambulatorio"=>"mutamb",
-                        "Imagenología"=>"mutimg",
-                        "Urgencias"=>"muturg",
-                        "Rehabilitación"=>"mutreh",
-                        "Hospitalización"=>"muthos"
-            ]; 
-        }
+        //     if ($request->client) {
+        //         $db = 'adata_' . trim(substr($request->client, 0, 3)) . '_' . trim(substr($request->client, 3, 6));
+        //     }
+        //     $clientes = [
+        //                 "Ambulatorio"=>"mutamb",
+        //                 "Imagenología"=>"mutimg",
+        //                 "Urgencias"=>"muturg",
+        //                 "Rehabilitación"=>"mutreh",
+        //                 "Hospitalización"=>"muthos"
+        //     ]; 
+        // }
        
         $rankingSuc = null;
         $ges = null;
@@ -4955,8 +4958,9 @@ class Dashboard extends Generic
             if ($db == 'adata_mut_hos' || $db == 'adata_mut_reh' || $db == 'adata_mut_urg' || $db == 'adata_mut_img' || $db == 'adata_mut_amb') {
                 $rankingSuc = $this->ranking($db, 'catencion', 'CentroAtencion', $endDateFilterMonth, $startDateFilterMonth, 'one',$datafilters, 6, 10);
             } 
-               
-            $welcome            = $this->welcome(($request->client !== null) ? 'mut' : $request->client, $filterClient, ($request->client !== null) ? $request->client : $request->survey, $db);
+          
+
+            $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient,$request->survey, $db);
             $performance        = $this->cardsPerformace($dataNps, $dataCsat, substr($request->survey, 0, 3), $datafilters);
             $npsConsolidado     = $this->cardNpsConsolidado($name, $dataNPSGraph, $this->ButFilterWeeks);
             $npsBan             = null;
@@ -4968,7 +4972,7 @@ class Dashboard extends Generic
             $closedLoop         = $csat1;
             $detailGender       = $csat2;
             $detailGeneration   = $this->closedLoop($db, $npsInDb, $endDateFilterMonth, $startDateFilterMonth, $filterClient, $datafilters);
-            $detailsProcedencia = $Procedencia;
+            $detailsProcedencia = $rankingSuc;
             $box14              = $venta;
             $box15              = $call;
             $box16              = $sucursal;
@@ -4976,7 +4980,7 @@ class Dashboard extends Generic
             $box18              = $ejecutivo;
             $box19              = $ges;
             $box20              = $sucNpsCsat;
-            $box21              = $rankingSuc;
+            $box21              = null;
         }
 
         if ($this->_dbSelected  == 'customer_colmena'  && substr($request->survey, 0, 3) == 'tra') {
@@ -5047,7 +5051,7 @@ class Dashboard extends Generic
         $filters = $this->filters($request, $jwt);
         $data = [
             'client' => $this->_nameClient,
-            'clients' => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients : $clientes,
+            'clients' => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients : '',
 
             'filters' => $filters['filters'],
             "indicators" => [
@@ -5193,7 +5197,7 @@ class Dashboard extends Generic
             $this->ButFilterWeeks       = [["text" => "Anual", "key" => "filterWeeks", "value" => ""], ["text" => "Semanal", "key" => "filterWeeks", "value" => "10"]];
         }
 
-         // JetSmart
+        // JetSmart
         if ($client == 'JET001') {
            $this->_dbSelected          = 'customer_jetsmart';
            $this->_initialFilter       = 'one';
@@ -5206,9 +5210,9 @@ class Dashboard extends Generic
            $this->_minMaxNps           = 9;
            $this->_maxMaxNps           = 10;
            $this->_minCsat             = 1;
-           $this->_maxCsat             = 4;
-           $this->_minMediumCsat       = 5;
-           $this->_maxMediumCsat       = 5;
+           $this->_maxCsat             = 6;
+           $this->_minMediumCsat       = 7;
+           $this->_maxMediumCsat       = 8;
            $this->_minMaxCsat          = 9;
            $this->_maxMaxCsat          = 10;
            $this->_obsNps              = 'obs';
