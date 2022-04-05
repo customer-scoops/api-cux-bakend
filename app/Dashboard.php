@@ -1762,36 +1762,21 @@ class Dashboard extends Generic
         ];
     }
 
-    private function detailLaboralSit($db, $indicatorNPS, $indicatorCSAT, $indicatorGroup ,$dateIni, $dateEnd, $filter, $datafilters = null)
+    private function detailStats($db, $indicatorNPS, $indicatorCSAT, $indicatorGroup ,$dateIni, $dateEnd, $filter, $datafilters = null, $jetNames)
     {
-        $quantityz  = 0;
-        $quantitym  = 0;
-        $quantityx  = 0;
-        $quantityb  = 0;
-        $quantitys  = 0;
-
-        $npsz       = 0;
-        $npsm       = 0;
-        $npsx       = 0;
-        $npsb       = 0;
-        $npss       = 0;
-
-        $csatz      = 0;
-        $csatm      = 0;
-        $csatx      = 0;
-        $csatb      = 0;
-        $csats      = 0;
-
-        $anomaliasZ = 0;
-        $anomaliasM = 0;
-        $anomaliasX = 0;
-        $anomaliasB = 0;
-        $anomaliasS = 0;
-
         if ($datafilters)
             $datafilters = " AND $datafilters";
 
-        if (substr($db, 10, 3) == 'via') {
+            // $data = DB::select("SELECT COUNT(*) as Total,  
+            //         ROUND(((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
+            //         COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
+            //         (COUNT(a.$indicatorNPS) - COUNT(CASE WHEN a.$indicatorNPS=99 THEN 1 END)) * 100),1) AS NPS, 
+            //         ROUND(COUNT(if($indicatorCSAT between  9 and  10 , $indicatorCSAT, NULL))* 100/COUNT(if($indicatorCSAT !=99,1,NULL ))) AS CSAT, $indicatorGroup, 
+            //         $this->_fieldSelectInQuery
+            //         FROM $this->_dbSelected.$db as a 
+            //         LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token 
+            //         WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND nps!= 99  $datafilters
+            //         GROUP BY $indicatorGroup");
 
             $data = DB::select("SELECT COUNT(*) as Total,  
                     ROUND(((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
@@ -1801,58 +1786,42 @@ class Dashboard extends Generic
                     $this->_fieldSelectInQuery
                     FROM $this->_dbSelected.$db as a 
                     LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token 
-                    WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND nps!= 99  $datafilters
+                    WHERE date_survey BETWEEN '2022-03-01' AND '2022-03-31' AND nps!= 99 AND $indicatorGroup != 99  $datafilters
                     GROUP BY $indicatorGroup");
 
+            $count = 0;
+            $dataArray = [];
+
             foreach ($data as $key => $value) {
-                //var_dump($value->age);
-                if ($value->$indicatorGroup == 1) {
-                    $this->setAnomalias($value->NPS, '1');
-                    // $this->setAnomalias($value->CSAT, 'GEN Z');
-                    $quantityz = $value->Total;
-                    $csatz = $value->CSAT;
-                    $npsz = $value->NPS;
-                }
-                if ($value->$indicatorGroup == 2) {
-                    $this->setAnomalias($value->NPS, '2');
-                    //$this->setAnomalias($value->CSAT, 'GEN MILLE');
-                    $quantitym = $value->Total;
-                    $csatm     = $value->CSAT;
-                    $npsm      = $value->NPS;
-                }
-                if ($value->$indicatorGroup == 3) {
-                    $this->setAnomalias($value->NPS, '3');
-                    // $this->setAnomalias($value->CSAT, 'GEN X');
-                    $quantityx = $value->Total;
-                    $csatx    = $value->CSAT;
-                    $npsx     = $value->NPS;
-                }
-                if ($value->$indicatorGroup == 4) {
-                    $this->setAnomalias($value->NPS, '4');
-                    // $this->setAnomalias($value->CSAT, 'GEN BB');
-                    $quantityb = $value->Total;
-                    $csatb    = $value->CSAT;
-                    $npsb     = $value->NPS;
-                }
-                if ($value->$indicatorGroup == 5) {
-                    $this->setAnomalias($value->NPS, '5');
-                    //$this->setAnomalias($value->CSAT, 'GEN SIL');
-                    $quantitys = $value->Total;
-                    $csats    = $value->CSAT;
-                    $npss     = $value->NPS;
-                }
-                if ($value->$indicatorGroup == 6) {
-                    $this->setAnomalias($value->NPS, '5');
-                    //$this->setAnomalias($value->CSAT, 'GEN SIL');
-                    $quantitys = $value->Total;
-                    $csats    = $value->CSAT;
-                    $npss     = $value->NPS;
-                }
-                $anomaliasZ = $this->setTextAnomalias($npsz);
-                $anomaliasM = $this->setTextAnomalias($npsm);
-                $anomaliasX = $this->setTextAnomalias($npsx);
-                $anomaliasB = $this->setTextAnomalias($npsb);
-                $anomaliasS = $this->setTextAnomalias($npss);
+
+                $this->setAnomalias($value->NPS, $jetNames['data'][$count]["percentage"]);
+                $dataObj = [
+                    "icon" => $jetNames['data'][$count]["icon"],
+                    "percentage" => $jetNames['data'][$count]["percentage"],
+                    "quantity" =>  $jetNames['data'][$count]["quantity"],
+                    "items" => [
+                        [
+                            "type" => "NPS",
+                            "value" =>  $value->NPS,
+                            "aditionalText" => "%" . $this->setTextAnomalias($value->NPS)['text'],
+                            "textColor" => $this->setTextAnomalias($value->NPS)['color']
+                        ],
+                        [
+                            "type" => "CSAT",
+                            "value" => $value->CSAT,
+                            "aditionalText" => "%",
+                            "textColor" => 'rgb(0,0,0)'
+                        ],
+                        [
+                            "type" => "Cantidad de respuestas",
+                            "value" =>  $value->Total,
+                            "textColor" => '#000'
+                        ]
+                    ]
+                ];
+
+                array_push($dataArray, $dataObj);
+                $count++;
             }
 
             return [
@@ -1861,132 +1830,10 @@ class Dashboard extends Generic
                 "type" => "compare-list",
                 "props" => [
                     "icon" => "arrow-right",
-                    "text" => "STATS by " . strtoupper($indicatorGroup) ,
-                    "compareList" => [
-                        [
-                            "icon" => "genz",
-                            "percentage" => 'GEN Z',
-                            "quantity" =>  '14 - 22',
-                            "items" => [
-                                [
-                                    "type" => "NPS",
-                                    "value" => $npsz,
-                                    "aditionalText" => "%".$anomaliasZ['text'],
-                                    "textColor" => $anomaliasZ['color']
-                                ],
-                                [
-                                    "type" => "CSAT",
-                                    "value" => $csatz,
-                                    "aditionalText" => "%",
-                                    "textColor"=> 'rgb(0,0,0)'
-                                ],
-                                [
-                                    "type" => "Cantidad de respuestas",
-                                    "value" =>  $quantityz,
-                                    "textColor" => '#000'
-                                ]
-                            ],
-                        ],
-                        [
-                            "icon" => "genmille",
-                            "percentage" =>  'GEN MILLE',
-                            "quantity"  => '23 - 38',
-                            "items" => [
-                                [
-                                    "type" => "NPS",
-                                    "value" => $npsm,
-                                    "aditionalText" => "%".$anomaliasM['text'],
-                                    "textColor" => $anomaliasM['color']
-                                ],
-                                [
-                                    "type" => "CSAT",
-                                    "value" => $csatm,
-                                    "aditionalText" => "%",
-                                    "textColor"=> 'rgb(0,0,0)'
-                                ],
-                                [
-                                    "type" => "Cantidad de respuestas",
-                                    "value" =>  $quantitym,
-                                    "textColor" => '#000'
-                                ]
-                            ],
-                        ],
-                        [
-                            "icon" => "genx",
-                            "percentage" => 'GEN X',
-                            "quantity" =>   '39 - 54',
-                            "items" => [
-                                [
-                                    "type" => "NPS",
-                                    "value" => $npsx,
-                                    "aditionalText" => "%".$anomaliasX['text'],
-                                    "textColor" => $anomaliasX['color']
-                                ],
-                                [
-                                    "type" => "CSAT",
-                                    "value" => $csatx,
-                                    "aditionalText" => "%",
-                                    "textColor"=> 'rgb(0,0,0)'
-                                ],
-                                [
-                                    "type" => "Cantidad de respuestas",
-                                    "value" =>  $quantityx,
-                                    "textColor" => '#000'
-                                ]
-                            ],
-                        ],
-                        [
-                            "icon" => "genbb",
-                            "percentage" => 'GEN BB',
-                            "quantity" =>   '55 - 73',
-                            "items" => [
-                                [
-                                    "type" => "NPS",
-                                    "value" => $npsb,
-                                    "aditionalText" => "%".$anomaliasB['text'],
-                                    "textColor" => $anomaliasB['color']
-                                ],
-                                [
-                                    "type" => "CSAT",
-                                    "value" => $csatb,
-                                    "aditionalText" => "%",
-                                    "textColor"=> 'rgb(0,0,0)'
-                                ],
-                                [
-                                    "type" => "Cantidad de respuestas",
-                                    "value" =>  $quantityb,
-                                    "textColor" => '#000'
-                                ]
-                            ],
-                        ],
-                        [
-                            "icon" => "gensil",
-                            "percentage" => 'GEN SIL',
-                            "quantity" =>   '74 - 91',
-                            "items" =>   [
-                                [
-                                    "type" => "NPS",
-                                    "value" => $npss,
-                                    "aditionalText" => "%".$anomaliasS['text'],
-                                    "textColor" => $anomaliasS['color']
-                                ],
-                                [
-                                    "type" => "CSAT",
-                                    "value" => $csats,
-                                    "aditionalText" => "%",
-                                    "textColor"=> 'rgb(0,0,0)'
-                                ],
-                                [
-                                    "type" => "Cantidad de respuestas",
-                                    "value" =>  $quantitys,
-                                    "textColor" => '#000'
-                                ]
-                            ],
-                        ],
-                    ],
+                    "text" => "STATS by " . $jetNames['title'] ,
+                    "compareList" => $dataArray
                 ]
             ];
-        }
     }
 
     // Fin Funciones para JETSMART
@@ -2514,18 +2361,18 @@ class Dashboard extends Generic
                 GROUP BY (b.age BETWEEN 14 AND 22), (b.age BETWEEN 23 AND 38), (b.age BETWEEN 39 AND 54), (b.age BETWEEN 55 AND 73), (b.age BETWEEN 74 AND 99)");
             }
 
-            if (substr($db, 6, 3) == 'jet' && substr($db, 10, 3) == 'via'){
+            // if (substr($db, 6, 3) == 'jet' && substr($db, 10, 3) == 'via'){
 
-                $data = DB::select( "SELECT COUNT(*) as Total,  
-                ROUND(((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
-                COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
-                (COUNT(a.$indicatorNPS) - COUNT(CASE WHEN a.$indicatorNPS=99 THEN 1 END)) * 100),1) AS NPS, 
-                ROUND(COUNT(if($indicatorCSAT between  9 and  10 , $indicatorCSAT, NULL))* 100/COUNT(if($indicatorCSAT !=99,1,NULL ))) AS CSAT, gene, $this->_fieldSelectInQuery
-                FROM $this->_dbSelected.$db as a 
-                LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token 
-                WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND nps!= 99  $datafilters
-                GROUP BY gene");
-            }
+            //     $data = DB::select( "SELECT COUNT(*) as Total,  
+            //     ROUND(((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
+            //     COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
+            //     (COUNT(a.$indicatorNPS) - COUNT(CASE WHEN a.$indicatorNPS=99 THEN 1 END)) * 100),1) AS NPS, 
+            //     ROUND(COUNT(if($indicatorCSAT between  9 and  10 , $indicatorCSAT, NULL))* 100/COUNT(if($indicatorCSAT !=99,1,NULL ))) AS CSAT, gene, $this->_fieldSelectInQuery
+            //     FROM $this->_dbSelected.$db as a 
+            //     LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token 
+            //     WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND nps!= 99  $datafilters
+            //     GROUP BY gene");
+            // }
 
         }
 
@@ -5209,6 +5056,104 @@ class Dashboard extends Generic
 
         $dataCsatGraph   = $this->graphCsat($db, date('m'), date('Y'), $csatInDb, $endDateFilterMonth, $startDateFilterMonth,  $filterClient, $datafilters);
 
+        $jetNamesGene = [
+            'title' => 'Generation',
+            'data' => [
+                [
+                    "icon" => "genz",
+                    "percentage" => 'GEN 1',
+                    "quantity" =>  '1',
+                ],
+                [
+                    "icon" => "genmille",
+                    "percentage" => 'GEN 2',
+                    "quantity" =>  '2',
+                ],
+                [
+                    "icon" => "genx",
+                    "percentage" => 'GEN 3',
+                    "quantity" =>  '3',
+                ],
+                [
+                    "icon" => "genbb",
+                    "percentage" => 'GEN 4',
+                    "quantity" =>  '4',
+                ],
+                [
+                    "icon" => "gensil",
+                    "percentage" => 'GEN 5',
+                    "quantity" =>  '5',
+                ],
+            ]
+        ];
+
+        $jetNamesLab = [
+            'title' => 'Laboral Sit.',
+            'data' => [
+                [
+                    "icon" => "genz",
+                    "percentage" => 'LAB 1',
+                    "quantity" =>  '1',
+                ],
+                [
+                    "icon" => "genmille",
+                    "percentage" => 'LAB 2',
+                    "quantity" =>  '2',
+                ],
+                [
+                    "icon" => "genx",
+                    "percentage" => 'LAB 3',
+                    "quantity" =>  '3',
+                ],
+                [
+                    "icon" => "genbb",
+                    "percentage" => 'LAB 4',
+                    "quantity" =>  '4',
+                ],
+                [
+                    "icon" => "gensil",
+                    "percentage" => 'LAB 5',
+                    "quantity" =>  '5',
+                ],
+            ]
+        ];
+
+        $jetNamesFrecVuelo = [
+            'title' => 'Frec. Vuelo',
+            'data' => [
+                [
+                    "icon" => "genz",
+                    "percentage" => 'FV 1',
+                    "quantity" =>  '1',
+                ],
+                [
+                    "icon" => "genmille",
+                    "percentage" => 'FV 2',
+                    "quantity" =>  '2',
+                ],
+                [
+                    "icon" => "genx",
+                    "percentage" => 'FV 3',
+                    "quantity" =>  '3',
+                ],
+                [
+                    "icon" => "genbb",
+                    "percentage" => 'FV 4',
+                    "quantity" =>  '4',
+                ],
+                [
+                    "icon" => "gensil",
+                    "percentage" => 'FV 5',
+                    "quantity" =>  '5',
+                ],
+                [
+                    "icon" => "genbb",
+                    "percentage" => 'FV 6',
+                    "quantity" =>  '6',
+                ],
+            ]
+        ];
+
         if ($this->_dbSelected  == 'customer_banmedica') {
             $name =  $nameIndicatorPrincipal . ' & ' . $nameIndicatorPrincipal2;
             $db2 = ($indetifyClient == 'vid') ? 'adata_ban_' . trim(substr($request->survey, 3, 6)) : 'adata_vid_' . trim(substr($request->survey, 3, 6));
@@ -5384,9 +5329,9 @@ class Dashboard extends Generic
             $closedLoop         = null; //$this->globales($db, date('m'), date('Y'), 'tiposervicio', 'Vehículo', 'cbi', 'ins', 4, $datafilters);
             $detailGender       = null; //$this->globales($db, date('m'), date('Y'), 'sucursal', 'Sucursal', 'cbi', 'ins', 4, $datafilters);
             //Cuadros stats de aca en adelante 
-            $detailGeneration   = substr($db, 10, 3) == 'via' ? $this->detailGeneration($db, $npsInDb, $csatInDb, $endDateFilterMonth, $startDateFilterMonth,  $filterClient,  $datafilters, $indetifyClient) : null;
-            $detailsProcedencia = substr($db, 10, 3) == 'via' ? $this->detailLaboralSit($db, 'nps', 'csat', 'laboral' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters = null, $indetifyClient) : null;
-            $box14              = substr($db, 10, 3) == 'via' ? $this->detailLaboralSit($db, 'nps', 'csat', 'frec2' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters = null, $indetifyClient) : null;
+            $detailGeneration   = substr($db, 10, 3) == 'via' ? $this->detailStats($db, $npsInDb, $csatInDb, 'gene', $endDateFilterMonth, $startDateFilterMonth,  $filterClient,  $datafilters, $jetNamesGene) : null;
+            $detailsProcedencia = substr($db, 10, 3) == 'via' ? $this->detailStats($db, $npsInDb, $csatInDb, 'laboral' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesLab) : null;
+            $box14              = substr($db, 10, 3) == 'via' ? $this->detailStats($db, $npsInDb, $csatInDb, 'frec2' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesFrecVuelo) : null;
             $box15              = null;
             $box16              = null;
             $box17              = null;
