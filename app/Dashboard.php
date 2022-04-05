@@ -1486,7 +1486,11 @@ class Dashboard extends Generic
         $graphCSAT = array();
         if ($filter != 'all') {
             if (substr($table, 6, 3) != 'mut') {
+
                 $data = DB::select("SELECT COUNT(if( $indicador between $this->_minMaxCsat and $this->_maxMaxCsat, $indicador, NULL))/COUNT(CASE WHEN $indicador != 99 THEN $indicador END)*100 AS csat, 
+                                    ROUND((count(if($indicador <= $this->_maxCsat , $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as detractor, 
+                                    ROUND((count(if($indicador = $this->_minMaxCsat OR $indicador = $this->_maxMaxCsat, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as promotor, 
+                                    ROUND((count(if($indicador = $this->_minMediumCsat OR $indicador = $this->_maxMediumCsat, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as neutral,              
                                     a.mes, a.annio, date_survey, $this->_fieldSelectInQuery 
                                     FROM $this->_dbSelected.$table as a
                                     INNER JOIN $this->_dbSelected." . $table . "_start as b on a.token = b. token 
@@ -1530,22 +1534,44 @@ class Dashboard extends Generic
         }
 
         if (!empty($data)) {
-            foreach ($data as $key => $value) {
+            if(substr($table, 6, 3) != 'jet'){       
+                foreach ($data as $key => $value) {
                 // echo '---'.$value->csat;
-                if ($struct != 'one') {
-                    $graphCSAT[] = [
-                        'xLegend'  => (string)$value->mes . '-' . $value->annio,
-                        'values'   => [
-                            'csat' => (string)ROUND($value->csat)
-                        ]
-                    ];
-                }
-                if ($struct == 'one') {
-                    $graphCSAT[] = [
-                        "value" => (string)ROUND($value->csat)
-                    ];
+                    if ($struct != 'one') {
+                        $graphCSAT[] = [
+                            'xLegend'  => (string)$value->mes . '-' . $value->annio,
+                            'values'   => [
+                                'csat' => (string)ROUND($value->csat)
+                            ]
+                        ];
+                    }
+                    if ($struct == 'one') {
+                        $graphCSAT[] = [
+                            "value" => (string)ROUND($value->csat)
+                        ];
+                    }
                 }
             }
+            if(substr($table, 6, 3) == 'jet'){       
+                foreach ($data as $key => $value) {
+                    if ($struct != 'one') {
+                        $graphCSAT[] = [
+                            'xLegend'  => (string)$value->mes . '-' . $value->annio,
+                            'values' => [
+                                "promoters"     => round($value->promotor),
+                                "neutrals"      => 100 - (round($value->promotor) + round($value->detractor)),
+                                "detractors"    => round($value->detractor),
+                                'csat' => (string)ROUND($value->csat)
+                            ],
+                        ];
+                    }
+                    if ($struct == 'one') {
+                        $graphCSAT[] = [
+                            "value" => (string)ROUND($value->csat)
+                        ];
+                    }
+                }
+            }    
         }
         return $graphCSAT;
     }
@@ -1643,9 +1669,26 @@ class Dashboard extends Generic
         $graphCES = array();
 
         if (substr($table, 10, 3) == 'com') {
-        $data = DB::select("SELECT (COUNT(if($indicador between  $this->limFac1Ces and  $this->limFac2Ces  , $indicador, NULL)) - 
-                            COUNT(if($indicador between $this->limDif1Ces and $this->limDif2Ces , $indicador, NULL)))
-                            /COUNT(CASE WHEN $indicador != 99 THEN $indicador END)* 100 AS ces, 
+        
+            // echo "SELECT (COUNT(if($indicador between  $this->_maxMaxCes and  $this->_minMaxCes  , $indicador, NULL)) - 
+            // COUNT(if($indicador between $this->_minCes and $this->_maxCes , $indicador, NULL))) * 100
+            // /COUNT(CASE WHEN $indicador != 99 THEN $indicador END) AS ces, 
+            // ROUND((count(if($indicador = $this->_minCes OR $indicador = $this->_maxCes, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as dificil, 
+            // ROUND((count(if($indicador = $this->_minMaxCes OR $indicador = $this->_maxMaxCes, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as facil, 
+            // ROUND((count(if($indicador =  $this->_minMediumCes, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as neutral,
+            // a.mes, a.annio, date_survey, gen 
+            // FROM $this->_dbSelected.$table as a
+            // INNER JOIN $this->_dbSelected." . $table . "_start as b on a.token = b. token 
+            // WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni'  $datafilters
+            // GROUP BY a.mes
+            // ORDER BY date_survey asc";
+        
+        $data = DB::select("SELECT (COUNT(if($indicador between  $this->_maxMaxCes and  $this->_minMaxCes  , $indicador, NULL)) - 
+                            COUNT(if($indicador between $this->_minCes and $this->_maxCes , $indicador, NULL))) * 100
+                            /COUNT(CASE WHEN $indicador != 99 THEN $indicador END) AS ces, 
+                            ROUND((count(if($indicador = $this->_minCes OR $indicador = $this->_maxCes, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as dificil, 
+                            ROUND((count(if($indicador = $this->_minMaxCes OR $indicador = $this->_maxMaxCes, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as facil, 
+                            ROUND((count(if($indicador =  $this->_minMediumCes, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as neutral,
                             a.mes, a.annio, date_survey, gen 
                             FROM $this->_dbSelected.$table as a
                             INNER JOIN $this->_dbSelected." . $table . "_start as b on a.token = b. token 
@@ -1656,21 +1699,25 @@ class Dashboard extends Generic
 
         if (!empty($data)) {
             foreach ($data as $key => $value) {
-                // echo '---'.$value->csat;
                 if ($struct != 'one') {
                     $graphCES[] = [
                         'xLegend'  => (string)$value->mes . '-' . $value->annio,
-                        'values'   => [
+                        'values' => [
+                            "promoters"  => round($value->facil),
+                            "neutrals"   => 100 - (round($value->facil) + round($value->dificil)),
+                            "detractors" => round($value->dificil),
                             'ces' => (string)ROUND($value->ces)
-                        ]
+                        ],
                     ];
                 }
                 if ($struct == 'one') {
                     $graphCES[] = [
-                        "value" => (string)ROUND($value->csat)
+                        "value" => (string)ROUND($value->ces)
                     ];
                 }
             }
+
+
         }
         return $graphCES;
     }
@@ -1746,58 +1793,55 @@ class Dashboard extends Generic
 
         if (substr($db, 10, 3) == 'via') {
 
-            // echo "SELECT COUNT(*) as Total,  
-            // ROUND(((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
-            // COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
-            // (COUNT(a.$indicatorNPS) - COUNT(CASE WHEN a.$indicatorNPS=99 THEN 1 END)) * 100),1) AS NPS, 
-            // ROUND(COUNT(if($indicatorCSAT between  9 and  10 , $indicatorCSAT, NULL))* 100/COUNT(if($indicatorCSAT !=99,1,NULL ))) AS CSAT, laboral, 
-            // $this->_fieldSelectInQuery
-            // FROM $this->_dbSelected.$db as a 
-            // LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token 
-            // WHERE date_survey BETWEEN  $dateEnd' AND '$dateIni' AND nps!= 99  $datafilters
-            // GROUP BY (a.laboral = 1), (a.laboral = 2), (a.laboral = 3), (a.laboral = 4), (a.laboral = 5)";
             $data = DB::select("SELECT COUNT(*) as Total,  
-            ROUND(((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
-            COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
-            (COUNT(a.$indicatorNPS) - COUNT(CASE WHEN a.$indicatorNPS=99 THEN 1 END)) * 100),1) AS NPS, 
-            ROUND(COUNT(if($indicatorCSAT between  9 and  10 , $indicatorCSAT, NULL))* 100/COUNT(if($indicatorCSAT !=99,1,NULL ))) AS CSAT, laboral, 
-            $this->_fieldSelectInQuery
-            FROM $this->_dbSelected.$db as a 
-            LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token 
-            WHERE date_survey BETWEEN  '$dateEnd' AND '$dateIni' AND nps!= 99  $datafilters
-            GROUP BY (a.laboral = 1), (a.laboral = 2), (a.laboral = 3), (a.laboral = 4), (a.laboral = 5)");
+                    ROUND(((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
+                    COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
+                    (COUNT(a.$indicatorNPS) - COUNT(CASE WHEN a.$indicatorNPS=99 THEN 1 END)) * 100),1) AS NPS, 
+                    ROUND(COUNT(if($indicatorCSAT between  9 and  10 , $indicatorCSAT, NULL))* 100/COUNT(if($indicatorCSAT !=99,1,NULL ))) AS CSAT, $indicatorGroup, 
+                    $this->_fieldSelectInQuery
+                    FROM $this->_dbSelected.$db as a 
+                    LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token 
+                    WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND nps!= 99  $datafilters
+                    GROUP BY $indicatorGroup");
 
             foreach ($data as $key => $value) {
                 //var_dump($value->age);
-                if ($value->laboral == 1) {
+                if ($value->$indicatorGroup == 1) {
                     $this->setAnomalias($value->NPS, '1');
                     // $this->setAnomalias($value->CSAT, 'GEN Z');
                     $quantityz = $value->Total;
                     $csatz = $value->CSAT;
                     $npsz = $value->NPS;
                 }
-                if ($value->laboral == 2) {
+                if ($value->$indicatorGroup == 2) {
                     $this->setAnomalias($value->NPS, '2');
                     //$this->setAnomalias($value->CSAT, 'GEN MILLE');
                     $quantitym = $value->Total;
                     $csatm     = $value->CSAT;
                     $npsm      = $value->NPS;
                 }
-                if ($value->laboral == 3) {
+                if ($value->$indicatorGroup == 3) {
                     $this->setAnomalias($value->NPS, '3');
                     // $this->setAnomalias($value->CSAT, 'GEN X');
                     $quantityx = $value->Total;
                     $csatx    = $value->CSAT;
                     $npsx     = $value->NPS;
                 }
-                if ($value->laboral == 4) {
+                if ($value->$indicatorGroup == 4) {
                     $this->setAnomalias($value->NPS, '4');
                     // $this->setAnomalias($value->CSAT, 'GEN BB');
                     $quantityb = $value->Total;
                     $csatb    = $value->CSAT;
                     $npsb     = $value->NPS;
                 }
-                if ($value->laboral == 5) {
+                if ($value->$indicatorGroup == 5) {
+                    $this->setAnomalias($value->NPS, '5');
+                    //$this->setAnomalias($value->CSAT, 'GEN SIL');
+                    $quantitys = $value->Total;
+                    $csats    = $value->CSAT;
+                    $npss     = $value->NPS;
+                }
+                if ($value->$indicatorGroup == 6) {
                     $this->setAnomalias($value->NPS, '5');
                     //$this->setAnomalias($value->CSAT, 'GEN SIL');
                     $quantitys = $value->Total;
@@ -1817,7 +1861,7 @@ class Dashboard extends Generic
                 "type" => "compare-list",
                 "props" => [
                     "icon" => "arrow-right",
-                    "text" => "STATS by Generation",
+                    "text" => "STATS by " . strtoupper($indicatorGroup) ,
                     "compareList" => [
                         [
                             "icon" => "genz",
@@ -2454,18 +2498,35 @@ class Dashboard extends Generic
             $datafilters = " AND $datafilters";
 
         if ($filter != 'all') {
-            if ($indetifyClient == 'vid')
-                $db = $this->primaryTable($db);
+            
+            if (substr($db, 6, 3) != 'jet'){
+                if ($indetifyClient == 'vid')
+                    $db = $this->primaryTable($db);
 
-            $data = DB::select("SELECT COUNT(*) as Total,  
-            ROUND(((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
-            COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
-            (COUNT(a.$indicatorNPS) - COUNT(CASE WHEN a.$indicatorNPS=99 THEN 1 END)) * 100),1) AS NPS, 
-            ROUND(COUNT(if($indicatorCSAT between  9 and  10 , $indicatorCSAT, NULL))* 100/COUNT(if($indicatorCSAT !=99,1,NULL ))) AS CSAT, age, $this->_fieldSelectInQuery
-            FROM $this->_dbSelected.$db as a 
-            LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token 
-            WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND sex in(1,2,'F','M') and nps!= 99  $datafilters
-            GROUP BY (b.age BETWEEN 14 AND 22), (b.age BETWEEN 23 AND 38), (b.age BETWEEN 39 AND 54), (b.age BETWEEN 55 AND 73), (b.age BETWEEN 74 AND 99)");
+                $data = DB::select("SELECT COUNT(*) as Total,  
+                ROUND(((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
+                COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
+                (COUNT(a.$indicatorNPS) - COUNT(CASE WHEN a.$indicatorNPS=99 THEN 1 END)) * 100),1) AS NPS, 
+                ROUND(COUNT(if($indicatorCSAT between  9 and  10 , $indicatorCSAT, NULL))* 100/COUNT(if($indicatorCSAT !=99,1,NULL ))) AS CSAT, age, $this->_fieldSelectInQuery
+                FROM $this->_dbSelected.$db as a 
+                LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token 
+                WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND sex in(1,2,'F','M') and nps!= 99  $datafilters
+                GROUP BY (b.age BETWEEN 14 AND 22), (b.age BETWEEN 23 AND 38), (b.age BETWEEN 39 AND 54), (b.age BETWEEN 55 AND 73), (b.age BETWEEN 74 AND 99)");
+            }
+
+            if (substr($db, 6, 3) == 'jet' && substr($db, 10, 3) == 'via'){
+
+                $data = DB::select( "SELECT COUNT(*) as Total,  
+                ROUND(((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
+                COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
+                (COUNT(a.$indicatorNPS) - COUNT(CASE WHEN a.$indicatorNPS=99 THEN 1 END)) * 100),1) AS NPS, 
+                ROUND(COUNT(if($indicatorCSAT between  9 and  10 , $indicatorCSAT, NULL))* 100/COUNT(if($indicatorCSAT !=99,1,NULL ))) AS CSAT, gene, $this->_fieldSelectInQuery
+                FROM $this->_dbSelected.$db as a 
+                LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token 
+                WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND nps!= 99  $datafilters
+                GROUP BY gene");
+            }
+
         }
 
         if ($filter == 'all') {
@@ -3370,7 +3431,7 @@ class Dashboard extends Generic
         if($str == 'ges' || $str == 'eri' || $str == 'com'){
           
             $data = DB::select("SELECT COUNT(*) as Total,
-                    (COUNT(if($ces between  $this->limFac1Ces and  $this->limFac2Ces  , $ces, NULL)) - COUNT(if($ces between $this->limDif1Ces and $this->limDif2Ces , $ces, NULL)))/COUNT(if(ces !=99,1,NULL ))* 100 AS CES 
+                    (COUNT(if($ces between  $this->_minMaxCes and  $this->_maxMaxCes  , $ces, NULL)) - COUNT(if($ces between $this->_minCes and $this->_maxCes , $ces, NULL)))/COUNT(if(ces !=99,1,NULL ))* 100 AS CES 
                     FROM $this->_dbSelected.$db as a
                     WHERE mes = $mes AND annio = $annio");
                     $cesPrev = $this->cesPreviousPeriod($db, $mes, $annio);
@@ -3402,7 +3463,7 @@ class Dashboard extends Generic
         }
 
         $data = DB::select("SELECT COUNT(*) as Total,
-        (COUNT(if(ces between  $this->limFac1Ces and  $this->limFac2Ces , ces, NULL)) - COUNT(if(ces between $this->limDif1Ces and $this->limDif2Ces, ces, NULL)))/COUNT(if(ces !=99,1,NULL ))* 100 AS CES 
+        (COUNT(if(ces between  $this->_minMaxCes and  $this->_maxMaxCes , ces, NULL)) - COUNT(if(ces between $this->_minCes and $this->_maxCes, ces, NULL)))/COUNT(if(ces !=99,1,NULL ))* 100 AS CES 
         FROM $this->_dbSelected.$db as a 
         WHERE mes = $monthAnt AND annio = $annio");
 
@@ -4867,15 +4928,16 @@ class Dashboard extends Generic
         ];
     }
 
-    private function cardNpsBanmedica($nameIndicatorPrincipal, $dataNPSGraph)
+    private function cardNpsBanmedica($nameIndicatorPrincipal, $dataNPSGraph, $indicador = 'NPS')
     {
+        //$indicador === 'CSAT' ? print_r($dataNPSGraph) : print_r('nada');
         return [
             "height" => 3,
             "width" => 6,
             "type" => "chart",
             "props" => [
                 "icon" => "arrow-right",
-                "text" => "NPS Consolidado • " . $nameIndicatorPrincipal,
+                "text" => $indicador === 'NPS' ? "NPS Consolidado • " . $nameIndicatorPrincipal : $indicador . " • " . $nameIndicatorPrincipal,
                 "chart" => [
                     "fields" => [
                         [
@@ -4899,8 +4961,8 @@ class Dashboard extends Generic
                         ],
                         [
                             "type" => "line",
-                            "key" => "nps",
-                            "text" => "NPS",
+                            "key" => $indicador === 'NPS' ? "nps" : ($indicador === 'CSAT' ? 'csat' : 'ces'),
+                            "text" => $indicador === 'NPS' ? "NPS" : ($indicador === 'CSAT' ? 'CSAT' : 'CES'),
                             "bgColor" => "#1a90ff",
                         ],
                     ],
@@ -5315,16 +5377,16 @@ class Dashboard extends Generic
             $performance        = null; //$this->cardsPerformace($dataNps, $dataisn, substr($request->survey, 0, 3), $datafilters);
             $npsConsolidado     = $this->graphsStruct($dataisn, 12, 'cbi');
             $npsVid             = $this->cardNpsBanmedica('JetSmart', $dataNPSGraph); //NPS
-            $csatJourney        = $this->graphsStruct($dataCsatGraph, 6, 'csat');//Csat
-            $csatDrivers        = substr($db, 10, 3) == 'com' ? $this->graphsStruct($dataCesGraph, 6, 'ces') : null; //$this->graphCLTransvip($dataCL); //Ces
+            $csatJourney        = $this->cardNpsBanmedica('JetSmart', $dataCsatGraph, 'CSAT');//Csat
+            $csatDrivers        = substr($db, 10, 3) == 'com' ?  $this->cardNpsBanmedica('JetSmart', $dataCesGraph, 'CES') : null; //$this->graphsStruct($dataCesGraph, 6, 'ces') : null; //$this->graphCLTransvip($dataCL); //Ces
             $cx                 = $this->CSATJourney($graphCSATDrivers);
             $wordCloud          = null; // //$this->globales($db, date('m'), date('Y'), 'sentido', 'Sentido', 'cbi', 'ins', 4, $datafilters);
             $closedLoop         = null; //$this->globales($db, date('m'), date('Y'), 'tiposervicio', 'Vehículo', 'cbi', 'ins', 4, $datafilters);
             $detailGender       = null; //$this->globales($db, date('m'), date('Y'), 'sucursal', 'Sucursal', 'cbi', 'ins', 4, $datafilters);
             //Cuadros stats de aca en adelante 
-            $detailGeneration   = null; //$this->detailGeneration($db, $npsInDb, $csatInDb, $endDateFilterMonth, $startDateFilterMonth, $filterClient,  $datafilters, $indetifyClient);
+            $detailGeneration   = substr($db, 10, 3) == 'via' ? $this->detailGeneration($db, $npsInDb, $csatInDb, $endDateFilterMonth, $startDateFilterMonth,  $filterClient,  $datafilters, $indetifyClient) : null;
             $detailsProcedencia = substr($db, 10, 3) == 'via' ? $this->detailLaboralSit($db, 'nps', 'csat', 'laboral' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters = null, $indetifyClient) : null;
-            $box14              = null; //$this->graphCsatTransvip($drivers);
+            $box14              = substr($db, 10, 3) == 'via' ? $this->detailLaboralSit($db, 'nps', 'csat', 'frec2' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters = null, $indetifyClient) : null;
             $box15              = null;
             $box16              = null;
             $box17              = null;
@@ -5497,19 +5559,20 @@ class Dashboard extends Generic
            $this->_minMaxNps           = 9;
            $this->_maxMaxNps           = 10;
            $this->_minCsat             = 1;
-           $this->_maxCsat             = 4;
-           $this->_minMediumCsat       = 5;
-           $this->_maxMediumCsat       = 5;
+           $this->_maxCsat             = 6;
+           $this->_minMediumCsat       = 7;
+           $this->_maxMediumCsat       = 8;
            $this->_minMaxCsat          = 9;
            $this->_maxMaxCsat          = 10;
            $this->_obsNps              = 'obs';
            $this->_imageClient         = 'https://customerscoops.com/assets/companies-images/logo_transvip.svg';
            $this->_nameClient          = 'JetSmart';
            $this->ButFilterWeeks       = '';
-           $this->limDif1Ces           = 1;
-           $this->limDif2Ces           = 2;
-           $this->limFac1Ces           = 4;
-           $this->limFac2Ces           = 5;
+           $this->_minCes              = 1;
+           $this->_maxCes              = 2;
+           $this->_minMediumCes        = 3;
+           $this->_minMaxCes           = 4;
+           $this->_maxMaxCes           = 5;
         }
     }
 }
