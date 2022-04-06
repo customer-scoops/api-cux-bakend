@@ -706,6 +706,7 @@ class Dashboard extends Generic
                         "title"         => ucwords(strtolower($value['name'])),
                         "identifier"    => $value['base'],
                         "principalIndicator" => [$infoNps],
+
                         "journeyMap"    => $this->GraphCSATDrivers($db,$db2,$value['base'],$csatInDb,date('Y-m-d'),date('Y-m-01'),$this->_initialFilter,'one'),
                         "otherGraphs"   => $otherGraph
                     ];
@@ -1632,9 +1633,7 @@ class Dashboard extends Generic
         if ($datafilters)
         $datafilters = " AND $datafilters";
     //echo 'Ini: '.$dateIni.'End: '.$dateEnd;
-    //$graphCBI = array();
 
- 
     $data = DB::select("SELECT COUNT(if( $indicador between 4 and 5, $indicador, NULL))/COUNT(CASE WHEN $indicador != 99 THEN $indicador END)*100 AS cbi, 
             a.mes, a.annio, date_survey, $this->_fieldSelectInQuery 
             FROM $this->_dbSelected.$table as a
@@ -3086,6 +3085,7 @@ class Dashboard extends Generic
 
         if ($datafilters)
             $datafilters = " AND $datafilters";
+
         
         if($str == 'ges' || $str == 'eri' || $str == 'com'){
           
