@@ -1767,17 +1767,6 @@ class Dashboard extends Generic
         if ($datafilters)
             $datafilters = " AND $datafilters";
 
-            // $data = DB::select("SELECT COUNT(*) as Total,  
-            //         ROUND(((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
-            //         COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
-            //         (COUNT(a.$indicatorNPS) - COUNT(CASE WHEN a.$indicatorNPS=99 THEN 1 END)) * 100),1) AS NPS, 
-            //         ROUND(COUNT(if($indicatorCSAT between  9 and  10 , $indicatorCSAT, NULL))* 100/COUNT(if($indicatorCSAT !=99,1,NULL ))) AS CSAT, $indicatorGroup, 
-            //         $this->_fieldSelectInQuery
-            //         FROM $this->_dbSelected.$db as a 
-            //         LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token 
-            //         WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND nps!= 99  $datafilters
-            //         GROUP BY $indicatorGroup");
-
             $data = DB::select("SELECT COUNT(*) as Total,  
                     ROUND(((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
                     COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
@@ -1786,8 +1775,19 @@ class Dashboard extends Generic
                     $this->_fieldSelectInQuery
                     FROM $this->_dbSelected.$db as a 
                     LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token 
-                    WHERE date_survey BETWEEN '2022-03-01' AND '2022-03-31' AND nps!= 99 AND $indicatorGroup != 99  $datafilters
+                    WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND nps!= 99  $datafilters
                     GROUP BY $indicatorGroup");
+
+            // $data = DB::select("SELECT COUNT(*) as Total,  
+            //         ROUND(((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
+            //         COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
+            //         (COUNT(a.$indicatorNPS) - COUNT(CASE WHEN a.$indicatorNPS=99 THEN 1 END)) * 100),1) AS NPS, 
+            //         ROUND(COUNT(if($indicatorCSAT between  9 and  10 , $indicatorCSAT, NULL))* 100/COUNT(if($indicatorCSAT !=99,1,NULL ))) AS CSAT, $indicatorGroup, 
+            //         $this->_fieldSelectInQuery
+            //         FROM $this->_dbSelected.$db as a 
+            //         LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token 
+            //         WHERE date_survey BETWEEN '2022-03-01' AND '2022-03-31' AND nps!= 99 AND $indicatorGroup != 99  $datafilters
+            //         GROUP BY $indicatorGroup");
 
             $count = 0;
             $dataArray = [];
@@ -2388,10 +2388,10 @@ class Dashboard extends Generic
                                 ROUND(COUNT(if($indicatorCSAT between  9 and  10 , $indicatorCSAT, NULL))* 100/COUNT(if($indicatorCSAT !=99,1,NULL )))*$this->_porcentageBan AS CSAT, $this->_fieldSelectInQuery
                                 FROM $this->_dbSelected.$db as a
                                 LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token 
-                                      WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND sex in(1,2,'F','M') and nps!= 99  $datafilters
+                                WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND sex in(1,2,'F','M') and nps!= 99  $datafilters
                                 GROUP BY (b.age BETWEEN 14 AND 22), (b.age BETWEEN 23 AND 38), (b.age BETWEEN 39 AND 54), (b.age BETWEEN 55 AND 73), (b.age BETWEEN 74 AND 99)
-                            UNION
-                            SELECT COUNT(*) as Total, b.age,
+                                UNION
+                                SELECT COUNT(*) as Total, b.age,
                                 ROUND((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
                                 COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) / 
                                 COUNT(CASE WHEN a.$indicatorNPS!=99 THEN 1 END) * 100)*$this->_porcentageVid AS NPS,
