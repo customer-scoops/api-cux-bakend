@@ -3313,7 +3313,8 @@ class Dashboard extends Generic
         if($str == 'ges' || $str == 'eri' || $str == 'com'){
           
             $data = DB::select("SELECT COUNT(*) as Total,
-                    (COUNT(if($ces between  $this->_minMaxCes and  $this->_maxMaxCes  , $ces, NULL)) - COUNT(if($ces between $this->_minCes and $this->_maxCes , $ces, NULL)))/COUNT(if(ces !=99,1,NULL ))* 100 AS CES 
+                    (COUNT(if($ces between  $this->_minMaxCes and  $this->_maxMaxCes, $ces, NULL)) - 
+                    COUNT(if($ces between $this->_minCes and $this->_maxCes , $ces, NULL)))/COUNT(if(ces !=99,1,NULL ))* 100 AS CES 
                     FROM $this->_dbSelected.$db as a
                     LEFT JOIN $this->_dbSelected." . $db . "_start as b 
                     on a.token = b.token
@@ -5496,10 +5497,11 @@ class Dashboard extends Generic
             $this->_imageClient         = 'https://customerscoops.com/assets/companies-images/mutual_logo.png';
             $this->_nameClient          = 'Mutual';
             $this->ButFilterWeeks       = [["text" => "Anual", "key" => "filterWeeks", "value" => ""], ["text" => "Semanal", "key" => "filterWeeks", "value" => "10"]];
-            $this->limDif1Ces           = 1;
-            $this->limDif2Ces           = 4;
-            $this->limFac1Ces           = 6;
-            $this->limFac2Ces           = 7;
+            $this->_minCes              = 1;
+            $this->_maxCes              = 4;
+            $this->_minMediumCes        = 5;
+            $this->_minMaxCes           = 6;
+            $this->_maxMaxCes           = 7;
         }
 
         if ($client == 'DEM001') {
