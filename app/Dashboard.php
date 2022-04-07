@@ -679,7 +679,7 @@ class Dashboard extends Generic
                     $npsInDb = 'nps';
                     $csatInDb = 'csat';
                     $cesInDb = 'ces';
-                    $infoNps = $this->infoNps($db,date('m'),date('Y'),$npsInDb,$this->_initialFilter); 
+                    $infoNps =[$this->infoNps($db,date('m'),date('Y'),$npsInDb,$this->_initialFilter)]; 
                     $otherGraph = [$this->infoCsat($db,date('m'),date('Y'), $csatInDb,$this->_initialFilter)];
                     
                     if(substr($value['base'],0,3) == 'mut'){
