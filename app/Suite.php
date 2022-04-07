@@ -562,6 +562,26 @@ class Suite
             "travia_csat9" => "Ruta y tiempo de traslado",
             "travia_csat10" => "Atención del Conductor",
             "travia_csat11" => "Conducción",
+
+            //JETSMART
+            "jetvia_csat1"  => "Proceso de compra online/web realizado",
+            "jetvia_csat2"  => "Proceso de pago al comprar tu boleto",
+            "jetvia_csat3"  => "Información en email de confirmación de compra",
+            "jetvia_csat4"  => "Información recibida posterior al proceso de compra",
+            "jetvia_csat5"  => "Check in realizado",
+            "jetvia_csat6"  => "Proceso de registro de equipaje",
+            "jetvia_csat7"  => "Abordaje del vuelo realizado",
+            "jetvia_csat8"  => "Vuelo realizado",
+            "jetvia_csat9"  => "Momento de llegada del vuelo",
+            "jetvia_csat10" => "Servicio al cliente",
+            
+            "jetcom_csat1"  => "Utilizar el sitio web",
+            "jetcom_csat2"  => "Selección de pasajes",
+            "jetcom_csat3"  => "Selección y compra de equipaje",
+            "jetcom_csat4"  => "Selección de asientos",
+            "jetcom_csat5"  => "Proceso de pago",
+            "jetcom_csat6"  => "Información en email de confirmación de compra",
+        
         ];
         
         if(array_key_exists($searchDriver, $datas)){

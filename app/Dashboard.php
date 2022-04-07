@@ -1482,8 +1482,8 @@ class Dashboard extends Generic
             return [
                 "name"          => "csat",
                 "value"         => 'N/A',
-                "percentage"    => $csatActive - $csatPreviousPeriod,
-                //"smAvg"         => $csatActive-$csatPreviousPeriod,
+                "percentage"    => '',
+                "smAvg"         => $csatActive-$csatPreviousPeriod,
                 //"smAvg"         => 0,
 
             ];
@@ -1735,6 +1735,25 @@ class Dashboard extends Generic
 
 
         }
+
+        if (empty($data)) {         
+                    $graphCES[] = [
+                        'xLegend'  => (string)date('m') . '-' . date('Y'),
+                        'values' => [
+                            "promoters"  => 0,
+                            "neutrals"   => 0,
+                            "detractors" => 0,
+                            'ces' => ''
+                        ],
+                    ];
+                
+                if ($struct == 'one') {
+                    $graphCES[] = [
+                        "value" => ''
+                    ];
+                }
+        }
+
         return $graphCES;
     }
 
@@ -3281,24 +3300,19 @@ class Dashboard extends Generic
     }
 
     private function imagen($client, $filterClient,$nameEncuesta, $table = null){
-        //echo 'hoola'.$client;
+        echo 'hoola'.$client;
         if($client == 'ban' &&  $filterClient != 'all'){
            return  "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola</span>¡Este es tu Dashboard de la Encuesta $nameEncuesta!</span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'><img width='120px' src='$this->_imageBan'/></span></div>";
-
         }
+        
         if ($client == 'vid' &&  $filterClient != 'all') {
             return   "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola</span>¡Este es tu Dashboard de la Encuesta $nameEncuesta!</span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'><img width='120px' src='$this->_imageVid'/></span></div>";
         }
 
-        // if($filterClient == 'one' && $nameEncuesta !== 'Ambulatorios' && $nameEncuesta !== 'Imagenologia (img)' && $nameEncuesta !== 'Urgencias' && $nameEncuesta !== 'Rehabilitacion' && $nameEncuesta != 'Hospitalizacion'){ 
-        //     return   "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola</span>¡Este es tu Dashboard de la Encuesta $nameEncuesta!</span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'><img width='120px' src='$this->_imageClient'/></span></div>";
-        // }
         if($client == 'mut' &&  $filterClient != 'all'){
             return   "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola</span>¡Este es tu Dashboard de la Encuesta $nameEncuesta!</span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'><img width='120px' src='$this->_imageClient'/></span></div>";
         }
-        // if ($table == 'MUT001_mutcon_resp') {
-        //     return  "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola</span>¡Este es tu Dashboard Consolidado !</span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'><img width='120px'  src='$this->_imageClient'/></span></div>";
-        // }
+      
         return  "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola</span>¡Este es tu Dashboard Consolidado !</span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'><img width='120px' src='$this->_imageBan'/><img width='120px' src='$this->_imageVid'/></span></div>";
     }
 
@@ -4852,8 +4866,11 @@ class Dashboard extends Generic
         return $where;
     }
 
-    private function cardsPerformace($dataNps, $dataCsat, $survey, $datafilters,$dataCes = null)
+    private function cardsPerformace($dataNps, $dataCsat, $survey, $datafilters,$dataCes = null, $dataCbi = null, $ces = null)
     {
+        $width = 6;
+        $resp = [];
+        //print_r($dataCes);
         if ($datafilters)
             $datafilters = " AND $datafilters";
 
@@ -4876,33 +4893,78 @@ class Dashboard extends Generic
             $percentage =  (int)$dataCsat['percentage'];
         }
 
-        if ($this->_dbSelected == 'customer_jetsmart') {    
-            $name = $dataCsat['name'];
-            $val = $dataCsat['value'];
-            $percentage = $dataCsat['percentage'];
-        }
-
         $this->_valueMinAnomalias = (int)$dataNps['value'] - 20;
         $this->_valueMaxAnomalias = (int)$dataNps['value'] + 30;
 
+        if ($this->_dbSelected != 'customer_jetsmart') { 
+            $resp = [
+                        [
+                            "name"    => $dataNps['name'],
+                            "value"   => $dataNps['value'],
+                            "m2m"     => (int)round($dataNps['percentage']),
+                        ],
+                        [
+                            "name"    => $name,
+                            "value"   => $val,
+                            "m2m"     => $percentage,
+                        ],
+                        
+                    ];
+        }
+        if ($this->_dbSelected == 'customer_jetsmart') { 
+            $width = 12;
+            if($ces == true){
+                $resp = [
+                            [
+                                "name"    => $dataCbi['name'],
+                                "value"   => $dataCbi['value'],
+                                "m2m"     => (int)round($dataCbi['percentage']),
+                            ],
+                            [
+                                "name"    => $dataNps['name'],
+                                "value"   => $dataNps['value'],
+                                "m2m"     => (int)round($dataNps['percentage']),
+                            ],
+                            [
+                                "name"    => $dataCsat['name'],
+                                "value"   => $dataCsat['value'],
+                                "m2m"     => (int)round($dataCsat['percentage']),
+                            ],
+                            [
+                                "name"    => $dataCes['name'],
+                                "value"   => $dataCes['value'],
+                                "m2m"     => (int)round($dataCes['m2m']),
+                            ]
+                        ];
+            }
+            if($ces == false){
+                $resp = [
+                            [
+                                "name"    => $dataCbi['name'],
+                                "value"   => $dataCbi['value'],
+                                "m2m"     => (int)round($dataCbi['percentage']),
+                            ],
+                            [
+                                "name"    => $dataNps['name'],
+                                "value"   => $dataNps['value'],
+                                "m2m"     => (int)round($dataNps['percentage']),
+                            ],
+                            [
+                                "name"    => $dataCsat['name'],
+                                "value"   => $dataCsat['value'],
+                                "m2m"     => (int)round($dataCsat['percentage']),
+                            ],
+                        ];
+            }
+        }
+
         return [
             "height" => 1,
-            "width" => 6,
+            "width" => $width,
             "type" => "performance",
             "props" => [
                 "icon" => "arrow-right",
-                "performances" => [
-                    [
-                        "name"    => $dataNps['name'],
-                        "value"   => $dataNps['value'],
-                        "m2m"     => (int)round($dataNps['percentage']),
-                    ],
-                    [
-                        "name"    => $name,
-                        "value"   => $val,
-                        "m2m"     => $percentage,
-                    ],
-                ],
+                "performances" => $resp
             ],
         ];
     }
@@ -5571,18 +5633,22 @@ class Dashboard extends Generic
         }
 
         if ($this->_dbSelected  == 'customer_jetsmart') {
+            $ces=true;
             $name = 'JetSmart';
-            // if ($db == 'adata_jet_via') {
-            //     $aerolineas = $this->OrdenAerolineas($db, $startDateFilterMonth, $endDateFilterMonth);
-            // }
+            if ($db == 'adata_jet_via') {
+                $ces=false;
+                //$aerolineas = $this->OrdenAerolineas($db, $startDateFilterMonth, $endDateFilterMonth);
+            }
+            $dataCes        = $this->ces($db, date('m'), date('Y'), 'ces', $datafilters);
             $dataNPSGraph   = $this->graphNps($db, date('m'), date('Y'), $npsInDb, $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
             $dataCsatGraph  = $this->graphCsat($db, date('m'), date('Y'), $csatInDb, $dateIni, $dateEnd,  $filterClient, 'two' ,$datafilters);
             $dataCesGraph   = $this->graphCes($db, date('m'), date('Y'), 'ces', $dateIni, $dateEnd,  $filterClient, 'two' ,$datafilters);
             $dataCbi        = $this->cbiResp($db, '', date('Y-m-d'),date('Y-m-01'));
             $graphCSATDrivers   = $this->GraphCSATDrivers($db, '', trim($request->survey), $csatInDb, $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters, $group);
             $dataisn            = $this->graphCbi($db, date('m'), date('Y'), 'cbi', $dateIni, $dateEnd, $datafilters, 'two');
-            $welcome            = $this->welcome(($request->client !== null) ? 'tra' : $request->client, $filterClient, ($request->client !== null) ? $request->client : $request->survey, $db);
-            $performance        = $this->cardsPerformace($dataNps, $dataCbi, substr($request->survey, 0, 3), $datafilters);
+            
+            $welcome            = $this->welcome(($request->client !== null) ? 'jet' : $request->client, $filterClient, ($request->client !== null) ? $request->client : $request->survey, $db);
+            $performance        = $this->cardsPerformace($dataNps, $dataCsat, substr($request->survey, 0, 3), $datafilters,  $dataCes, $dataCbi,$ces);
             $npsConsolidado     = $this->graphsStruct($dataisn, 12, 'cbi');
             $npsVid             = $this->cardNpsBanmedica($this->_nameClient, $dataNPSGraph); //NPS
             $csatJourney        = $this->cardNpsBanmedica($this->_nameClient , $dataCsatGraph, 'CSAT');//Csat
