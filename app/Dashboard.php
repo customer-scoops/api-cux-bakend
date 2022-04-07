@@ -48,12 +48,14 @@ class Dashboard extends Generic
     private $_maxMaxCsat;
     private $_anomaliasPain = [];
     private $_anomaliasGain = [];
+    private $_anomaliasPainCBI = [];
+    private $_anomaliasGainCBI = [];
     private $_valueMinAnomalias = 0;
     private $_valueMaxAnomalias = 0;
+    private $_valueMinAnomaliasCBI = -10;
+    private $_valueMaxAnomaliasCBI = 10;
     private $_valueMinAnomaliasText = -20;
     private $_valueMaxAnomaliasText = 30;
-    private $_valueMinAnomaliasCBIText = -10;
-    private $_valueMaxAnomaliasCBIText = 10;
     private $_valueAnomaliasPorcentajeText = 30;
 
     public function getDBSelect()
@@ -427,7 +429,7 @@ class Dashboard extends Generic
         foreach ($dataTextMining['datas']->values as $value){
             foreach($value as $key => $detail){
                 foreach($detail as $key1 => $index){
-                isset($index->percentaje3)?$this->setAnomaliasTextAnalitics( $index->percentaje3, $index->nps3, $index->word3, $index->group3, $survey): null ;
+                isset($index->percentaje3)?$this->setAnomaliasTextAnalitics( $index->percentaje3, $index->nps3, $index->word3, $index->group3): null ;
                 }
             }
         }
@@ -1132,6 +1134,11 @@ class Dashboard extends Generic
     //OKK
     private function graphNps($table, $mes, $annio, $indicador, $dateIni, $dateEnd, $filter, $struct = 'two', $datafilters = null, $group = null)
     {
+        
+        $activeP2 ='';
+        if(substr($table, 6, 3))
+            $activeP2 = " AND etapaencuesta = 'P2' ";
+        
         $table2 = $this->primaryTable($table);
         $group2 = "mes, annio";
         
@@ -1165,7 +1172,7 @@ class Dashboard extends Generic
                                 a.mes, a.annio, WEEK(date_survey) AS week,$this->_fieldSelectInQuery  
                                 FROM $this->_dbSelected.$table as a
                                 INNER JOIN $this->_dbSelected." . $table . "_start as b ON a.token = b.token 
-                                WHERE  $where $datafilters 
+                                WHERE  $where $activeP2 $datafilters 
                                 GROUP BY $group2
                                 ORDER BY date_survey ASC");
         }
@@ -1518,6 +1525,11 @@ class Dashboard extends Generic
 
     private function graphCsat($table, $mes, $annio, $indicador, $dateIni, $dateEnd, $filter, $struct = 'two', $datafilters = null, $group = null)
     { 
+
+        $activeP2 ='';
+        if(substr($table, 6, 3))
+            $activeP2 = " AND etapaencuesta = 'P2' ";
+
         if ($group !== null) {
             $where = $datafilters;
             $datafilters = '';
@@ -1542,7 +1554,7 @@ class Dashboard extends Generic
                                     a.mes, a.annio, date_survey, $this->_fieldSelectInQuery 
                                     FROM $this->_dbSelected.$table as a
                                     INNER JOIN $this->_dbSelected." . $table . "_start as b on a.token = b. token 
-                                    WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni'  $datafilters
+                                    WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $activeP2 $datafilters
                                     GROUP BY a.mes
                                     ORDER BY date_survey asc");
             }
@@ -1676,12 +1688,15 @@ class Dashboard extends Generic
         if ($datafilters)
         $datafilters = " AND $datafilters";
         $graphCBI = [];
+        $activeP2 ='';
+        if(substr($table, 6, 3))
+            $activeP2 = " AND etapaencuesta = 'P2' ";
 
     $data = DB::select("SELECT COUNT(if( $indicador between 4 and 5, $indicador, NULL))/COUNT(CASE WHEN $indicador != 99 THEN $indicador END)*100 AS cbi, 
                         a.mes, a.annio, date_survey, $this->_fieldSelectInQuery 
                         FROM $this->_dbSelected.$table as a
                         INNER JOIN $this->_dbSelected." . $table . "_start as b on a.token = b. token 
-                        WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni'  $datafilters
+                        WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $activeP2 $datafilters
                         GROUP BY a.mes
                         ORDER BY date_survey asc");
       
@@ -1710,6 +1725,11 @@ class Dashboard extends Generic
 
     private function graphCes($table, $mes, $annio, $indicador, $dateIni, $dateEnd, $filter, $struct = 'two', $datafilters = null, $group = null)
     { 
+
+        $activeP2 ='';
+        if(substr($table, 6, 3))
+            $activeP2 = " AND etapaencuesta = 'P2' ";
+
         if ($group !== null) {
             $where = $datafilters;
             $datafilters = '';
@@ -1736,7 +1756,7 @@ class Dashboard extends Generic
                                 a.mes, a.annio, date_survey, gen 
                                 FROM $this->_dbSelected.$table as a
                                 INNER JOIN $this->_dbSelected." . $table . "_start as b on a.token = b. token 
-                                WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni'  $datafilters
+                                WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $activeP2 $datafilters
                                 GROUP BY a.mes
                                 ORDER BY date_survey asc");
         }
@@ -1809,7 +1829,7 @@ class Dashboard extends Generic
                             $this->_fieldSelectInQuery
                             FROM $this->_dbSelected.$db as a 
                             LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token 
-                            WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND $indicatorGroup != 99  $datafilters
+                            WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND $indicatorGroup != 99  AND etapaencuesta = 'P2' $datafilters
                             GROUP BY $indicatorGroup");
 
         $count = 0;
@@ -1819,6 +1839,7 @@ class Dashboard extends Generic
             foreach ($data as $key => $value) {
 
                 $this->setAnomalias($value->NPS, $jetNames['data'][$count]["percentage"]);
+                $this->setAnomaliasCBI($value->CBI, $jetNames['data'][$count]["percentage"]);
                 $dataObj = [
                     "icon" => $jetNames['data'][$count]["icon"],
                     "percentage" => $jetNames['data'][$count]["percentage"],
@@ -1827,8 +1848,8 @@ class Dashboard extends Generic
                         [
                             "type" => "CBI",
                             "value" =>  $value->CBI,
-                            "aditionalText" => "%", //. $this->setTextAnomalias($value->CBI)['text'],
-                            "textColor" => 'rgb(0,0,0)' //$this->setTextAnomalias($value->CBI)['color']
+                            "aditionalText" => "%" . $this->setTextAnomaliasCBI($value->CBI)['text'],
+                            "textColor" => $this->setTextAnomaliasCBI($value->CBI)['color'], //'rgb(0,0,0)'
                         ],
                         [
                             "type" => "NPS",
@@ -1927,7 +1948,7 @@ class Dashboard extends Generic
 
         }
 
-        $data = DB::select("SELECT $query FROM $this->_dbSelected.$db WHERE mes = $mes AND annio = $annio $datafilters"); //Cambiar mes = 3 por la variable $mes
+        $data = DB::select("SELECT $query FROM $this->_dbSelected.$db WHERE mes = $mes AND annio = $annio AND etapaencuesta = 'P2' $datafilters"); //Cambiar mes = 3 por la variable $mes
 
         for($i = 1; $i <= $endCsat; $i++)
         {
@@ -2007,7 +2028,7 @@ class Dashboard extends Generic
             $cbiActive = DB::select("SELECT ROUND((COUNT(CASE WHEN cbi BETWEEN 4 AND 5 THEN 1 END)  /
                                     (COUNT(CASE WHEN cbi != 99 THEN 'cbi' END)) * 100)) AS CBI
                                     FROM $this->_dbSelected.$db 
-                                    WHERE mes = $monthAct AND annio = $annioAct $datafilters");
+                                    WHERE mes = $monthAct AND annio = $annioAct AND etapaencuesta = 'P2' $datafilters");
 
             $cbiPreviousPeriod = $this->cbiPreviousPeriod($db, $monthAct, $annioAct, 'cbi', $datafilters);
            
@@ -2956,6 +2977,10 @@ class Dashboard extends Generic
         $fieldBd = $this->getFielInDbCsat($survey);
         $fieldBd2 = $this->getFielInDbCsat($survey);
 
+        $activeP2 ='';
+        if(substr($db, 6, 3))
+            $activeP2 = " AND etapaencuesta = 'P2' ";
+
         $query = "";
         $query2 = "";
         $select = "";
@@ -3039,7 +3064,7 @@ class Dashboard extends Generic
                                 FROM $this->_dbSelected.$db as A
                                 LEFT JOIN $this->_dbSelected." . $db . "_start as b
                                 on A.token = b.token 
-                                WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd'  $datafilters
+                                WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' $activeP2  $datafilters
                                 ORDER BY date_survey");
                              
         }
@@ -5204,10 +5229,8 @@ class Dashboard extends Generic
         ];
     }
 
-    private function setAnomaliasTextAnalitics($cant, $value, $text, $group, $survey)
+    private function setAnomaliasTextAnalitics($cant, $value, $text, $group)
     {
-        if($survey != 'jetvia')
-        {
             if ($this->_valueAnomaliasPorcentajeText < $cant) {
                 if ($this->_valueMinAnomaliasText >= $value) {
                     array_push($this->_anomaliasPain, $group);
@@ -5215,21 +5238,7 @@ class Dashboard extends Generic
                 if ($this->_valueMaxAnomaliasText <= $value) {
                     array_push($this->_anomaliasGain, $group);
                 }
-            }
-
-        }        
-
-        if($survey == 'jetvia')
-        {
-            if ($this->_valueAnomaliasPorcentajeText < $cant) {
-                if ($this->_valueMinAnomaliasCBIText >= $value) {
-                    array_push($this->_anomaliasPain, $group);
-                }
-                if ($this->_valueMaxAnomaliasCBIText <= $value) {
-                    array_push($this->_anomaliasGain, $group);
-                }
-            }
-        }
+            }    
     }
     
     private function setAnomalias($value, $text){
@@ -5241,12 +5250,32 @@ class Dashboard extends Generic
         }
     }
 
+    private function setAnomaliasCBI($value, $text){
+        if($this->_valueMinAnomaliasCBI >= $value) {
+            array_push($this->_anomaliasPainCBI, $text);
+        }
+        if ($this->_valueMaxAnomaliasCBI <= $value) {
+            array_push($this->_anomaliasGainCBI, $text);
+        }
+    }
+
     private function setTextAnomalias($value)
     {
         if ($this->_valueMinAnomalias >= $value) {
             return ['color'=>'rgb(254, 69, 96)','text'=>'▼'];
         }
         if ($this->_valueMaxAnomalias <= $value) {
+            return ['color'=>'rgb(23, 199, 132)','text'=>'▲'];
+        }
+        return ['color'=>'rgb(0,0,0)','text'=>''];
+    }
+
+    private function setTextAnomaliasCBI($value)
+    {
+        if ($this->_valueMinAnomaliasCBI >= $value) {
+            return ['color'=>'rgb(254, 69, 96)','text'=>'▼'];
+        }
+        if ($this->_valueMaxAnomaliasCBI <= $value) {
             return ['color'=>'rgb(23, 199, 132)','text'=>'▲'];
         }
         return ['color'=>'rgb(0,0,0)','text'=>''];
@@ -5374,27 +5403,27 @@ class Dashboard extends Generic
                 [
                     "icon" => "genz",
                     "percentage" => 'Cesante',
-                    "quantity" =>  'LS 1',
+                    "quantity" =>  '',
                 ],
                 [
                     "icon" => "genmille",
                     "percentage" => 'Empleado',
-                    "quantity" =>  'LS 2',
+                    "quantity" =>  '',
                 ],
                 [
                     "icon" => "genx",
                     "percentage" => 'Emprendedor',
-                    "quantity" =>  'LS 3',
+                    "quantity" =>  '',
                 ],
                 [
                     "icon" => "genbb",
                     "percentage" => 'Estudiante',
-                    "quantity" =>  'LS 4',
+                    "quantity" =>  '',
                 ],
                 [
                     "icon" => "gensil",
                     "percentage" => 'Ret/Jub',
-                    "quantity" =>  'LS 5',
+                    "quantity" =>  '',
                 ],
             ]
         ];
@@ -5402,35 +5431,35 @@ class Dashboard extends Generic
         $jetNamesFrecVuelo = [
             'title' => 'Frecuencia de Vuelo',
             'data' => [
-                               [
+                [
                     "icon" => "genmille",
                     "percentage"=> '1 / semana',
-                    "quantity" =>  'FV 1',
+                    "quantity" =>  '',
                 ],
                 [
                     "icon" => "genx",
                     "percentage"  => '2-3 / mes',
-                    "quantity"=>  'FV 2',
+                    "quantity"=>  '',
                 ],
                 [
                     "icon" => "genbb",
                     "percentage" => '1 / mes',
-                    "quantity" =>  'FV 3',
+                    "quantity" =>  '',
                 ],
                 [
                     "icon" => "gensil",
                     "percentage" => '2+ al  año',
-                    "quantity" =>  'FV 4',
+                    "quantity" =>  '',
                 ],
                 [
                     "icon" => "genbb",
                     "percentage" => 'Act. no viajo',
-                    "quantity" =>  'FV 5',
+                    "quantity" =>  '',
                 ],
                 [
                     "icon" => "genz",
                     "percentage" => '1 / año',
-                    "quantity" =>  'FV 6',
+                    "quantity" =>  '',
                 ],
             ]
         ];
