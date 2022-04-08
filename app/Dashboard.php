@@ -2049,7 +2049,7 @@ class Dashboard extends Generic
                     "name"          => "cbi", //Ver después como hacemos
                     "value"         => 'N/A',
                     "percentage"    => 0,                 
-                    "smAvg"         => 0,
+                    "smAvg"       => '',
                 ];
             }
             $generalDataCbi['graph'] = $this->graphCbi($db, date('m'), date('Y'), 'cbi', date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")),  $datafilters, 'one');
