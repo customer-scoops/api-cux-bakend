@@ -4911,7 +4911,7 @@ class Dashboard extends Generic
         }
 
         $colums = [
-            'BrandAwareness' => 'BrandAwareness',
+            'BrandAwareness' => 'Brand Awareness',
         ];
 
         $colums['Jetsmart']             = 'Jetsmart';
