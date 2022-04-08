@@ -4712,7 +4712,7 @@ class Dashboard extends Generic
                     $values['Preferencia'],
                     [
                         array_merge(
-                            ['Indicator' => 'Resultado'],
+                            ['Indicator' => 'Resultado']
                         )
                     ]
                 );
@@ -4827,7 +4827,7 @@ class Dashboard extends Generic
                     $values['Reconocimiento'],
                     [
                         array_merge(
-                            ['Indicator' => 'Resultado'],
+                            ['Indicator' => 'Resultado']
                         )
                     ]
                 );
@@ -5848,8 +5848,8 @@ class Dashboard extends Generic
             $detailGender       = substr($db, 10, 3) == 'via' ? $this->gapJetsmart($db, $request->survey,'csat',date('m'), date('Y'), $structGAPJetSmart, $datafilters): null;
             $detailGeneration   = substr($db, 10, 3) == 'via' ? $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'gene', $endDateFilterMonth, $startDateFilterMonth,  $filterClient,  $datafilters, $jetNamesGene) : null;
             $datasStatsByTaps   = null;
-            $detailsProcedencia = substr($db, 10, 3) == 'via' ? $this->detailStats($db, $npsInDb, $csatInDb, 'laboral' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesLab) : null;
-            $box14              = substr($db, 10, 3) == 'via' ? $this->detailStats($db, $npsInDb, $csatInDb, 'frec2' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesFrecVuelo) : null;
+            $detailsProcedencia = substr($db, 10, 3) == 'via' ? $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'laboral' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesLab) : null;
+            $box14              = substr($db, 10, 3) == 'via' ? $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'frec2' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesFrecVuelo) : null;
             $box15              = $aerolineas;
             $box16              = $brandAwareness; 
             $box17              = null;
