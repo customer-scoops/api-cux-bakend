@@ -955,21 +955,21 @@ class Dashboard extends Generic
     //Función promedio 6 mese CBI
 
     private function AVGLast6MonthCBI($table,$dateIni,$dateEnd,$indicador){
-            $data = DB::select("SELECT sum(CBI) as total from (SELECT 
+            $data = DB::select("SELECT sum(CBI) as total, COUNT(distinct mes) as meses from (SELECT 
                                 ROUND(((COUNT(CASE WHEN $indicador BETWEEN 4 AND  5 THEN 1 END)) 
                                 /(COUNT($indicador) - COUNT(CASE WHEN $indicador=99 THEN 1 END)) * 100)) AS CBI, mes, annio
                                 FROM $this->_dbSelected.$table
                                 WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' 
                                 group by annio, mes) as a");
 
-        return (int)($data[0]->total / 6);
+        return (int)($data[0]->total / $data[0]->meses);
     }
 
     private function AVGLast6MonthNPS($table,$table2,$dateIni,$dateEnd,$indicador, $filter){
-      
+
         if($filter == 'all'){              
 
-            $data = DB::select("SELECT sum(NPSS) as total from (SELECT round(SUM(NPS)) AS NPSS FROM (SELECT ROUND(((COUNT(CASE WHEN $indicador  BETWEEN 9 AND 10 THEN 1 END) -
+            $data = DB::select("SELECT sum(NPSS) as total, COUNT(distinct mes) as meses from (SELECT round(SUM(NPS)) AS NPSS FROM (SELECT ROUND(((COUNT(CASE WHEN $indicador  BETWEEN 9 AND 10 THEN 1 END) -
                                 COUNT(CASE WHEN $indicador  BETWEEN 0 AND 6 THEN 1 END)) /
                                 (COUNT($indicador ) - COUNT(CASE WHEN $indicador =99 THEN 1 END)) * 100),1)*$this->_porcentageBan AS NPS, mes, annio
                                 FROM $this->_dbSelected.$table
@@ -986,14 +986,14 @@ class Dashboard extends Generic
         }
 
         if ($filter != 'all') {
-            $data = DB::select("SELECT sum(NPS) as total from (SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
+            $data = DB::select("SELECT sum(NPS) as total, COUNT(distinct mes) as meses from (SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
                                 COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
                                 (COUNT($indicador) - COUNT(CASE WHEN $indicador=99 THEN 1 END)) * 100),1) AS NPS, mes, annio
                                 FROM $this->_dbSelected.$table
                                 WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' 
                                 group by annio, mes) as a");
         }
-        return (int)($data[0]->total / 6);
+        return (int)($data[0]->total / $data[0]->meses);
     }
 
 
@@ -1136,7 +1136,7 @@ class Dashboard extends Generic
     {
         
         $activeP2 ='';
-        if(substr($table, 6, 3))
+        if(substr($table, 6, 3) == 'jet')
             $activeP2 = " AND etapaencuesta = 'P2' ";
         
         $table2 = $this->primaryTable($table);
@@ -1527,7 +1527,7 @@ class Dashboard extends Generic
     { 
 
         $activeP2 ='';
-        if(substr($table, 6, 3))
+        if(substr($table, 6, 3) == 'jet')
             $activeP2 = " AND etapaencuesta = 'P2' ";
 
         if ($group !== null) {
@@ -1685,14 +1685,17 @@ class Dashboard extends Generic
     // Grph CBI para jestmart
     private function graphCbi($table, $mes, $annio, $indicador, $dateIni, $dateEnd, $filter, $struct = 'two', $datafilters = null)
     {
+        
+        
         if ($datafilters)
         $datafilters = " AND $datafilters";
         $graphCBI = [];
         $activeP2 ='';
-        if(substr($table, 6, 3))
+        if(substr($table, 6, 3) == 'jet')
             $activeP2 = " AND etapaencuesta = 'P2' ";
 
-    $data = DB::select("SELECT COUNT(if( $indicador between 4 and 5, $indicador, NULL))/COUNT(CASE WHEN $indicador != 99 THEN $indicador END)*100 AS cbi, 
+    $data = DB::select("SELECT COUNT(if( $indicador between 4 and 5, $indicador, NULL))/COUNT(CASE WHEN $indicador != 99 THEN $indicador END)*100 AS cbi,
+                        COUNT(CASE WHEN $indicador != 99 THEN $indicador END) as total,
                         a.mes, a.annio, date_survey, $this->_fieldSelectInQuery 
                         FROM $this->_dbSelected.$table as a
                         INNER JOIN $this->_dbSelected." . $table . "_start as b on a.token = b. token 
@@ -1705,7 +1708,8 @@ class Dashboard extends Generic
             // echo '---'.$value->csat;
             if ($struct != 'one') {
                 $graphCBI[] = [
-                    'xLegend'  => (string)$value->mes . '-' . $value->annio,
+                    //'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
+                    'xLegend'  => (string)$value->mes . '-' . $value->annio . ' (' . $value->total . ')',
                     'values'   => [
                         'cbi' => (string)ROUND($value->cbi)
                     ]
@@ -1727,7 +1731,7 @@ class Dashboard extends Generic
     { 
 
         $activeP2 ='';
-        if(substr($table, 6, 3))
+        if(substr($table, 6, 3) == 'jet')
             $activeP2 = " AND etapaencuesta = 'P2' ";
 
         if ($group !== null) {
@@ -1848,7 +1852,7 @@ class Dashboard extends Generic
                             $this->_fieldSelectInQuery
                             FROM $this->_dbSelected.$db as a 
                             LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token 
-                            WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND $indicatorGroup != 99  AND etapaencuesta = 'P2' $datafilters
+                            WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND $indicatorGroup != 99 AND etapaencuesta = 'P2' $datafilters
                             GROUP BY $indicatorGroup");
 
         $count = 0;
@@ -1857,8 +1861,8 @@ class Dashboard extends Generic
         if ($data != null) {
             foreach ($data as $key => $value) {
 
-                $this->setAnomalias($value->NPS, $jetNames['data'][$count]["percentage"]);
-                $this->setAnomaliasCBI($value->CBI, $jetNames['data'][$count]["percentage"]);
+                $this->setAnomalias($value->NPS, $jetNames['title'] . ' ' . $jetNames['data'][$count]["percentage"] . ' NPS');
+                $this->setAnomaliasCBI($value->CBI, $jetNames['title'] . ' ' . $jetNames['data'][$count]["percentage"] . ' CBI');
                 $dataObj = [
                     "icon" => $jetNames['data'][$count]["icon"],
                     "percentage" => $jetNames['data'][$count]["percentage"],
@@ -1905,13 +1909,13 @@ class Dashboard extends Generic
                         [
                             "type" => "CBI",
                             "value" =>  0,
-                            "aditionalText" => "%" . ' - ',
+                            "aditionalText" => "%",
                             "textColor" => '-'
                         ],
                         [
                             "type" => "NPS",
                             "value" =>  0,
-                            "aditionalText" => "%" . ' - ',
+                            "aditionalText" => "%",
                             "textColor" => '-'
                         ],
                         [
@@ -1982,7 +1986,7 @@ class Dashboard extends Generic
                         'values' =>[
                             'exp' =>  $struct[$i-1]['exp'],
                             'driver' =>  $data[0]->$ind,
-                            'dif' => round($data[0]->$ind - $struct[$i-1]['exp'], 1)
+                            'dif' => round(  $data[0]->$ind - $struct[$i-1]['exp'], 1)
                         ]
                     ];
                 }
@@ -2010,10 +2014,10 @@ class Dashboard extends Generic
         "props" => 
             [
                 "icon" => "arrow-right",
-                "text" => "GAP",
+                "text" => "Expectativa vs. Realidad",
                 'chart' =>
                     [
-                        'yAxis' => true,
+                        'yAxis' => false,
                         'xAxisPadding' => 15,
                         'fields' =>
                             [
@@ -2038,7 +2042,7 @@ class Dashboard extends Generic
                                 [
                                     'type' => "line",
                                     'key' => "dif",
-                                    'text' => "Diferencia",
+                                    'text' => "GAP",
                                     'strokeColor' => "gray",
                                     'activeDot' => false,
                                     'strokeDash' => "4 2",
@@ -3493,6 +3497,10 @@ class Dashboard extends Generic
         $data = null;   
         $str = substr($db,10,3);
 
+        $activeP2 ='';
+        if(substr($db, 6, 3) == 'jet')
+            $activeP2 = " AND etapaencuesta = 'P2' ";
+
         if ($datafilters)
             $datafilters = " AND $datafilters";
 
@@ -3504,7 +3512,7 @@ class Dashboard extends Generic
                                 FROM $this->_dbSelected.$db as a
                                 LEFT JOIN $this->_dbSelected." . $db . "_start as b 
                                 on a.token = b.token
-                                WHERE a.mes = $mes AND a.annio = $annio $datafilters");
+                                WHERE a.mes = $mes AND a.annio = $annio $datafilters $activeP2");
                                 $cesPrev = $this->cesPreviousPeriod($db, $mes, $annio);
         } 
 
@@ -3530,6 +3538,11 @@ class Dashboard extends Generic
         if ($datafilters)
             $datafilters = " AND $datafilters";
 
+            $activeP2 ='';
+            if(substr($db, 6, 3) == 'jet')
+                $activeP2 = " AND etapaencuesta = 'P2' ";
+    
+
         $data = [];
         $monthAnt = $mes - 1;
         if ($monthAnt == 0) {
@@ -3542,7 +3555,7 @@ class Dashboard extends Generic
                             FROM $this->_dbSelected.$db as a 
                             LEFT JOIN $this->_dbSelected." . $db . "_start as b 
                             on a.token = b.token
-                            WHERE a.mes = $monthAnt AND a.annio = $annio $datafilters");
+                            WHERE a.mes = $monthAnt AND a.annio = $annio $activeP2 $datafilters");
 
         return ['AntCes' => $data[0]->CES];
     }
@@ -4898,7 +4911,7 @@ class Dashboard extends Generic
         }
 
         $colums = [
-            'BrandAwareness' => 'BrandAwareness',
+            'BrandAwareness' => 'Brand Awareness',
         ];
 
         $colums['Jetsmart']             = 'Jetsmart';
@@ -4916,7 +4929,7 @@ class Dashboard extends Generic
             "type" =>  "compose-table",
             "props" =>  [
                 "icon" => "arrow-right",
-                "text" => "BrandAwareness",
+                "text" => "Brand Awareness",
                 "data" => [
                     "columns" => [$colums],
                     "values" => $values,
@@ -5687,7 +5700,7 @@ class Dashboard extends Generic
                 'exp' => 9,
             ],
             [
-                'name' => 'Confirmacion',
+                'name' => 'Confirmación',
                 'exp' => 9,
             ],
             [
@@ -5711,7 +5724,7 @@ class Dashboard extends Generic
                 'exp' => 9,
             ],
             [
-                'name' => 'Atencion cliente',
+                'name' => 'Atención cliente',
                 'exp' => 9,
             ],
         ];
@@ -5887,12 +5900,13 @@ class Dashboard extends Generic
             
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient,$request->survey, $db);
             $performance        = $this->cardsPerformace($dataNps, $dataCsat, substr($request->survey, 0, 3), $datafilters,  $dataCes, $dataCbi,$ces);
+            //$performance        = $this->graphCbiResp($dataCbi);
             $npsConsolidado     = $this->graphsStruct($dataisn, 12, 'cbi');
             $npsVid             = $this->cardNpsBanmedica($this->_nameClient, $dataNPSGraph); //NPS
             $csatJourney        = $this->cardNpsBanmedica($this->_nameClient , $dataCsatGraph, 'CSAT');//Csat
             $csatDrivers        = substr($db, 10, 3) == 'com' ?  $this->cardNpsBanmedica($this->_nameClient, $dataCesGraph, 'CES') : null; //Ces
-            $cx                 = $this->CSATJourney($graphCSATDrivers);
-            $wordCloud          = null;
+            $cx                 = $this->cxIntelligence($request);
+            $wordCloud          = $this->CSATJourney($graphCSATDrivers);;
             $closedLoop         = null; 
             $detailGender       = substr($db, 10, 3) == 'via' ? $this->gapJetsmart($db, $request->survey,'csat', $dateIni, $dateEnd, $structGAPJetSmart, $datafilters): null;
             $detailGeneration   = substr($db, 10, 3) == 'via' ? $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'gene', $endDateFilterMonth, $startDateFilterMonth,  $filterClient,  $datafilters, $jetNamesGene) : null;
@@ -5906,7 +5920,7 @@ class Dashboard extends Generic
             $box19              = null;
             $box20              = null;
             $box21              = null;
-            $npsBan             = $this->cxIntelligence($request);
+            $npsBan             = null;
         }
 
         $filters = $this->filters($request, $jwt);
