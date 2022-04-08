@@ -955,14 +955,14 @@ class Dashboard extends Generic
     //Función promedio 6 mese CBI
 
     private function AVGLast6MonthCBI($table,$dateIni,$dateEnd,$indicador){
-            $data = DB::select("SELECT sum(CBI) as total from (SELECT 
+            $data = DB::select("SELECT sum(CBI) as total, COUNT(distinct mes) as meses from (SELECT 
                                 ROUND(((COUNT(CASE WHEN $indicador BETWEEN 4 AND  5 THEN 1 END)) 
                                 /(COUNT($indicador) - COUNT(CASE WHEN $indicador=99 THEN 1 END)) * 100)) AS CBI, mes, annio
                                 FROM $this->_dbSelected.$table
                                 WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' 
                                 group by annio, mes) as a");
 
-        return (int)($data[0]->total / 6);
+        return (int)($data[0]->total / $data[0]->meses);
     }
 
     private function AVGLast6MonthNPS($table,$table2,$dateIni,$dateEnd,$indicador, $filter){
@@ -1136,7 +1136,7 @@ class Dashboard extends Generic
     {
         
         $activeP2 ='';
-        if(substr($table, 6, 3))
+        if(substr($table, 6, 3) == 'jet')
             $activeP2 = " AND etapaencuesta = 'P2' ";
         
         $table2 = $this->primaryTable($table);
@@ -1527,7 +1527,7 @@ class Dashboard extends Generic
     { 
 
         $activeP2 ='';
-        if(substr($table, 6, 3))
+        if(substr($table, 6, 3) == 'jet')
             $activeP2 = " AND etapaencuesta = 'P2' ";
 
         if ($group !== null) {
@@ -1689,7 +1689,7 @@ class Dashboard extends Generic
         $datafilters = " AND $datafilters";
         $graphCBI = [];
         $activeP2 ='';
-        if(substr($table, 6, 3))
+        if(substr($table, 6, 3) == 'jet')
             $activeP2 = " AND etapaencuesta = 'P2' ";
 
     $data = DB::select("SELECT COUNT(if( $indicador between 4 and 5, $indicador, NULL))/COUNT(CASE WHEN $indicador != 99 THEN $indicador END)*100 AS cbi, 
@@ -1727,7 +1727,7 @@ class Dashboard extends Generic
     { 
 
         $activeP2 ='';
-        if(substr($table, 6, 3))
+        if(substr($table, 6, 3) == 'jet')
             $activeP2 = " AND etapaencuesta = 'P2' ";
 
         if ($group !== null) {
@@ -1848,7 +1848,7 @@ class Dashboard extends Generic
                             $this->_fieldSelectInQuery
                             FROM $this->_dbSelected.$db as a 
                             LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token 
-                            WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND $indicatorGroup != 99  AND etapaencuesta = 'P2' $datafilters
+                            WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND $indicatorGroup != 99 AND etapaencuesta = 'P2' $datafilters
                             GROUP BY $indicatorGroup");
 
         $count = 0;
@@ -3493,6 +3493,10 @@ class Dashboard extends Generic
         $data = null;   
         $str = substr($db,10,3);
 
+        $activeP2 ='';
+        if(substr($table, 6, 3) == 'jet')
+            $activeP2 = " AND etapaencuesta = 'P2' ";
+
         if ($datafilters)
             $datafilters = " AND $datafilters";
 
@@ -3504,7 +3508,7 @@ class Dashboard extends Generic
                                 FROM $this->_dbSelected.$db as a
                                 LEFT JOIN $this->_dbSelected." . $db . "_start as b 
                                 on a.token = b.token
-                                WHERE a.mes = $mes AND a.annio = $annio $datafilters");
+                                WHERE a.mes = $mes AND a.annio = $annio $datafilters $activeP2");
                                 $cesPrev = $this->cesPreviousPeriod($db, $mes, $annio);
         } 
 
@@ -3530,6 +3534,11 @@ class Dashboard extends Generic
         if ($datafilters)
             $datafilters = " AND $datafilters";
 
+            $activeP2 ='';
+            if(substr($db, 6, 3) == 'jet')
+                $activeP2 = " AND etapaencuesta = 'P2' ";
+    
+
         $data = [];
         $monthAnt = $mes - 1;
         if ($monthAnt == 0) {
@@ -3542,7 +3551,7 @@ class Dashboard extends Generic
                             FROM $this->_dbSelected.$db as a 
                             LEFT JOIN $this->_dbSelected." . $db . "_start as b 
                             on a.token = b.token
-                            WHERE a.mes = $monthAnt AND a.annio = $annio $datafilters");
+                            WHERE a.mes = $monthAnt AND a.annio = $annio $activeP2 $datafilters");
 
         return ['AntCes' => $data[0]->CES];
     }
