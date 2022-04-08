@@ -1483,7 +1483,7 @@ class Dashboard extends Generic
                 "name"          => "csat",
                 "value"         => 'N/A',
                 "percentage"    => '',
-                "smAvg"         => $csatActive-$csatPreviousPeriod,
+                "smAvg"         => Round($csatActive-$csatPreviousPeriod),
                 //"smAvg"         => 0,
 
             ];
@@ -1955,8 +1955,8 @@ class Dashboard extends Generic
                             left join $this->_dbSelected." . $db . "_start as b 
                             on a.token = b.token 
                             WHERE etapaencuesta = 'P2' and date_survey BETWEEN '$dateEnd' AND'$dateIni' $datafilters
-                            group by  mes, annio
-                            order by annio, mes");
+                            group by  a.mes, a.annio
+                            order by a.annio, a.mes");
 
         if(substr($db,6,3 == 'tra')){
             $acumuladoResp = 0;
@@ -2382,7 +2382,7 @@ class Dashboard extends Generic
             return $value;
 
         //echo $startDate.$endDate;
-        //if(!isset($startDate)&& !isset($endDate) && !isset($survey)){return ['datas'=>'unauthorized', 'status'=>Response::HTTP_NOT_ACCEPTABLE];}
+        if(!isset($startDate)&& !isset($endDate) && !isset($survey)){return ['datas'=>'unauthorized', 'status'=>Response::HTTP_NOT_ACCEPTABLE];}
         $curl = curl_init();
         curl_setopt_array($curl, array(
             CURLOPT_URL => "https://customerscoops.com/matriz/calculo_matriz_full.php?startDate=$startDate&endDate=$endDate&survey=$survey",
@@ -2478,20 +2478,6 @@ class Dashboard extends Generic
                                     WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND sex in(1,2,'F','M') and nps!= 99  $datafilters
                                     GROUP BY (b.age BETWEEN 14 AND 22), (b.age BETWEEN 23 AND 38), (b.age BETWEEN 39 AND 54), (b.age BETWEEN 55 AND 73), (b.age BETWEEN 74 AND 99)");
             }
-
-            // if (substr($db, 6, 3) == 'jet' && substr($db, 10, 3) == 'via'){
-
-            //     $data = DB::select( "SELECT COUNT(*) as Total,  
-            //     ROUND(((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
-            //     COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
-            //     (COUNT(a.$indicatorNPS) - COUNT(CASE WHEN a.$indicatorNPS=99 THEN 1 END)) * 100),1) AS NPS, 
-            //     ROUND(COUNT(if($indicatorCSAT between  9 and  10 , $indicatorCSAT, NULL))* 100/COUNT(if($indicatorCSAT !=99,1,NULL ))) AS CSAT, gene, $this->_fieldSelectInQuery
-            //     FROM $this->_dbSelected.$db as a 
-            //     LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token 
-            //     WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND nps!= 99  $datafilters
-            //     GROUP BY gene");
-            // }
-
         }
 
         if ($filter == 'all') {
@@ -3300,20 +3286,23 @@ class Dashboard extends Generic
     }
 
     private function imagen($client, $filterClient,$nameEncuesta, $table = null){
-        echo 'hoola'.$client;
+        //echo  $filterClient;
         if($client == 'ban' &&  $filterClient != 'all'){
-           return  "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola</span>¡Este es tu Dashboard de la Encuesta $nameEncuesta!</span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'><img width='120px' src='$this->_imageBan'/></span></div>";
+           return  "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola </span>¡Este es tu Dashboard de la Encuesta $nameEncuesta!</span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'><img width='120px' src='$this->_imageBan'/></span></div>";
         }
         
         if ($client == 'vid' &&  $filterClient != 'all') {
-            return   "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola</span>¡Este es tu Dashboard de la Encuesta $nameEncuesta!</span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'><img width='120px' src='$this->_imageVid'/></span></div>";
+            return   "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola </span>¡Este es tu Dashboard de la Encuesta $nameEncuesta!</span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'><img width='120px' src='$this->_imageVid'/></span></div>";
         }
 
         if($client == 'mut' &&  $filterClient != 'all'){
-            return   "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola</span>¡Este es tu Dashboard de la Encuesta $nameEncuesta!</span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'><img width='120px' src='$this->_imageClient'/></span></div>";
+            return   "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola </span>¡Este es tu Dashboard de la Encuesta $nameEncuesta!</span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'><img width='120px' src='$this->_imageClient'/></span></div>";
+        }
+        if($client == 'jet' &&  $filterClient != 'all'){
+            return   "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola </span>¡Este es tu Dashboard de la Encuesta $nameEncuesta! <img width='120px' src='$this->_imageClient'/></span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'></span></div>";
         }
       
-        return  "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola</span>¡Este es tu Dashboard Consolidado !</span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'><img width='120px' src='$this->_imageBan'/><img width='120px' src='$this->_imageVid'/></span></div>";
+        return  "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola</span>¡Este es tu Dashboard Consolidado !</span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'><img width='120px' src='$this->_imageVid'/></span></div>";
     }
 
     private function getDetailsForIndicator($db, $db2, $month, $year, $npsInDb, $csatInDb, $dateIni, $dateEnd, $fieldFilter, $datafilters = null, $filter)
@@ -4622,6 +4611,8 @@ class Dashboard extends Generic
                             FROM $this->_dbSelected.$db 
                             WHERE  date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'");
 
+
+
        
         $lastSentido  = '';
         $values = [];
@@ -4646,17 +4637,15 @@ class Dashboard extends Generic
                 if($suma != 0)
                     $resultado = ($value->aero1*100)/$suma;
         
-            if ('Aerolineas' != $lastSentido) {
-                $lastSentido = 'Aerolineas';
+            if ('Preferencia' != $lastSentido) {
+                $lastSentido = 'Preferencia';
                 $values[$lastSentido] = [];
-                $rowData = [];
 
                 array_push(
-                    $values['Aerolineas'],
+                    $values['Preferencia'],
                     [
                         array_merge(
                             ['Indicator' => 'Resultado'],
-                            $rowData
                         )
                     ]
                 );
@@ -4664,10 +4653,10 @@ class Dashboard extends Generic
             };
 
             foreach ($data as $index => $dato) {              
-                if ($lastSentido == 'Aerolineas') {
-                    //$values[$lastSentido][sizeof($values[$lastSentido]) - 3][0]['Respuestas']         = $value->Total;
-                    $values[$lastSentido][sizeof($values[$lastSentido]) - 3][0]['period' . $dato->mes]  = $resultado.'%';
-                    $values[$lastSentido][sizeof($values[$lastSentido]) - 3][0]['rowSpan']  = ['cells' => 3, 'key' => "Respuestas"];
+                if ($lastSentido == 'Preferencia') {
+                    $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['Total']         = $suma;
+                    $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['period' . $meses[11]]  = $resultado.'%';
+                    $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['rowSpan']  = ['cells' => 3, 'key' => "Total"];
                 }
             }
         }
@@ -4689,15 +4678,14 @@ class Dashboard extends Generic
 
         $colums = [
             'Aerolineas' => 'Aerolineas',
-            //'Indicator' => 'Indicadores',
         ];
 
         $colums['period'.$meses[11]]=$numberToMonth[$meses[11]];
-        $colums['Respuestas']='Respuestas';
+        $colums['Total']='Total';
 
         return [
             "height" => 2,
-            "width" => 6,
+            "width" => 4,
             "type" =>  "compose-table",
             "props" =>  [
                 "icon" => "arrow-right",
@@ -4707,13 +4695,121 @@ class Dashboard extends Generic
                     "values" => $values,
                     "colors" => [
                         'Aerolineas' => "#17C784",
-                        //'Indicator' => "#17C784",
                     ]
                 ],
             ]
         ];
+    }
 
 
+
+    private function BrandAwareness($db, $dateIni, $dateEnd){
+        $query = '';
+        $aero = 6;
+        for($i = 1; $i<= $aero; $i++ ){
+            if($i != $aero)
+                $query .= " COUNT(if(aero2_$i = 1,1,NULL))  AS  aero$i, ";
+
+            if($i == $aero)    
+                $query .= " COUNT(if(aero2_$i = 1,1,NULL))  AS  aero$i ";
+        }
+
+        $data = DB::select("SELECT $query, mes 
+                            FROM $this->_dbSelected.$db 
+                            WHERE  date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'");
+
+        $lastSentido  = '';
+        $values = [];
+        $meses = [];
+        $suma = 0;
+        $resultado1 = 0;
+        $resultado2 = 0;
+        $resultado3 = 0;
+        $resultado4 = 0;
+        $resultado5 = 0;
+        $resultado6 = 0;
+
+        for ($i = -11; $i < 1; $i++) {
+            array_push(
+                $meses,
+                (int)date("m", mktime(0, 0, 0, date("m") + $i, date("d"), date("Y")))
+            );
+        }
+        
+        foreach ($data as $key => $value) {
+                $suma += $value->aero1;
+                $suma += $value->aero2;
+                $suma += $value->aero3;
+                $suma += $value->aero4;
+                $suma += $value->aero5;
+                $suma += $value->aero6;
+                if($suma != 0){
+                    $resultado1 = ($value->aero1*100)/$suma;
+                    $resultado2 = ($value->aero2*100)/$suma;
+                    $resultado3 = ($value->aero3*100)/$suma;
+                    $resultado4 = ($value->aero4*100)/$suma;
+                    $resultado5 = ($value->aero5*100)/$suma;
+                    $resultado6 = ($value->aero6*100)/$suma;
+                }
+        
+            if ('Reconocimiento' != $lastSentido) {
+                $lastSentido = 'Reconocimiento';
+                $values[$lastSentido] = [];
+
+                array_push(
+                    $values['Reconocimiento'],
+                    [
+                        array_merge(
+                            ['Indicator' => 'Resultado'],
+                        )
+                    ]
+                );
+                
+            };
+
+            foreach ($data as $index => $dato) {              
+                if ($lastSentido == 'Reconocimiento') {
+                    $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['Total']                = $suma;
+                    $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['Jetsmart']             = $resultado1.'%';
+                    $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['SKY']                  = $resultado2.'%';
+                    $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['LATAM']                = $resultado3.'%';
+                    $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['American Airlines']    = $resultado4.'%';
+                    $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['COPA']                 = $resultado5.'%';
+                    $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['IBERIA']               = $resultado6.'%';
+                    $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['rowSpan']              = ['cells' => 3, 'key' => "Total"];
+                }
+            }
+        }
+
+        $colums = [
+            'BrandAwareness' => 'BrandAwareness',
+        ];
+
+        $colums['Jetsmart']             = 'Jetsmart';
+        $colums['SKY']                  = 'SKY';
+        $colums['LATAM']                = 'LATAM';
+        $colums['American Airlines']    = 'American Airlines';
+        $colums['COPA']                 = 'COPA';
+        $colums['IBERIA']               = 'IBERIA';
+
+        $colums['Total']='Total';
+
+        return [
+            "height" => 2,
+            "width" => 8,
+            "type" =>  "compose-table",
+            "props" =>  [
+                "icon" => "arrow-right",
+                "text" => "BrandAwareness",
+                "data" => [
+                    "columns" => [$colums],
+                    "values" => $values,
+                    "colors" => [
+                        'BrandAwareness' => "#17C784",
+                    ]
+                ],
+            ]
+        ];
     }
 
     private function statsByTaps($db, $db2, $mes, $year, $npsInDb, $csatInDb, $startDateFilterMonth, $endDateFilterMonth, $datafilters = null, $filterClient, $indetifyClient)
@@ -4971,11 +5067,12 @@ class Dashboard extends Generic
 
     private function welcome($client, $filterClient, $bd, $table = null)
     {
+        
         $nameEncuesta = ucwords(strtolower($this->nameSurvey(trim($bd))));
 
         return [
             "height" =>  1,
-            "width" =>  6,
+            "width" =>  $client == 'jet'? 12 : 6,
             "type" =>  "welcome",
             "props" =>  [
                 "icon"=> "smile",
@@ -5307,6 +5404,7 @@ class Dashboard extends Generic
             $db = 'adata_'.substr($request->survey,0,3).'_'.trim(substr($request->survey,3,6));
         }
        
+        $brandAwareness = null;
         $aerolineas = null;
         $rankingSuc = null;
         $ges = null;
@@ -5482,6 +5580,8 @@ class Dashboard extends Generic
             ],
         ];
 
+        
+
         if ($this->_dbSelected  == 'customer_banmedica') {
             $name =  $nameIndicatorPrincipal . ' & ' . $nameIndicatorPrincipal2;
             $db2 = ($indetifyClient == 'vid') ? 'adata_ban_' . trim(substr($request->survey, 3, 6)) : 'adata_vid_' . trim(substr($request->survey, 3, 6));
@@ -5637,7 +5737,8 @@ class Dashboard extends Generic
             $name = 'JetSmart';
             if ($db == 'adata_jet_via') {
                 $ces=false;
-                //$aerolineas = $this->OrdenAerolineas($db, $startDateFilterMonth, $endDateFilterMonth);
+                $aerolineas = $this->OrdenAerolineas($db, $startDateFilterMonth, $endDateFilterMonth);
+                $brandAwareness = $this->BrandAwareness($db, $startDateFilterMonth, $endDateFilterMonth);
             }
             $dataCes        = $this->ces($db, date('m'), date('Y'), 'ces', $datafilters);
             $dataNPSGraph   = $this->graphNps($db, date('m'), date('Y'), $npsInDb, $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
@@ -5647,7 +5748,7 @@ class Dashboard extends Generic
             $graphCSATDrivers   = $this->GraphCSATDrivers($db, '', trim($request->survey), $csatInDb, $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters, $group);
             $dataisn            = $this->graphCbi($db, date('m'), date('Y'), 'cbi', $dateIni, $dateEnd, $datafilters, 'two');
             
-            $welcome            = $this->welcome(($request->client !== null) ? 'jet' : $request->client, $filterClient, ($request->client !== null) ? $request->client : $request->survey, $db);
+            $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient,$request->survey, $db);
             $performance        = $this->cardsPerformace($dataNps, $dataCsat, substr($request->survey, 0, 3), $datafilters,  $dataCes, $dataCbi,$ces);
             $npsConsolidado     = $this->graphsStruct($dataisn, 12, 'cbi');
             $npsVid             = $this->cardNpsBanmedica($this->_nameClient, $dataNPSGraph); //NPS
@@ -5663,13 +5764,13 @@ class Dashboard extends Generic
             $detailsProcedencia = substr($db, 10, 3) == 'via' ? $this->detailStats($db, $npsInDb, $csatInDb, 'laboral' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesLab) : null;
             $box14              = substr($db, 10, 3) == 'via' ? $this->detailStats($db, $npsInDb, $csatInDb, 'frec2' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesFrecVuelo) : null;
             $box15              = $aerolineas;
-            $box16              = null; 
+            $box16              = $brandAwareness; 
             $box17              = null;
             $box18              = null;
             $box19              = null;
             $box20              = null;
             $box21              = null;
-            $npsBan             = null; //$this->cxIntelligence($request);
+            $npsBan             = $this->cxIntelligence($request);
         }
 
         $filters = $this->filters($request, $jwt);
