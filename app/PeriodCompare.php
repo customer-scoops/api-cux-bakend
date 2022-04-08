@@ -121,7 +121,8 @@ class PeriodCompare
         $select = "";
         $diff = 0;
         
-        ($dbSelected == 'customer_colmena')? $filter = 'one' : $filter = 'all';
+                 //($dbSelected == 'customer_colmena')? $filter = 'one' : $filter = 'all';
+                 ($request->filterWeeks !== null)? $filter = 'one' : $filter = 'all'; //
         
         if($filter == 'all'){
             $fieldBd = $dash->getFielInDbCsat($survey);
@@ -321,5 +322,3 @@ class PeriodCompare
        
     }
 }
-
-?>
