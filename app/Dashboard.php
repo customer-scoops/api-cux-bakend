@@ -4712,7 +4712,7 @@ class Dashboard extends Generic
                     $values['Preferencia'],
                     [
                         array_merge(
-                            ['Indicator' => 'Resultado'],
+                            ['Indicator' => 'Resultado']
                         )
                     ]
                 );
@@ -4827,7 +4827,7 @@ class Dashboard extends Generic
                     $values['Reconocimiento'],
                     [
                         array_merge(
-                            ['Indicator' => 'Resultado'],
+                            ['Indicator' => 'Resultado']
                         )
                     ]
                 );
