@@ -969,7 +969,8 @@ class Dashboard extends Generic
 
         if($filter == 'all'){              
 
-            $data = DB::select("SELECT sum(NPSS) as total, COUNT(distinct mes) as meses from (SELECT round(SUM(NPS)) AS NPSS, mes FROM (SELECT ROUND(((COUNT(CASE WHEN $indicador  BETWEEN 9 AND 10 THEN 1 END) -
+            $data = DB::select("SELECT sum(NPSS) as total, COUNT(distinct mes) as meses from (SELECT round(SUM(NPS)) AS NPSS, mes FROM 
+            (SELECT ROUND(((COUNT(CASE WHEN $indicador  BETWEEN 9 AND 10 THEN 1 END) -
                                 COUNT(CASE WHEN $indicador  BETWEEN 0 AND 6 THEN 1 END)) /
                                 (COUNT($indicador ) - COUNT(CASE WHEN $indicador =99 THEN 1 END)) * 100),1)*$this->_porcentageBan AS NPS, mes, annio
                                 FROM $this->_dbSelected.$table
@@ -2070,11 +2071,12 @@ class Dashboard extends Generic
                             from $this->_dbSelected.$db as a
                             left join $this->_dbSelected." . $db . "_start as b 
                             on a.token = b.token 
-                            WHERE etapaencuesta = 'P2' and date_survey BETWEEN '$dateEnd' AND'$dateIni' $datafilters
+                            WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters
                             group by  a.mes, a.annio
                             order by a.annio, a.mes");
+                        
 
-        if(substr($db,6,3 == 'tra')){
+        if(substr($db,6,3) == 'tra'){
             $acumuladoResp = 0;
             foreach ($data as $key => $value) {
                 $acumuladoResp += (int)$value->Total;
