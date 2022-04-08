@@ -1978,27 +1978,76 @@ class Dashboard extends Generic
                 if($data[0]->$ind != null)
                 {   
                     $obj = [
-                        'name' => $struct[$i-1]['name'],
-                        'exp' =>  $struct[$i-1]['exp'],
-                        'prom' =>  $data[0]->$ind,
-                        'dif' => $data[0]->$ind - $struct[$i-1]['exp']
+                        'xLegend' => $struct[$i-1]['name'],
+                        'values' =>[
+                            'exp' =>  $struct[$i-1]['exp'],
+                            'driver' =>  $data[0]->$ind,
+                            'dif' => $data[0]->$ind - $struct[$i-1]['exp']
+                        ]
                     ];
                 }
 
                 if($data[0]->$ind == null)
                 {   
                     $obj = [
-                        'name' => $struct[$i-1]['name'],
-                        'exp' =>  $struct[$i-1]['exp'],
-                        'prom' => 0,
-                        'dif' => 0 - $struct[$i-1]['exp']
+                        'xLegend' => $struct[$i-1]['name'],
+                        'values' =>[
+                            'exp' =>  $struct[$i-1]['exp'],
+                            'driver' => 0,
+                            'dif' => 0 - $struct[$i-1]['exp']
+                        ]
                     ];
                 }
                 array_push($dataArr,$obj);
             }
         }
+    return 
+ 
+    [
+        "height" => 4,
+        "width" => 12,
+        "type" => "chart",
+        "props" => 
+            [
+                "icon" => "arrow-right",
+                "text" => "GAP",
+                'chart' =>
+                    [
+                        'yAxis' => true,
+                        'xAxisPadding' => 15,
+                        'fields' =>
+                            [
+                                [
+                                    'type' => "line",
+                                    'key' => "exp",
+                                    'text' => "Expectativa",
+                                    'strokeColor' => "red",
+                                    'activeDot' => false,
+                                    'customDot' => true,
+                                ],
 
-       // print_r($dataArr);
+                                [
+                                    'type' => "line",
+                                    'key' => "driver",
+                                    'text' => "Realidad",
+                                    'strokeColor' => "blue",
+                                    'activeDot' => false,
+                                    'customDot' => true,
+                                ],
+
+                                [
+                                    'type' => "line",
+                                    'key' => "dif",
+                                    'text' => "Diferencia",
+                                    'strokeColor' => "gray",
+                                    'activeDot' => false,
+                                    'strokeDash' => "4 2",
+                                ]
+                            ], //Aca termina field
+                        'values' => $dataArr
+                    ]
+            ]
+    ];
     }
 
     // Fin Funciones para JETSMART
@@ -5626,7 +5675,7 @@ class Dashboard extends Generic
 
         $structGAPJetSmart = [
             [
-                'name' => 'Proceso Compra',
+                'name' => 'Compra',
                 'exp' => 9,
             ],
             [
@@ -5638,7 +5687,7 @@ class Dashboard extends Generic
                 'exp' => 9,
             ],
             [
-                'name' => 'Confirmacion de compra',
+                'name' => 'Confirmacion',
                 'exp' => 9,
             ],
             [
@@ -5662,7 +5711,7 @@ class Dashboard extends Generic
                 'exp' => 9,
             ],
             [
-                'name' => 'Servicio Atencion cliente',
+                'name' => 'Atencion cliente',
                 'exp' => 9,
             ],
         ];
