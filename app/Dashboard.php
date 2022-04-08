@@ -6078,7 +6078,7 @@ class Dashboard extends Generic
            $this->_minMaxCsat          = 9;
            $this->_maxMaxCsat          = 10;
            $this->_obsNps              = 'obs';
-           $this->_imageClient         = 'https://customerscoops.com/assets/companies-images/logo_transvip.svg';
+           $this->_imageClient         = 'https://customerscoops.com/assets/companies-images/JetSMART_logo.jpg';
            $this->_nameClient          = 'JetSmart';
            $this->ButFilterWeeks       = '';
            $this->_minCes              = 1;
