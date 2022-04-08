@@ -1948,7 +1948,7 @@ class Dashboard extends Generic
 
     //Funcion para calcular promedios para grafico GAP
 
-    private function gapJetsmart($db, $survey,$indicador,$mes, $annio, $struct, $datafilters = null){
+    private function gapJetsmart($db, $survey,$indicador,$dateIni, $dateEnd, $struct, $datafilters = null){
         if ($datafilters)
             $datafilters = " AND $datafilters";
 
@@ -1967,7 +1967,7 @@ class Dashboard extends Generic
 
         }
 
-        $data = DB::select("SELECT $query FROM $this->_dbSelected.$db WHERE mes = $mes AND annio = $annio AND etapaencuesta = 'P2' $datafilters"); //Cambiar mes = 3 por la variable $mes
+        $data = DB::select("SELECT $query FROM $this->_dbSelected.$db WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND etapaencuesta = 'P2' $datafilters"); //Cambiar mes = 3 por la variable $mes
 
         for($i = 1; $i <= $endCsat; $i++)
         {
@@ -1978,27 +1978,76 @@ class Dashboard extends Generic
                 if($data[0]->$ind != null)
                 {   
                     $obj = [
-                        'name' => $struct[$i-1]['name'],
-                        'exp' =>  $struct[$i-1]['exp'],
-                        'prom' =>  $data[0]->$ind,
-                        'dif' => $data[0]->$ind - $struct[$i-1]['exp']
+                        'xLegend' => $struct[$i-1]['name'],
+                        'values' =>[
+                            'exp' =>  $struct[$i-1]['exp'],
+                            'driver' =>  $data[0]->$ind,
+                            'dif' => round($data[0]->$ind - $struct[$i-1]['exp'], 1)
+                        ]
                     ];
                 }
 
                 if($data[0]->$ind == null)
                 {   
                     $obj = [
-                        'name' => $struct[$i-1]['name'],
-                        'exp' =>  $struct[$i-1]['exp'],
-                        'prom' => 0,
-                        'dif' => 0 - $struct[$i-1]['exp']
+                        'xLegend' => $struct[$i-1]['name'],
+                        'values' =>[
+                            'exp' =>  $struct[$i-1]['exp'],
+                            'driver' => 0,
+                            'dif' => 0 - $struct[$i-1]['exp']
+                        ]
                     ];
                 }
                 array_push($dataArr,$obj);
             }
         }
+    return 
+ 
+    [
+        "height" => 4,
+        "width" => 12,
+        "type" => "chart",
+        "props" => 
+            [
+                "icon" => "arrow-right",
+                "text" => "GAP",
+                'chart' =>
+                    [
+                        'yAxis' => true,
+                        'xAxisPadding' => 15,
+                        'fields' =>
+                            [
+                                [
+                                    'type' => "line",
+                                    'key' => "exp",
+                                    'text' => "Expectativa",
+                                    'strokeColor' => "red",
+                                    'activeDot' => false,
+                                    'customDot' => true,
+                                ],
 
-       // print_r($dataArr);
+                                [
+                                    'type' => "line",
+                                    'key' => "driver",
+                                    'text' => "Realidad",
+                                    'strokeColor' => "blue",
+                                    'activeDot' => false,
+                                    'customDot' => true,
+                                ],
+
+                                [
+                                    'type' => "line",
+                                    'key' => "dif",
+                                    'text' => "Diferencia",
+                                    'strokeColor' => "gray",
+                                    'activeDot' => false,
+                                    'strokeDash' => "4 2",
+                                ]
+                            ], //Aca termina field
+                        'values' => $dataArr
+                    ]
+            ]
+    ];
     }
 
     // Fin Funciones para JETSMART
@@ -5561,27 +5610,27 @@ class Dashboard extends Generic
             'title' => 'Situación Laboral',
             'data' => [
                 [
-                    "icon" => "genz",
+                    "icon" => "star",
                     "percentage" => 'Cesante',
                     "quantity" =>  '',
                 ],
                 [
-                    "icon" => "genmille",
+                    "icon" => "star",
                     "percentage" => 'Empleado',
                     "quantity" =>  '',
                 ],
                 [
-                    "icon" => "genx",
+                    "icon" => "star",
                     "percentage" => 'Emprendedor',
                     "quantity" =>  '',
                 ],
                 [
-                    "icon" => "genbb",
+                    "icon" => "star",
                     "percentage" => 'Estudiante',
                     "quantity" =>  '',
                 ],
                 [
-                    "icon" => "gensil",
+                    "icon" => "star",
                     "percentage" => 'Ret/Jub',
                     "quantity" =>  '',
                 ],
@@ -5592,32 +5641,32 @@ class Dashboard extends Generic
             'title' => 'Frecuencia de Vuelo',
             'data' => [
                 [
-                    "icon" => "genmille",
+                    "icon" => "plane",
                     "percentage"=> '1 / semana',
                     "quantity" =>  '',
                 ],
                 [
-                    "icon" => "genx",
+                    "icon" => "plane",
                     "percentage"  => '2-3 / mes',
                     "quantity"=>  '',
                 ],
                 [
-                    "icon" => "genbb",
+                    "icon" => "plane",
                     "percentage" => '1 / mes',
                     "quantity" =>  '',
                 ],
                 [
-                    "icon" => "gensil",
+                    "icon" => "plane",
                     "percentage" => '2+ al  año',
                     "quantity" =>  '',
                 ],
                 [
-                    "icon" => "genbb",
+                    "icon" => "plane",
                     "percentage" => 'Act. no viajo',
                     "quantity" =>  '',
                 ],
                 [
-                    "icon" => "genz",
+                    "icon" => "plane",
                     "percentage" => '1 / año',
                     "quantity" =>  '',
                 ],
@@ -5626,7 +5675,7 @@ class Dashboard extends Generic
 
         $structGAPJetSmart = [
             [
-                'name' => 'Proceso Compra',
+                'name' => 'Compra',
                 'exp' => 9,
             ],
             [
@@ -5638,7 +5687,7 @@ class Dashboard extends Generic
                 'exp' => 9,
             ],
             [
-                'name' => 'Confirmacion de compra',
+                'name' => 'Confirmacion',
                 'exp' => 9,
             ],
             [
@@ -5662,7 +5711,7 @@ class Dashboard extends Generic
                 'exp' => 9,
             ],
             [
-                'name' => 'Servicio Atencion cliente',
+                'name' => 'Atencion cliente',
                 'exp' => 9,
             ],
         ];
@@ -5845,7 +5894,7 @@ class Dashboard extends Generic
             $cx                 = $this->CSATJourney($graphCSATDrivers);
             $wordCloud          = null;
             $closedLoop         = null; 
-            $detailGender       = substr($db, 10, 3) == 'via' ? $this->gapJetsmart($db, $request->survey,'csat',date('m'), date('Y'), $structGAPJetSmart, $datafilters): null;
+            $detailGender       = substr($db, 10, 3) == 'via' ? $this->gapJetsmart($db, $request->survey,'csat', $dateIni, $dateEnd, $structGAPJetSmart, $datafilters): null;
             $detailGeneration   = substr($db, 10, 3) == 'via' ? $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'gene', $endDateFilterMonth, $startDateFilterMonth,  $filterClient,  $datafilters, $jetNamesGene) : null;
             $datasStatsByTaps   = null;
             $detailsProcedencia = substr($db, 10, 3) == 'via' ? $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'laboral' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesLab) : null;
