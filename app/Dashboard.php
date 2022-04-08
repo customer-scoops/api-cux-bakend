@@ -969,7 +969,7 @@ class Dashboard extends Generic
 
         if($filter == 'all'){              
 
-            $data = DB::select("SELECT sum(NPSS) as total, COUNT(distinct mes) as meses from (SELECT round(SUM(NPS)) AS NPSS FROM (SELECT ROUND(((COUNT(CASE WHEN $indicador  BETWEEN 9 AND 10 THEN 1 END) -
+            $data = DB::select("SELECT sum(NPSS) as total, COUNT(distinct mes) as meses from (SELECT round(SUM(NPS)) AS NPSS, mes FROM (SELECT ROUND(((COUNT(CASE WHEN $indicador  BETWEEN 9 AND 10 THEN 1 END) -
                                 COUNT(CASE WHEN $indicador  BETWEEN 0 AND 6 THEN 1 END)) /
                                 (COUNT($indicador ) - COUNT(CASE WHEN $indicador =99 THEN 1 END)) * 100),1)*$this->_porcentageBan AS NPS, mes, annio
                                 FROM $this->_dbSelected.$table
