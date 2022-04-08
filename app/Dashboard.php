@@ -4764,7 +4764,7 @@ class Dashboard extends Generic
                 $suma += $value->aero5;
                 $suma += $value->aero6;
                 if($suma != 0)
-                    $resultado = ROUND($value->aero1*100)/$suma;
+                    $resultado = ROUND(($value->aero1*100)/$suma);
         
             if ('Preferencia' != $lastSentido) {
                 $lastSentido = 'Preferencia';
