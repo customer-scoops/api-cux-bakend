@@ -4730,10 +4730,10 @@ class Dashboard extends Generic
         $aero = 6;
         for($i = 1; $i<= $aero; $i++ ){
             if($i != $aero)
-                $query .= " COUNT(if(aero1_$i = 1,1,NULL))  AS  aero$i, ";
+                $query .= " round(COUNT(if(aero1_$i = 1,1,NULL)))  AS  aero$i, ";
 
             if($i == $aero)    
-                $query .= " COUNT(if(aero1_$i = 1,1,NULL))  AS  aero$i ";
+                $query .= " round(COUNT(if(aero1_$i = 1,1,NULL)))  AS  aero$i ";
         }
 
         $data = DB::select("SELECT $query, mes 
