@@ -4764,7 +4764,7 @@ class Dashboard extends Generic
                 $suma += $value->aero5;
                 $suma += $value->aero6;
                 if($suma != 0)
-                    $resultado = ($value->aero1*100)/$suma;
+                    $resultado = ROUND($value->aero1*100)/$suma;
         
             if ('Preferencia' != $lastSentido) {
                 $lastSentido = 'Preferencia';
@@ -4873,12 +4873,12 @@ class Dashboard extends Generic
                 $suma += $value->aero5;
                 $suma += $value->aero6;
                 if($suma != 0){
-                    $resultado1 = ($value->aero1*100)/$suma;
-                    $resultado2 = ($value->aero2*100)/$suma;
-                    $resultado3 = ($value->aero3*100)/$suma;
-                    $resultado4 = ($value->aero4*100)/$suma;
-                    $resultado5 = ($value->aero5*100)/$suma;
-                    $resultado6 = ($value->aero6*100)/$suma;
+                    $resultado1 = ROUND($value->aero1*100)/$suma;
+                    $resultado2 = ROUND($value->aero2*100)/$suma;
+                    $resultado3 = ROUND($value->aero3*100)/$suma;
+                    $resultado4 = ROUND($value->aero4*100)/$suma;
+                    $resultado5 = ROUND($value->aero5*100)/$suma;
+                    $resultado6 = ROUND($value->aero6*100)/$suma;
                 }
         
             if ('Reconocimiento' != $lastSentido) {
