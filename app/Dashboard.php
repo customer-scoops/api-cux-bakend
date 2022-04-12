@@ -2399,6 +2399,8 @@ class Dashboard extends Generic
             }
         }
 
+       
+
         if ($datafilters)
             $datafilters = " AND $datafilters";
 
@@ -2413,6 +2415,12 @@ class Dashboard extends Generic
                             GROUP by $group
                             ORDER by a.date_survey ASC");
       
+        if ($group == 'week') 
+        { 
+            $mondayWeek = $this->getFirstMond();
+        }
+        $count = 0;
+        
         foreach ($data as $key => $value) {
             $insActive = (isset($value->INS)) ? $value->INS : 0;
             if ($key == 0) {
@@ -2421,13 +2429,14 @@ class Dashboard extends Generic
 
             $NpsInsTransvip[] = [
                 //'xLegend'   => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Total) . ')' : 'Semana ' . $value->week . ' (' . ($value->Total) . ')',
-                'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('Y-m-d', strtotime($mondayWeek . "- $count week")) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
+                'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Total) . ')' : 'Lun ' . date('Y-m-d', strtotime($mondayWeek . "- $count week")) . ' (' . ($value->Total) . ')',
                 'values'    => [
                     "nps"           => Round($value->NPS),
                     "ins"           => Round($value->INS),
                     "percentage"    => round($insActive) - round($insPreviousPeriod)
                 ],
             ];
+            $count += 1;
         }
         return $NpsInsTransvip;
     }
