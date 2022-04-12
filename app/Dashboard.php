@@ -729,73 +729,6 @@ class Dashboard extends Generic
         ];
         }
     
-    //OKK
-
-    // private function infoJorneyMaps($db, $dateIni, $dateEnd, $survey, $filter){
-    //     $db2 = $this->primaryTable($db);
-        
-    //     $endCsat = $this->getEndCsat($survey);
-       
-    //     if($endCsat){
-    //         if($filter == 'all'){
-    //             $fieldBd = $this->getFielInDbCsat($survey);
-    //             $fieldBd2 = $this->getFielInDbCsat($survey);
-    //             //$fieldBd2 = ($db == 'adata_ban_web')?'csat':$fieldBd;
-    //             $query = "";
-    //             $query2 = "";
-    //             for ($i=1; $i <= $endCsat; $i++) {
-    //                 if($i != $endCsat){
-    //                     $query .= " AVG($fieldBd$i)*$this->_porcentageBan AS csat$i, ";
-    //                     $query2 .= " AVG($fieldBd2$i)*$this->_porcentageVid AS csat$i, ";
-    //                 }
-    //                 if($i == $endCsat){
-    //                     $query .= " AVG($fieldBd$i)*$this->_porcentageBan AS csat$i ";
-    //                     $query2 .= " AVG($fieldBd2$i)*$this->_porcentageVid AS csat$i ";
-    //                 }
-    //             }
-    //             $data = DB::select("SELECT $query FROM (SELECT $query,date_survey
-    //                                 FROM $this->_dbSelected.$db as A
-    //                                 WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2' 
-    //                                 UNION
-    //                                 SELECT $query2,date_survey
-    //                                 FROM $this->_dbSelected.$db2 as A
-    //                                 WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'
-    //                                 ORDER BY date_survey) AS A");
-    //         }
-    //         if($filter != 'all'){
-    //             $fieldBd = $this->getFielInDbCsat($survey);
-    //             $query = "";
-    //             for ($i=1; $i <= $endCsat; $i++) {
-    //                 if($i != $endCsat){
-    //                     $query .= " AVG($fieldBd$i) AS csat$i, ";
-    //                 }
-    //                 if($i == $endCsat){
-    //                     $query .= " AVG($fieldBd$i) AS csat$i ";
-    //                 }
-                    
-    //             }
-    //             $data = DB::select("SELECT $query,date_survey
-    //                                 FROM $this->dbSelected.$db as A
-    //                                 WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2' 
-    //                                 ORDER BY date_survey");
-    //         }
-    //         $journey =[];
-    //         $indicator = new Suite($this->_jwt);
-           
-    //         foreach ($data[0] as $key => $value) {
-             
-    //             $journey[] = [
-    //                 'text'  => $indicator->getInformationDriver($survey.'_'.$key),
-    //                 'values' => round($value,2),
-    //                 ];
-    //         }
-    
-    //         return $journey;
-    //     }
-    //     if(!$endCsat){
-    //         return null;
-    //     }
-    // }
 
     public function getEndCsat($survey){
 
@@ -839,6 +772,90 @@ class Dashboard extends Generic
         }
     }
 
+
+    private function traking($db,$dateIni,$dateEnd) {
+        $reenv = DB::select("SELECT SUM(enviados) as sended 
+                            FROM $this->_dbSelected.datasengrid_transvip
+                            WHERE fechasend BETWEEN '$dateIni' AND '$dateEnd' AND tipo = '2'");   
+        $reenviados = $reenv[0]->sended;
+                    
+        $data = DB::select("SELECT COUNT(*) AS RESP 
+                            FROM $this->_dbSelected.$db 
+                            WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' and nps!= 99");
+
+        $queryT = DB::select("SELECT SUM(enviados) as sended, 
+        SUM(abiertos) as opened, 
+        SUM(rebotados) as bounced, 
+        SUM(entregados) AS delivered, 
+        SUM(click) as clicks, 
+        SUM(spam) as spam  
+        FROM $this->_dbSelected.datasengrid_transvip
+        WHERE fechasend BETWEEN '$dateIni' AND '$dateEnd'");
+   
+    return [
+        "height"=> 4,
+        "width"=> 8,
+        "type"=> "summary",
+        "props"=> [
+        "icon"=> "arrow-right",
+        "text"=> "Tracking de envíos",
+        "sumaries"=> [
+                [
+                    "icon"=> "smile",
+                    "text"=> "Enviados",
+                    "value"=> $queryT[0]->sended,
+                    "textColor"=> "#fff",
+                    "bgColor"=> "#8085E9",
+                ],
+                [
+                    "icon"=> "smile",
+                    "text"=> "Entregados",
+                    "value"=> $queryT[0]->delivered,
+                    "valueColor"=> "#FFB203",
+                ],
+                [
+                    "icon"=> "smile",
+                    "text"=> "Contestados",
+                    "value"=> $data[0]->RESP,
+                    "valueColor"=> "#FFB203",
+                ],
+                [
+                    "icon"=> "smile",
+                    "text"=> "Tasa Respuesta",
+                    "value"=> ($queryT[0]->sended == 0) ? 0 : round(($data[0]->RESP / $queryT[0]->sended) * 100) . ' %',
+                    "textColor"=> "#fff",
+                    "bgColor"=>  "#CCC",
+                ],
+                [
+                    "icon"=> "smile",
+                    "text"=> $queryT[0]->opened,
+                    "value"=> "20,855",
+                    "valueColor"=> "#FFB203",
+                ],
+                [
+                    "icon"=> "smile",
+                    "text"=> "Clicks",
+                    "value"=> $queryT[0]->clicks,
+                    "valueColor"=> "#FFB203",
+                ],
+                [
+                    "icon"=> "smile",
+                    "text"=> "Rebotados",
+                    "value"=> $queryT[0]->bounced,
+                    "valueColor"=> "#FFB203",
+                    "direction"=> "row",
+                ],
+                [
+                    "icon"=> "smile",
+                    "text"=> "Spam",
+                    "value"=> $queryT[0]->spam,
+                    "valueColor"=> "#FFB203",
+                    "direction"=> "row",
+                ],
+                ],
+            ],
+        ];
+    }
 
     //---------------------------------------------------------------------------------------------------------------------
     //OKK
@@ -1009,6 +1026,10 @@ class Dashboard extends Generic
     //OKK
     private function resumenNps($table, $mes, $annio, $indicador, $filter, $datafilters = null)
     {
+        $activeP2 ='';
+        if(substr($table, 6, 3) == 'jet')
+            $activeP2 = " AND etapaencuesta = 'P2' ";
+
         $table2 = '';
         if ($datafilters)
             $datafilters = " AND $datafilters";
@@ -1060,11 +1081,10 @@ class Dashboard extends Generic
                                 FROM $this->_dbSelected.$table as a
                                 LEFT JOIN $this->_dbSelected." . $table . "_start as b
                                 on a.token = b.token
-                                WHERE a.mes = $mes AND a.annio = $annio $datafilters
+                                WHERE a.mes = $mes AND a.annio = $annio $datafilters $activeP2
                                 GROUP BY a.mes, a.annio
                                 ORDER BY date_survey ASC");
         }
-
 
         if (($data == null) || $data[0]->total == null || $data[0]->total == 0) {
             $npsActive = (isset($data[0]->NPS)) ? $data[0]->NPS : 0;
@@ -1137,7 +1157,7 @@ class Dashboard extends Generic
     {
         
         $activeP2 ='';
-        if(substr($table, 6, 3) == 'jet')
+        if(substr($table, 6, 3) == 'jet' || substr($table, 6, 3) == 'mut' )
             $activeP2 = " AND etapaencuesta = 'P2' ";
         
         $table2 = $this->primaryTable($table);
@@ -1368,7 +1388,7 @@ class Dashboard extends Generic
                                 a.mes, a.annio, WEEK(date_survey) AS week,$this->_fieldSelectInQuery  
                                 FROM $this->_dbSelected.$table as a
                                 INNER JOIN $this->_dbSelected." . $table . "_start as b ON a.token = b.token 
-                                WHERE  $where $datafilters 
+                                WHERE  $where AND etapaencuesta = 'P2' $datafilters 
                                 GROUP BY $group
                                 ORDER BY date_survey ASC");
         }
@@ -3499,9 +3519,9 @@ class Dashboard extends Generic
         $data = null;   
         $str = substr($db,10,3);
 
-        $activeP2 ='';
-        if(substr($db, 6, 3) == 'jet')
-            $activeP2 = " AND etapaencuesta = 'P2' ";
+        // $activeP2 ='';
+        // if(substr($db, 6, 3) == 'jet')
+        //     $activeP2 = " AND etapaencuesta = 'P2' ";
 
         if ($datafilters)
             $datafilters = " AND $datafilters";
@@ -3514,7 +3534,7 @@ class Dashboard extends Generic
                                 FROM $this->_dbSelected.$db as a
                                 LEFT JOIN $this->_dbSelected." . $db . "_start as b 
                                 on a.token = b.token
-                                WHERE a.mes = $mes AND a.annio = $annio $datafilters $activeP2");
+                                WHERE a.mes = $mes AND a.annio = $annio and etapaencuesta = 'P2' $datafilters");
                                 $cesPrev = $this->cesPreviousPeriod($db, $mes, $annio);
         } 
 
@@ -4454,7 +4474,10 @@ class Dashboard extends Generic
         ];
     }
     private function ranking($db, $indicatordb, $indicator, $endDateFilterMonth, $startDateFilterMonth, $filterClient, $datafilters, $width, $limit){
-        
+        if (substr($datafilters, 30, 3) == 'NOW') {
+            $datafilters = '';
+        }
+
         if($filterClient != 'all'){
         
             $querydataTop = "SELECT UPPER($indicatordb) as  $indicator,
@@ -5846,7 +5869,6 @@ class Dashboard extends Generic
         }
 
         if ($this->_dbSelected  == 'customer_colmena'  && substr($request->survey, 0, 3) == 'tra') {
-
             $name = 'Transvip';
             $datasStatsByTaps   = null;
             $dataCL             = $this->closedloopTransvip($datafilters, $dateIni, $dateEnd);
@@ -5873,7 +5895,7 @@ class Dashboard extends Generic
             $detailGeneration   = $this->ranking($db, 'convenio', 'Convenio', $endDateFilterMonth, $startDateFilterMonth, $filterClient,$datafilters, 6, 5);
             $detailsProcedencia = $this->graphINS($tiempoVehiculo, $coordAnden, $tiempoAeropuerto, $tiempoLlegadaAnden);
             $box14              = $this->graphCsatTransvip($drivers);
-            $box15              = null;
+            $box15              = $this->traking($db, $startDateFilterMonth, $endDateFilterMonth);
             $box16              = null;
             $box17              = null;
             $box18              = null;
@@ -5887,11 +5909,11 @@ class Dashboard extends Generic
             $ces=true;
             $name = 'JetSmart';
             if ($db == 'adata_jet_via') {
-
                 $ces=false;
                 $aerolineas = $this->OrdenAerolineas($db, $startDateFilterMonth, $endDateFilterMonth);
                 $brandAwareness = $this->BrandAwareness($db, $startDateFilterMonth, $endDateFilterMonth);
             }
+
             $dataCes        = $this->ces($db, date('m'), date('Y'), 'ces', $datafilters);
             $dataNPSGraph   = $this->graphNps($db, date('m'), date('Y'), $npsInDb, $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
             $dataCsatGraph  = $this->graphCsat($db, date('m'), date('Y'), $csatInDb, $dateIni, $dateEnd,  $filterClient, 'two' ,$datafilters);
@@ -6006,12 +6028,12 @@ class Dashboard extends Generic
             $this->_fieldSelectInQuery  = 'sexo';
             $this->_fieldSex            = 'sexo';
             $this->_fieldSuc            = '';
-            $this->_minNps              = 0;
-            $this->_maxNps              = 6;
-            $this->_minMediumNps        = 7;
-            $this->_maxMediumNps        = 8;
-            $this->_minMaxNps           = 9;
-            $this->_maxMaxNps           = 10;
+            $this->_minNps              = 1;
+            $this->_maxNps              = 4;
+            $this->_minMediumNps        = 5;
+            $this->_maxMediumNps        = 5;
+            $this->_minMaxNps           = 6;
+            $this->_maxMaxNps           = 7;
             $this->_minCsat             = 1;
             $this->_maxCsat             = 4;
             $this->_minMediumCsat       = 5;
@@ -6096,7 +6118,7 @@ class Dashboard extends Generic
            $this->_obsNps              = 'obs';
            $this->_imageClient         = 'https://customerscoops.com/assets/companies-images/JetSMART_logo.jpg';
            $this->_nameClient          = 'JetSmart';
-           $this->ButFilterWeeks       = '';
+           $this->ButFilterWeeks       = [["text" => "Anual", "key" => "filterWeeks", "value" => ""], ["text" => "Semanal", "key" => "filterWeeks", "value" => "10"]];
            $this->_minCes              = 1;
            $this->_maxCes              = 2;
            $this->_minMediumCes        = 3;
