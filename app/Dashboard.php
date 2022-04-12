@@ -1275,7 +1275,7 @@ class Dashboard extends Generic
         { 
             $mondayWeek = $this->getFirstMond();
         }
-       $count = 0;
+       $count = count($data);
 
         if ($data) {
             if ($data[0]->total === null) {
@@ -1298,7 +1298,7 @@ class Dashboard extends Generic
                         ];
                     }
 
-                    $count += 1;
+                    $count -= 1;
                 }
             }
             if ($data[0]->total !== null) {
@@ -2419,7 +2419,7 @@ class Dashboard extends Generic
         { 
             $mondayWeek = $this->getFirstMond();
         }
-        $count = 0;
+        $count = count($data);
         
         foreach ($data as $key => $value) {
             $insActive = (isset($value->INS)) ? $value->INS : 0;
@@ -2436,7 +2436,7 @@ class Dashboard extends Generic
                     "percentage"    => round($insActive) - round($insPreviousPeriod)
                 ],
             ];
-            $count += 1;
+            $count -= 1;
         }
         return $NpsInsTransvip;
     }
