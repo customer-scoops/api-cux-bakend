@@ -4544,7 +4544,7 @@ class Dashboard extends Generic
                                 where date_survey between '$startDateFilterMonth' and '$endDateFilterMonth' and etapaencuesta = 'P2' and $indicatordb != '' $datafilters
                                 group by  $indicator) AS A
                                 group by  $indicator
-                                order by CNPS asc
+                                order by CNPS DESC
                                 LIMIT $limit";
         }
 
