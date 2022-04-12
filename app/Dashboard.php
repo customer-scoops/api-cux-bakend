@@ -859,7 +859,7 @@ class Dashboard extends Generic
                     "text"=> "Tasa Respuesta",
                     "value"=> ($queryT[0]->sended == 0) ? 0 : round(($data[0]->RESP / $queryT[0]->sended) * 100) . ' %',
                     "textColor"=> "#fff",
-                    "bgColor"=>  "#CCC",
+                    "bgColor"=>  "#FA6604",
                 ],
                 [
                     "icon"=> "abierto",
