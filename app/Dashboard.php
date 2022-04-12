@@ -1441,19 +1441,25 @@ class Dashboard extends Generic
                                 GROUP BY $group
                                 ORDER BY date_survey ASC");
         }
-
+        if ($group == 'week') 
+        { 
+            $mondayWeek = $this->getFirstMond();
+        }
+       $count = count($data)-1;
         foreach ($data as $key => $value) {
             if ($struct != 'one') {
                 $graphCsatM[] = [
-                    'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
+                    //'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
+                    'xLegend'  =>(trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('m-d', strtotime($mondayWeek . "- $count week")) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                     'values' => [
-                        "promoters"     => round($value->promotor),
+                        "satisfechos"     => round($value->promotor),
                         "neutrals"      => round($value->neutral),
-                        "detractors"    => round($value->detractor),
+                        "insatisfechos"    => round($value->detractor),
                         "csat"          => round($value->CSAT)
                     ],
                 ];
             }
+            $count -= 1;
         }
         return $graphCsatM;
     }   
@@ -3322,6 +3328,7 @@ class Dashboard extends Generic
                                 ORDER BY date_survey");
         }
 
+        
         $suite = new Suite($this->_jwt);
         foreach ($data as $key => $value) {
             for ($i = 1; $i <= $endCsat; $i++) {
@@ -3335,9 +3342,9 @@ class Dashboard extends Generic
                         'xLegend' => $suite->getInformationDriver($survey . '_' . $r),
                         'values' =>
                         [
-                            "promoters"     => (int)ROUND($value->$pro),
+                            "satisfechos"     => (int)ROUND($value->$pro),
                             "neutrals"      => (int)100 - (ROUND($value->$pro) + ROUND($value->$det)),
-                            "detractors"    => (int)ROUND($value->$det),
+                            "insatisfechos"    => (int)ROUND($value->$det),
                             "csat"          => (int)ROUND($csat)
                         ]
                     ];
@@ -5366,8 +5373,8 @@ class Dashboard extends Generic
                     "fields" => [
                         [
                             "type" => "stacked-bar",
-                            "key" => "detractors",
-                            "text" => "Detractores",
+                            "key" => "insatisfechos",
+                            "text" => "Insatisfechos",
                             "bgColor" => "#fe4560",
                         ],
 
@@ -5379,14 +5386,14 @@ class Dashboard extends Generic
                         ],
                         [
                             "type" => "stacked-bar",
-                            "key" => "promoters",
-                            "text" => "Promotores",
+                            "key" => "satisfechos",
+                            "text" => "Satisfechos",
                             "bgColor" => "#17C784",
                         ],
                         [
                             "type" => "line",
-                            "key" => "nps",
-                            "text" => "NPS",
+                            "key" => "csat",
+                            "text" => "CSAT",
                             "bgColor" => "#1a90ff",
                         ],
                     ],
