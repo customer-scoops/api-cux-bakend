@@ -339,6 +339,7 @@ class Dashboard extends Generic
         //TRANSVIP
 
         if ($this->_dbSelected  == 'customer_colmena' && substr($survey, 0, 3) == 'tra') {
+           
             $data = DB::select("SELECT DISTINCT(tipocliente)
                                 FROM $this->_dbSelected.adata_tra_via_start
                                 WHERE tipocliente != '' ");
@@ -1069,6 +1070,7 @@ class Dashboard extends Generic
             $data = DB::select($query);
         }
 
+       // echo $datafilters;
         if ($filter != 'all') {
             $data = DB::select("SELECT count(*) as total, 
                                 ((count(if($indicador < 7, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador !=99 THEN 1 END)) as detractor, 
@@ -4474,6 +4476,9 @@ class Dashboard extends Generic
         ];
     }
     private function ranking($db, $indicatordb, $indicator, $endDateFilterMonth, $startDateFilterMonth, $filterClient, $datafilters, $width, $limit){
+        if ($datafilters)
+            $datafilters = " AND $datafilters";
+        
         if (substr($datafilters, 30, 3) == 'NOW') {
             $datafilters = '';
         }
@@ -5085,25 +5090,24 @@ class Dashboard extends Generic
     {
         $where = '';
 
-        //BANMEDICA
-        $where .= $this->structfilter($request, 'sex',       'Genero',   $where);
-        $where .= $this->structfilter($request, 'region',    'Regiones', $where);
-        $where .= $this->structfilter($request, 'nicho',     'Nicho',    $where);
-        $where .= $this->structfilter($request, 'tramo',     'Tramo',    $where);
-        $where .= $this->structfilter($request, 'nomSuc',    'Sucursal', $where);
-        $where .= $this->structfilter($request, 'sitioWeb',  'Web',      $where);
-
+        
+        
         //MUTUAL
-        $where .= $this->structfilter($request, 'macroseg',         'Macrosegmento',     $where);
-        $where .= $this->structfilter($request, 'tatencion',        'ModalidadAtencion', $where);
-        $where .= $this->structfilter($request, 'tipcliente',       'TipoCliente',       $where);
-        $where .= $this->structfilter($request, 'canal',            'Canal',             $where);
-        $where .= $this->structfilter($request, 'tatencion',        'TipoAtencion',      $where);
-        $where .= $this->structfilter($request, 'catencion',        'CentroAtencion',    $where);
-        $where .= $this->structfilter($request, 'aatencion',        'AreaAtencion',      $where);
-        $where .= $this->structfilter($request, 'gerenciamedica',   'GerenciaMedica',      $where);
+        if(substr($request->survey,0,3) == 'mut'){
+            $where .= $this->structfilter($request, 'macroseg',         'Macrosegmento',     $where);
+            $where .= $this->structfilter($request, 'tatencion',        'ModalidadAtencion', $where);
+            $where .= $this->structfilter($request, 'tipcliente',       'TipoCliente',       $where);
+            $where .= $this->structfilter($request, 'canal',            'Canal',             $where);
+            $where .= $this->structfilter($request, 'tatencion',        'TipoAtencion',      $where);
+            $where .= $this->structfilter($request, 'catencion',        'CentroAtencion',    $where);
+            $where .= $this->structfilter($request, 'aatencion',        'AreaAtencion',      $where);
+            $where .= $this->structfilter($request, 'gerenciamedica',   'GerenciaMedica',      $where);
+                
+            return $where;
+        }
 
         //TRANSVIP
+        if(substr($request->survey,0,3) == 'tra'){
         $where .= $this->structfilter($request, 'tipocliente',       'TipoCliente',       $where);
         $where .= $this->structfilter($request, 'tiposervicio',      'TipoServicio',      $where);
         $where .= $this->structfilter($request, 'condicionservicio', 'CondiciónServicio', $where);
@@ -5112,6 +5116,18 @@ class Dashboard extends Generic
         $where .= $this->structfilter($request, 'tipoReserva',       'TipoReserva',       $where);
         $where .= $this->structfilter($request, 'canal',             'Canal',             $where);
         $where .= $this->structfilter($request, 'convenio',          'Convenio',          $where);
+
+        return $where;
+        }
+
+        //BANMEDICA
+        
+        $where .= $this->structfilter($request, 'sex',       'Genero',   $where);
+        $where .= $this->structfilter($request, 'region',    'Regiones', $where);
+        $where .= $this->structfilter($request, 'nicho',     'Nicho',    $where);
+        $where .= $this->structfilter($request, 'tramo',     'Tramo',    $where);
+        $where .= $this->structfilter($request, 'nomSuc',    'Sucursal', $where);
+        $where .= $this->structfilter($request, 'sitioWeb',  'Web',      $where);
 
         return $where;
     }
