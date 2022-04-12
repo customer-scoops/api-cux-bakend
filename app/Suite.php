@@ -534,21 +534,36 @@ class Suite
             
             "mutreh_csat1" => "Tiempo espera para tu atención",
             "mutreh_csat2" => "Amabilidad profesionales Mutual",
+            "mutreh_csat3" => "Claridad información entregada",
+            "mutreh_csat4" => "Instalaciones y quipamiento para atención",
+            "mutreh_csat5" => "Resultados obtenidos con rehabilitación",
             
             "muturg_csat1" => "Tiempo espera para tu atención",
             "muturg_csat2" => "Amabilidad profesionales Mutual",
+            "muturg_csat3" => "Amabilidad personal médico",
+            "muturg_csat4" => "Claridad información entregada",
+            "muturg_csat5" => "Instalaciones y quipamiento para atención",
             
-            "muthos_csat1" => "Tiempo espera para tu atención",
-            "muthos_csat2" => "Amabilidad profesionales Mutual",
+            "muthos_csat1" => "Amabilidad personal clínico",
+            "muthos_csat2" => "Amabilidad personal médico",
+            "muthos_csat3" => "Claridad información entregada",
+            "muthos_csat4" => "Resolución problema salud",
+            "muthos_csat5" => "Instalaciones y quipamiento para atención",
             
             "mutcas_csat1" => "Tiempo espera para tu atención",
             "mutcas_csat2" => "Amabilidad profesionales Mutual",
             
             "mutamb_csat1" => "Tiempo espera para tu atención",
             "mutamb_csat2" => "Amabilidad profesionales Mutual",
+            "mutamb_csat3" => "Amabilidad personal médico",
+            "mutamb_csat4" => "Claridad información entregada",
+            "mutamb_csat5" => "Comodidad de instalaciones",
             
             "mutimg_csat1" => "Tiempo espera para tu atención",
             "mutimg_csat2" => "Amabilidad profesionales Mutual",
+            "mutimg_csat3" => "Amabilidad personal clínico",
+            "mutimg_csat4" => "Comodidad recepción",
+            "mutimg_csat5" => "Claridad información entregada",
             
             //TRANSVIP
             "travia_csat1" => "Canal utilizado",
