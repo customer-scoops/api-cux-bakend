@@ -1275,7 +1275,7 @@ class Dashboard extends Generic
         { 
             $mondayWeek = $this->getFirstMond();
         }
-       $count = count($data);
+       $count = count($data)-1;
 
         if ($data) {
             if ($data[0]->total === null) {
@@ -2419,7 +2419,7 @@ class Dashboard extends Generic
         { 
             $mondayWeek = $this->getFirstMond();
         }
-        $count = count($data);
+        $count = count($data)-1;
         
         foreach ($data as $key => $value) {
             $insActive = (isset($value->INS)) ? $value->INS : 0;
@@ -5956,7 +5956,7 @@ class Dashboard extends Generic
             //HASTA ACA
             $tiempoAeropuerto   = $this->NpsIsnTransvip($db, date('m'), date('Y'), $npsInDb, 'csat6', $datafilters, null, $dateIni, $dateEnd);
             $tiempoLlegadaAnden = $this->NpsIsnTransvip($db, date('m'), date('Y'), $npsInDb, 'csat5', $datafilters, null, $dateIni, $dateEnd);
-            $welcome            = $this->welcome(($request->client !== null) ? 'tra' : $request->client, $filterClient, ($request->client !== null) ? $request->client : $request->survey, $db);
+            $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient,$request->survey, $db);
             $performance        = $this->cardsPerformace($dataNps, $dataisn, substr($request->survey, 0, 3), $datafilters);
             $npsConsolidado     = $this->graphNpsIsn($dataisn, $this->ButFilterWeeks);
             $npsVid             = $this->wordCloud($request); //null;
