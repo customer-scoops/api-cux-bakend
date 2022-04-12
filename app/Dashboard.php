@@ -1417,7 +1417,6 @@ class Dashboard extends Generic
             $group = " a.mes, a.annio ";
         }
 
-
         if ($datafilters)
             $datafilters = " AND $datafilters";
 
@@ -1441,7 +1440,8 @@ class Dashboard extends Generic
                                 GROUP BY $group
                                 ORDER BY date_survey ASC");
         }
-        if ($group == 'week') 
+        //echo $group;
+        if (trim($group) == 'week') 
         { 
             $mondayWeek = $this->getFirstMond();
         }
