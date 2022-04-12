@@ -1321,7 +1321,7 @@ class Dashboard extends Generic
                         ];
                     }
 
-                    $count += 1;
+                    $count -= 1;
                 }
             }
         }
