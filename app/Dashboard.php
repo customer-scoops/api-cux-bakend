@@ -1506,9 +1506,7 @@ class Dashboard extends Generic
                                 left join $this->_dbSelected.".$table2."_start as b
                                 on a.token = b.token
                                 WHERE a.mes = $monthAnt AND a.annio = $annio $datafilters ) AS A");
-
         }
-
         return $data[0]->CSAT;
     }
 
