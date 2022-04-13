@@ -424,7 +424,7 @@ class Suite
             "bancon_csat2" => "Empatía del ejecutivo",
             "bancon_csat3" => "Conocimientos del ejecutivo",
             "bancon_csat4" => "Respuesta/solución consulta",
-            "bancon_csat5" => "Rapidez resolución trámite/dudas",
+            "bancon_csat5" => "Claridad de la información entregada",
             "bancon_csat6" => "Satisfacción resolución requerimiento",
             "bancon_csat7" => "Resolutividad de requerimientos",
             
