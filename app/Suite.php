@@ -426,7 +426,7 @@ class Suite
             "bancon_csat4" => "Respuesta/solución consulta",
             "bancon_csat5" => "Rapidez resolución trámite/dudas",
             "bancon_csat6" => "Satisfacción resolución requerimiento",
-            "bancon_csat7" => "Claridad y detalle en información entregada",
+            "bancon_csat7" => "Resolutividad de requerimientos",
             
             "banges_csat1" => "Calidad de prestadores",
             "banges_csat2" => "Disponibilidad de horarios",
