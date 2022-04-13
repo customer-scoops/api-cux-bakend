@@ -3778,8 +3778,9 @@ class Dashboard extends Generic
         if ($indicatorBD == 'canal') {
             $where = " and canal = 'GES Remoto'";
         }
+        
         if ($filterClient == 'all') {
-            $query = "SELECT SUM(nps) AS nps, mes, annio, $indicatorName FROM (
+            $query = "SELECT $indicatorName, mes, annio, date_survey,SUM(nps) AS nps FROM (
                       SELECT $indicatorBD as $indicatorName, b.mes,b.annio,date_survey, 
                       round((count(case when nps = 9 OR nps =10 then 1 end)-count(case when nps between 0 and 6 then 1 end)) / 
                       count(case when nps != 99 then 1 end) *100)*$this->_porcentageBan as nps 
@@ -3797,7 +3798,9 @@ class Dashboard extends Generic
                       on a.token = b.token 
                       where $whereInd!= '' and date_survey between '2021-01-01' and '$startDate' and etapaencuesta = 'P2' $where
                       group by $group, a.mes, a.annio 
-                      )As a group by $indicatorName, a.mes, a.annio  ORDER BY $indicatorName, a.annio, a.mes";
+                      )As a group by $group, a.mes, a.annio  ORDER BY $group, a.annio, a.mes asc";
+
+              //echo $query;      
         }
 
         if ($filterClient != 'all') {
@@ -3808,7 +3811,8 @@ class Dashboard extends Generic
                       on a.token = b.token
                       where $whereInd!= '' and date_survey between  '2021-01-01' and '$startDate' and etapaencuesta = 'P2'  $where
                       group by $group, a.mes, a.annio
-                      ORDER BY $group, a.annio, a.mes";
+                      ORDER BY $group, a.annio, a.mes asc";
+                      //echo $query;                     
         }
 
         $data = DB::select($query);
@@ -3829,6 +3833,7 @@ class Dashboard extends Generic
 
         foreach ($data as $key => $value) {
             if ($value->$indicatorName != $lastSupervisor) {
+                
                 $lastSupervisor = $value->$indicatorName;
 
                 if ($countLY > 0) {
@@ -3850,6 +3855,7 @@ class Dashboard extends Generic
                 if ($value->$indicatorName == '0') {
                     $value->$indicatorName = 'Internos';
                 }
+               
                 $rowData = [
                     $indicatorName => $value->$indicatorName,
                     'YTD' => '-',
@@ -5858,7 +5864,7 @@ class Dashboard extends Generic
                 $sucNpsCsat = $this->npsCsatbyIndicator($db, $dateEnd, $dateIni, 'UPPER(nombreEjecutivo)', 'Ejecutivo', 'csat2', 'csat3', 6, $filterClient);
             } 
             if ($db == 'adata_ban_con' || $db == 'adata_vid_con') {
-                $ejecutivo = $this->npsByIndicator($db, $dateEnd, $dateIni, $filterClient, "DISTINCT(UPPER(nombreEjecutivo)like 'Ext%')", 'nombreEjecutivo', 'CountExt', "(nombreEjecutivo NOT like 'Ext%')", 'Ejecutivos', 2);
+                $ejecutivo = $this->npsByIndicator($db, $dateEnd, $dateIni, $filterClient, "DISTINCT(UPPER(nombreEjecutivo)like 'Ext%')", 'nombreEjecutivo', 'nombreEjecutivo', "(nombreEjecutivo NOT like 'Ext%')", 'Ejecutivos', 2);
             } 
             if ($db == 'adata_ban_suc' || $db == 'adata_vid_suc') {
                 $sucursal   = $this->npsNew($db, $dateEnd, $dateIni, 4, $filterClient);
