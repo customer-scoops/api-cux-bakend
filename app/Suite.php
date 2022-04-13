@@ -424,8 +424,9 @@ class Suite
             "bancon_csat2" => "Empatía del ejecutivo",
             "bancon_csat3" => "Conocimientos del ejecutivo",
             "bancon_csat4" => "Respuesta/solución consulta",
-            "bancon_csat5" => "Rapidez resolución trámite/dudas",
-            "bancon_csat6" => "Satisfacción resolución requerimiento",
+            "bancon_csat5" => "Claridad de información entregada",
+            "bancon_csat6" => "Rapidez resolución trámite/dudas",
+            "bancon_csat7" => "Satisfacción resolución requerimiento",
             
             "banges_csat1" => "Calidad de prestadores",
             "banges_csat2" => "Disponibilidad de horarios",
