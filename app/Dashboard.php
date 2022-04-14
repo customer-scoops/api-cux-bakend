@@ -839,7 +839,7 @@ class Dashboard extends Generic
    
     return [
         "height"=> 4,
-        "width"=> 10,
+        "width"=> 8,
         "type"=> "summary",
         "props"=> [
         "icon"=> "arrow-right",
@@ -879,7 +879,7 @@ class Dashboard extends Generic
                 ],
                 [
                     "icon"=> "reenv",
-                    "text"=> "Reenviados",
+                    "text"=> "Rebotados",
                     "value"=> $reenv[0]->reenv,
                     "valueColor"=> "#FFB203",
                 ],
@@ -3525,7 +3525,7 @@ class Dashboard extends Generic
             return   "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola </span>¡Este es tu Dashboard de la Encuesta $nameEncuesta! <img width='120px' src='$this->_imageClient'/></span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'></span></div>";
         }
       
-        return  "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola</span>¡Este es tu Dashboard Consolidado !</span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'><img width='120px' src='$this->_imageVid'/></span></div>";
+        return  "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola</span>¡Este es tu Dashboard Consolidado de $nameEncuesta!</span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'><img width='120px' src='$this->_imageVid'/></span></div>";
     }
 
     private function getDetailsForIndicator($db, $db2, $month, $year, $npsInDb, $csatInDb, $dateIni, $dateEnd, $fieldFilter, $datafilters = null, $filter)
@@ -5890,10 +5890,7 @@ class Dashboard extends Generic
                 if ($db == 'adata_ban_suc') {
                     $db = 'adata_ban_con';
                     $ges = $this->npsByIndicator($db, $dateEnd, $dateIni, $filterClient, 'canal', 'canal', 'canal', 'canal', 'Canal', 2);
-                }
-                if ($db == 'adata_vid_suc') {
-                    $db = 'adata_vid_con';
-                    $ges = $this->npsByIndicator($db, $dateEnd, $dateIni, $filterClient, 'canal', 'canal', 'canal', 'canal', 'Canal', 2);
+                    $db = 'adata_ban_suc';
                 }
             }
 
