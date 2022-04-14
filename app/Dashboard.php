@@ -893,7 +893,7 @@ class Dashboard extends Generic
                     ],
                     [
                         "icon"=> "reenviados",
-                        "text"=> "Rebotados",
+                        "text"=> "Reenviados",
                         "value"=> $reenv[0]->reenv,
                         "valueColor"=> "#FFB203",
                         "direction" => "row",
