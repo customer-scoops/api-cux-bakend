@@ -858,14 +858,14 @@ class Dashboard extends Generic
                         "icon"=> "entregados",
                         "text"=> "Entregados",
                         "value"=> $queryX[0]->delivered,
-                        "valueColor"=> "#FFF",
+                        "valueColor"=> "#FFB203",
                         "direction" => "row",
                     ],
                     [
                         "icon"=> "contestados",
                         "text"=> "Contestados",
                         "value"=> $data[0]->RESP,
-                        "valueColor"=> "#FFF",
+                        "valueColor"=> "#FFB203",
                         "direction" => "row",
                     ],
                     [
