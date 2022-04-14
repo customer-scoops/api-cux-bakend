@@ -649,6 +649,8 @@ class Dashboard extends Generic
 
     private function email($db, $dateIni, $dateEnd, $filter)
     {
+     
+       // echo 'end'. $dateEnd;
         $db2 = $this->primaryTable($db);
 
         if ($filter == 'all') {
@@ -809,27 +811,35 @@ class Dashboard extends Generic
 
 
     private function traking($db,$dateIni,$dateEnd) {
-        $reenv = DB::select("SELECT SUM(enviados) as sended 
-                            FROM $this->_dbSelected.datasengrid_transvip
-                            WHERE fechasend BETWEEN '$dateIni' AND '$dateEnd' AND tipo = '2'");   
-        $reenviados = $reenv[0]->sended;
+        $dataT = DB::select("SELECT COUNT(*) AS TOTAL 
+                            FROM $this->_dbSelected.".$db."_start 
+                            WHERE mailsended = 1 AND fechacarga BETWEEN '$dateIni' AND '$dateEnd'" );
+      
                     
         $data = DB::select("SELECT COUNT(*) AS RESP 
                             FROM $this->_dbSelected.$db 
                             WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' and nps!= 99");
 
-        $queryT = DB::select("SELECT SUM(enviados) as sended, 
-        SUM(abiertos) as opened, 
-        SUM(rebotados) as bounced, 
-        SUM(entregados) AS delivered, 
-        SUM(click) as clicks, 
-        SUM(spam) as spam  
-        FROM $this->_dbSelected.datasengrid_transvip
-        WHERE fechasend BETWEEN '$dateIni' AND '$dateEnd'");
+        $reenv = DB::select("SELECT SUM(enviados) as reenv
+                            FROM $this->_dbSelected.datasengrid_transvip
+                            WHERE fechasend BETWEEN '$dateIni' AND '$dateEnd' AND tipo = '2'");  
+
+        $queryT = DB::select("SELECT 
+                            SUM(abiertos) as opened, 
+                            SUM(click) as clicks 
+                            FROM $this->_dbSelected.datasengrid_transvip
+                            WHERE fechasend BETWEEN '$dateIni' AND '$dateEnd'");
+
+        $queryX = DB::select("SELECT SUM(enviados) as sended, 
+                            SUM(rebotados) as bounced,
+                            SUM(entregados) AS delivered, 
+                            SUM(spam) as spam  
+                            FROM $this->_dbSelected.datasengrid_transvip
+                            WHERE fechasend BETWEEN '$dateIni' AND '$dateEnd'  AND tipo = '1'");
    
     return [
         "height"=> 4,
-        "width"=> 8,
+        "width"=> 10,
         "type"=> "summary",
         "props"=> [
         "icon"=> "arrow-right",
@@ -838,14 +848,14 @@ class Dashboard extends Generic
                 [
                     "icon"=> "enviados",
                     "text"=> "Enviados",
-                    "value"=> $queryT[0]->sended,
+                    "value"=> $dataT[0]->TOTAL,
                     "textColor"=> "#fff",
                     "bgColor"=> "#8085E9",
                 ],
                 [
                     "icon"=> "entregados",
                     "text"=> "Entregados",
-                    "value"=> $queryT[0]->delivered,
+                    "value"=> $queryX[0]->delivered,
                     "valueColor"=> "#FFB203",
                 ],
                 [
@@ -857,7 +867,7 @@ class Dashboard extends Generic
                 [
                     "icon"=> "tasarespuesta",
                     "text"=> "Tasa Respuesta",
-                    "value"=> ($queryT[0]->sended == 0) ? 0 : round(($data[0]->RESP / $queryT[0]->sended) * 100) . ' %',
+                    "value"=> ($dataT[0]->TOTAL == 0) ? 0 : round(($data[0]->RESP / $dataT[0]->TOTAL) * 100) . ' %',
                     "textColor"=> "#fff",
                     "bgColor"=>  "#FA6604",
                 ],
@@ -865,6 +875,12 @@ class Dashboard extends Generic
                     "icon"=> "abierto",
                     "text"=> "Abiertos",
                     "value"=> $queryT[0]->opened,
+                    "valueColor"=> "#FFB203",
+                ],
+                [
+                    "icon"=> "reenv",
+                    "text"=> "Reenviados",
+                    "value"=> $reenv[0]->reenv,
                     "valueColor"=> "#FFB203",
                 ],
                 [
@@ -876,14 +892,14 @@ class Dashboard extends Generic
                 [
                     "icon"=> "rebotados",
                     "text"=> "Rebotados",
-                    "value"=> $queryT[0]->bounced,
+                    "value"=> $queryX[0]->bounced,
                     "valueColor"=> "#FFB203",
                     "direction"=> "row",
                 ],
                 [
                     "icon"=> "spam",
                     "text"=> "Spam",
-                    "value"=> $queryT[0]->spam,
+                    "value"=> $queryX[0]->spam,
                     "valueColor"=> "#FFB203",
                     "direction"=> "row",
                 ],
