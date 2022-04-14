@@ -839,7 +839,7 @@ class Dashboard extends Generic
    
     return [
         "height"=> 4,
-        "width"=> 8,
+        "width"=> 12,
         "type"=> "summary",
         "props"=> [
             "icon"=> "arrow-right",
