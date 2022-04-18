@@ -938,6 +938,7 @@ class Dashboard extends Generic
     {
         $datafilters = str_replace(' AND date_survey between date_sub(NOW(), interval 9 week) and NOW()', '', $datafilters);
         $monthAntEnd = date('m') - 1;
+        $annio = date('Y');
         $monthActualEnd= substr($dateIni, 5,2); 
     
         if($monthActualEnd > 1 && $monthActualEnd < 11){
@@ -945,19 +946,20 @@ class Dashboard extends Generic
         }
         if($monthActualEnd == 1){
             $monthAntEnd = 12;
+            $annio = date('Y') - 1;
         }
         if($monthActualEnd > 10){
             $monthAntEnd = $monthActualEnd - 1;
         }
 
         $mes = $monthAntEnd;
-        $annio = substr($dateIni, 0,4);
+       
 
-        $monthAnt = $mes - 1;
-        if ($monthAnt == 0) {
-            $monthAnt = 12;
-            $annio = $annio - 1;
-        }
+        // $monthAnt = $mes - 1;
+        // if ($monthAnt == 0) {
+        //     $monthAnt = 12;
+        //     $annio = $annio - 1;
+        // }
 
         $table2 = $this->primaryTable($table);
 
@@ -1041,6 +1043,7 @@ class Dashboard extends Generic
     {
         $datafilters = str_replace(' AND date_survey between date_sub(NOW(), interval 9 week) and NOW()', '', $datafilters);
         $monthAntEnd = date('m') - 1;
+        $annio = date('Y');
         $monthActualEnd= substr($dateIni, 5,2); 
     
         if($monthActualEnd > 1 && $monthActualEnd < 11){
@@ -1048,19 +1051,19 @@ class Dashboard extends Generic
         }
         if($monthActualEnd == 1){
             $monthAntEnd = 12;
+            $annio = date('Y') - 1;
         }
         if($monthActualEnd > 10){
             $monthAntEnd = $monthActualEnd - 1;
         }
 
         $mes = $monthAntEnd;
-        $annio = substr($dateIni, 0,4);
 
-        $monthAnt = $mes - 1;
-        if ($monthAnt == 0) {
-            $monthAnt = 12;
-            $annio = $annio - 1;
-        }
+        // $monthAnt = $mes - 1;
+        // if ($monthAnt == 0) {
+        //     $monthAnt = 12;
+        //     $annio = $annio - 1;
+        // }
 
         //$table2 = $this->primaryTable($table);
 
@@ -1536,7 +1539,8 @@ class Dashboard extends Generic
     //OKK
     private function csatPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $filter, $datafilters)
     {
-        $monthAntEnd = date('m') - 1;  
+        $monthAntEnd = date('m') - 1; 
+        $annio = date('Y'); 
         $monthActualEnd= substr($dateIni, 5,2); 
     
         if($monthActualEnd > 1 && $monthActualEnd < 11){
@@ -1544,32 +1548,33 @@ class Dashboard extends Generic
         }
         if($monthActualEnd == 1){
             $monthAntEnd = 12;
+            $annio = date('Y') - 1;
         }
         if($monthActualEnd > 10){
             $monthAntEnd = $monthActualEnd - 1;
         }
 
         $mes = $monthAntEnd;
-        $annio = substr($dateIni, 0,4);
+        
 
-        $monthAnt = $mes - 1;
-        if ($monthAnt == 0) {
-            $monthAnt = 12;
-            $annio = $annio - 1;
-        }
+        // $monthAnt = $mes - 1;
+        // if ($monthAnt == 0) {
+        //     $monthAnt = 12;
+        //     $annio = $annio - 1;
+        // }
 
         if ($filter != 'all') {
             if (substr($table, 6, 3) == 'mut' || substr($table, 0, 3) == 'MUT') {
                 $data = DB::select("SELECT ((COUNT(CASE WHEN $indicador  BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN $indicador END)) -
                                     (COUNT(CASE WHEN $indicador  BETWEEN $this->_minCsat AND $this->_maxCsat THEN $indicador  END)))*100/count(CASE WHEN $indicador  != 99 THEN csat END) as CSAT
                                     FROM $this->_dbSelected.$table
-                                    WHERE mes = $monthAnt AND annio = $annio");
+                                    WHERE mes = $mes AND annio = $annio");
             }
 
             if (substr($table, 6, 3) != 'mut') {
                 $data = DB::select("SELECT ((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN $indicador END)*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as CSAT
                                     FROM $this->_dbSelected.$table
-                                    WHERE mes = $monthAnt AND annio = $annio");
+                                    WHERE mes = $mes AND annio = $annio");
             }
         }
 
@@ -1581,13 +1586,13 @@ class Dashboard extends Generic
                                 from $this->_dbSelected.$table as a
                                 left join $this->_dbSelected." . $table . "_start as b
                                 on a.token = b.token
-                                WHERE a.mes = $monthAnt AND a.annio = $annio  $datafilters
+                                WHERE a.mes = $mes AND a.annio = $annio  $datafilters
                                 UNION 
                                 SELECT ((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN $indicador END)*100)/COUNT(CASE WHEN $indicador2 != 99 THEN $indicador2 END))*$this->_porcentageVid as CSAT
                                 from $this->_dbSelected.$table2 as a
                                 left join $this->_dbSelected.".$table2."_start as b
                                 on a.token = b.token
-                                WHERE a.mes = $monthAnt AND a.annio = $annio $datafilters ) AS A");
+                                WHERE a.mes = $mes AND a.annio = $annio $datafilters ) AS A");
         }
         return $data[0]->CSAT;
     }
@@ -3707,6 +3712,7 @@ class Dashboard extends Generic
     private function cesPreviousPeriod($db, $dateEnd, $dateIni, $datafilters =null){
 
     $monthAntEnd = date('m') - 1;
+    $annio = date('Y');
 
         if ($datafilters)
             $datafilters = " AND $datafilters";
@@ -3724,19 +3730,20 @@ class Dashboard extends Generic
         }
         if($monthActualEnd == 1){
             $monthAntEnd = 12;
+            $annio = date('Y') -1;
         }
         if($monthActualEnd > 10){
             $monthAntEnd = $monthActualEnd - 1;
         }
 
         $mes = $monthAntEnd;
-        $annio = substr($dateIni, 0,4);
+     
 
-        $monthAnt = $mes - 1;
-        if ($monthAnt == 0) {
-            $monthAnt = 12;
-            $annio = $annio - 1;
-        }
+        // $monthAnt = $mes - 1;
+        // if ($monthAnt == 0) {
+        //     $monthAnt = 12;
+        //     $annio = $annio - 1;
+        // }
 
         $data = DB::select("SELECT COUNT(*) as Total,
                             (COUNT(if(ces between  $this->_minMaxCes and  $this->_maxMaxCes , ces, NULL)) - COUNT(if(ces between $this->_minCes and $this->_maxCes, ces, NULL)))/COUNT(if(ces !=99,1,NULL ))* 100 AS CES 
