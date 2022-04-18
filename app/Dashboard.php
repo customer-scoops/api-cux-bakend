@@ -3682,8 +3682,8 @@ class Dashboard extends Generic
                                 FROM $this->_dbSelected.$db as a
                                 LEFT JOIN $this->_dbSelected." . $db . "_start as b 
                                 on a.token = b.token
-                                WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' and etapaencuesta = 'P2' $datafilters");
-                        
+                                WHERE date_survey BETWEEN  '$dateEnd'AND  '$dateIni'and etapaencuesta = 'P2' $datafilters");
+                   
                                 $cesPrev = $this->cesPreviousPeriod($db, $dateIni, $dateEnd);
         } 
 
