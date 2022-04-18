@@ -937,7 +937,7 @@ class Dashboard extends Generic
     private function npsPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $datafilters)
     {
         $datafilters = str_replace(' AND date_survey between date_sub(NOW(), interval 9 week) and NOW()', '', $datafilters);
-   
+        $monthAntEnd = date('m') - 1;
         $monthActualEnd= substr($dateIni, 5,2); 
     
         if($monthActualEnd > 1 && $monthActualEnd < 11){
@@ -1040,7 +1040,7 @@ class Dashboard extends Generic
     private function cbiPreviousPeriod($table, $mes, $annio, $indicador, $datafilters)
     {
         $datafilters = str_replace(' AND date_survey between date_sub(NOW(), interval 9 week) and NOW()', '', $datafilters);
-        
+        $monthAntEnd = date('m') - 1;
         $monthActualEnd= substr($dateIni, 5,2); 
     
         if($monthActualEnd > 1 && $monthActualEnd < 11){
@@ -3705,6 +3705,8 @@ class Dashboard extends Generic
     }
    
     private function cesPreviousPeriod($db, $dateEnd, $dateIni, $datafilters =null){
+
+    $monthAntEnd = date('m') - 1;
 
         if ($datafilters)
             $datafilters = " AND $datafilters";
