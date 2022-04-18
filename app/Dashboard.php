@@ -1039,7 +1039,7 @@ class Dashboard extends Generic
 
     //Función CBI periodo previo para JetSmart
 
-    private function cbiPreviousPeriod($table, $mes, $annio, $indicador, $datafilters)
+    private function cbiPreviousPeriod($table,$dateEnd, $dateIni, $indicador, $datafilters)
     {
         $datafilters = str_replace(' AND date_survey between date_sub(NOW(), interval 9 week) and NOW()', '', $datafilters);
         $monthAntEnd = date('m') - 1;
@@ -1072,7 +1072,7 @@ class Dashboard extends Generic
             $data = DB::select("SELECT ROUND((COUNT(CASE WHEN $indicador BETWEEN 4 AND 5 THEN 1 END)  /
                                 (COUNT(CASE WHEN $indicador != 99 THEN $indicador END)) * 100)) AS CBI
                                 FROM $this->_dbSelected.$table 
-                                WHERE mes = $monthAnt AND annio = $annio $datafilters");
+                                WHERE mes = $mes AND annio = $annio $datafilters");
                                 return $data;
         }
     }
@@ -3750,7 +3750,7 @@ class Dashboard extends Generic
                             FROM $this->_dbSelected.$db as a 
                             LEFT JOIN $this->_dbSelected." . $db . "_start as b 
                             on a.token = b.token
-                            WHERE a.mes = $monthAnt AND a.annio = $annio $activeP2 $datafilters");
+                            WHERE a.mes = $mes AND a.annio = $annio $activeP2 $datafilters");
 
         return ['AntCes' => $data[0]->CES];
     }
