@@ -1536,6 +1536,7 @@ class Dashboard extends Generic
     //OKK
     private function csatPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $filter, $datafilters)
     {
+        $monthAntEnd = date('m') - 1;  
         $monthActualEnd= substr($dateIni, 5,2); 
     
         if($monthActualEnd > 1 && $monthActualEnd < 11){
