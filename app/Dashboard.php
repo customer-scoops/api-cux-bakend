@@ -1909,7 +1909,7 @@ class Dashboard extends Generic
 
         if (substr($table, 10, 3) == 'com') {
         
-            $data = DB::select("SELECT (COUNT(if($indicador between  $this->_maxMaxCes and  $this->_minMaxCes  , $indicador, NULL)) - 
+            $data = DB::select("SELECT (COUNT(if($indicador between   $this->_minMaxCes and $this->_maxMaxCes  , $indicador, NULL)) - 
                                 COUNT(if($indicador between $this->_minCes and $this->_maxCes , $indicador, NULL))) * 100
                                 /COUNT(CASE WHEN $indicador != 99 THEN $indicador END) AS ces, 
                                 ROUND((count(if($indicador = $this->_minCes OR $indicador = $this->_maxCes, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as dificil, 
@@ -1918,8 +1918,8 @@ class Dashboard extends Generic
                                 a.mes, a.annio, date_survey, gen 
                                 FROM $this->_dbSelected.$table as a
                                 INNER JOIN $this->_dbSelected." . $table . "_start as b on a.token = b. token 
-                                WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $activeP2 $datafilters
-                                GROUP BY a.mes
+                                WHERE $where $activeP2 $datafilters
+                                GROUP BY $group
                                 ORDER BY date_survey asc");
         }
 
@@ -2272,7 +2272,7 @@ class Dashboard extends Generic
                     $generalDataCbi = [                 
                         "name"          => "cbi", //Ver después como hacemos
                         "value"         => (int)$value->CBI,
-                        "percentage"    => ROUND($value->CBI - $cbiPreviousPeriod->CBI),                 
+                        "percentage"    => ROUND($value->CBI - $cbiPreviousPeriod[0]->CBI),                 
                         "smAvg"         => $cbiSmAvg,
                     ];
                 }
@@ -3690,7 +3690,7 @@ class Dashboard extends Generic
                                 LEFT JOIN $this->_dbSelected." . $db . "_start as b 
                                 on a.token = b.token
                                 WHERE date_survey BETWEEN  '$dateEnd'AND  '$dateIni'and etapaencuesta = 'P2' $datafilters");
-                   
+         
                                 $cesPrev = $this->cesPreviousPeriod($db, $dateIni, $dateEnd);
         } 
 
