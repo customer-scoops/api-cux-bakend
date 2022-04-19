@@ -723,9 +723,9 @@ class Dashboard extends Generic
 
        
         if ($surveys['status'] == 200) {
-            // if($surveys['datas'][0]['customer'] == 'MUT001'){
-            //     array_push($surveys['datas'], $this->consolidateMutual());
-            // }
+            if($surveys['datas'][0]['customer'] == 'MUT001'){
+                array_push($surveys['datas'], $this->consolidateMutual());
+            }
 
             foreach ($surveys['datas'] as $key => $value) {
                
@@ -1601,6 +1601,10 @@ class Dashboard extends Generic
         if ($datafilters)
         $datafilters = " AND $datafilters";
 
+        $activeP2 ='';
+        if(substr($table, 6, 3) == 'jet')
+            $activeP2 = " AND etapaencuesta = 'P2' ";
+
         if ($filter != 'all') {
             if (substr($table, 6, 3) != 'mut') {
                 $data = DB::select("SELECT count(*) as total,
@@ -1608,7 +1612,7 @@ class Dashboard extends Generic
                                     $this->_fieldSelectInQuery
                                     FROM $this->_dbSelected.$table as a
                                     INNER JOIN $this->_dbSelected." . $table . "_start as b  ON a.token  =  b.token 
-                                    WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters
+                                    WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni'  $activeP2 $datafilters
                                     GROUP BY a.mes, a.annio");
                 // echo "SELECT count(*) as total,
                 // ((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN $indicador END)*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as csat, 
@@ -1616,7 +1620,7 @@ class Dashboard extends Generic
                 // FROM $this->_dbSelected.$table as a
                 // INNER JOIN $this->_dbSelected." . $table . "_start as b  ON a.token  =  b.token 
                 // WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters
-                // GROUP BY a.mes, a.annio";
+                // GROUP BY a.mes, a.annio";exit;
 
             }
 
@@ -1725,6 +1729,7 @@ class Dashboard extends Generic
                                     WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $activeP2 $datafilters
                                     GROUP BY a.mes
                                     ORDER BY date_survey asc");
+
             }
 
             if (substr($table, 6, 3) == 'mut') {
@@ -1801,6 +1806,7 @@ class Dashboard extends Generic
                 }
             }    
         }
+        //print_r($graphCSAT);exit;
         return $graphCSAT;
     }
 
@@ -3461,6 +3467,10 @@ class Dashboard extends Generic
 
     private function nameSurvey($name)
     {
+        if($name== 'mutcon'){
+            return 'Consolidado';
+        }
+
         $data = DB::select("SELECT nomSurvey FROM $this->_dbSelected.survey WHERE codDbase = '$name'");
         return $data[0]->nomSurvey;
     }
@@ -3749,12 +3759,6 @@ class Dashboard extends Generic
 
         $mes = $monthAntEnd;
      
-
-        // $monthAnt = $mes - 1;
-        // if ($monthAnt == 0) {
-        //     $monthAnt = 12;
-        //     $annio = $annio - 1;
-        // }
 
         $data = DB::select("SELECT COUNT(*) as Total,
                             (COUNT(if(ces between  $this->_minMaxCes and  $this->_maxMaxCes , ces, NULL)) - COUNT(if(ces between $this->_minCes and $this->_maxCes, ces, NULL)))/COUNT(if(ces !=99,1,NULL ))* 100 AS CES 
@@ -5738,13 +5742,13 @@ class Dashboard extends Generic
     }
 
 
-    // private function consolidateMutual(){
-    //     return [
-    //         'name'      => 'CONSOLIDADO',
-    //         'base'      => 'mutcon',
-    //         'customer'  => 'MUT001',
-    //     ];
-    // }
+    private function consolidateMutual(){
+        return [
+            'name'      => 'CONSOLIDADO',
+            'base'      => 'mutcon',
+            'customer'  => 'MUT001',
+        ];
+    }
 
 
     // public function arrayPushToValues($array,$valuesReferences,$keyReferences){
