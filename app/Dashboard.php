@@ -806,7 +806,7 @@ class Dashboard extends Generic
             "mutimg" => "5",
             "mutreh" => "5",
             "muturg" => "5",
-            "mutcon" => "1",
+            "mutcon" => "5",
             //demo
             "demdem" => "8",
             //transvip
@@ -1614,13 +1614,7 @@ class Dashboard extends Generic
                                     INNER JOIN $this->_dbSelected." . $table . "_start as b  ON a.token  =  b.token 
                                     WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni'  $activeP2 $datafilters
                                     GROUP BY a.mes, a.annio");
-                // echo "SELECT count(*) as total,
-                // ((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN $indicador END)*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as csat, 
-                // $this->_fieldSelectInQuery
-                // FROM $this->_dbSelected.$table as a
-                // INNER JOIN $this->_dbSelected." . $table . "_start as b  ON a.token  =  b.token 
-                // WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters
-                // GROUP BY a.mes, a.annio";exit;
+
 
             }
 
@@ -1697,7 +1691,6 @@ class Dashboard extends Generic
 
     private function graphCsat($table,  $indicador, $dateIni, $dateEnd, $filter, $struct = 'two', $datafilters = null, $group = null)
     { 
-
         $activeP2 ='';
         if(substr($table, 6, 3) == 'jet')
             $activeP2 = " AND etapaencuesta = 'P2' ";
@@ -1723,6 +1716,9 @@ class Dashboard extends Generic
                                     ROUND((count(if($indicador <= $this->_maxCsat , $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as detractor, 
                                     ROUND((count(if($indicador = $this->_minMaxCsat OR $indicador = $this->_maxMaxCsat, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as promotor, 
                                     ROUND((count(if($indicador = $this->_minMediumCsat OR $indicador = $this->_maxMediumCsat, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as neutral,              
+                                    count(if($indicador <= $this->_maxCsat, $indicador, NULL)) as Cinsa, 
+                                    count(if($indicador = $this->_minMaxCsat OR $indicador = $this->_maxMaxCsat, $indicador, NULL)) as Csati, 
+                                    count(if($indicador = $this->_minMediumCsat OR $indicador = $this->_maxMediumCsat, $indicador, NULL)) as Cneut,
                                     a.mes, a.annio, date_survey, $this->_fieldSelectInQuery 
                                     FROM $this->_dbSelected.$table as a
                                     INNER JOIN $this->_dbSelected." . $table . "_start as b on a.token = b. token 
@@ -1788,13 +1784,13 @@ class Dashboard extends Generic
                 foreach ($data as $key => $value) {
                     if ($struct != 'one') {
                         $graphCSAT[] = [
-                            //'xLegend'  => (string)$value->mes . '-' . $value->annio,
-                            'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->detractor + $value->promotor + $value->neutral) . ')' : 'Semana ' . $value->week . ' (' . ($value->detractor + $value->promotor + $value->neutral) . ')',
+                          
+                            'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cinsa + $value->Cneut + $value->Csati) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cinsa + $value->Cneut + $value->Csati) . ')',
                             'values' => [
                                 "promoters"     => round($value->promotor),
                                 "neutrals"      => 100 - (round($value->promotor) + round($value->detractor)),
                                 "detractors"    => round($value->detractor),
-                                'csat' => (string)ROUND($value->csat)
+                                "csat"          => (string)ROUND($value->csat),
                             ],
                         ];
                     }

@@ -91,7 +91,6 @@ class Suite
             }
             
             //$codCustomer = ($request->get('company') !== null) ? $request->get('company'): $jwt[env('AUTH0_AUD')]->client;
-            //echo $this->_dbSelected.'.'.'survey';
             $resp = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1)->get();
             //dd(\DB::getQueryLog());
             if($codCustomer == 'TRA001')
@@ -136,12 +135,11 @@ class Suite
         try {
             //$client = ($request->get('company') !== null) ? $request->get('company'): $jwt[env('AUTH0_AUD')]->client;
             $client = $jwt[env('AUTH0_AUD')]->client;
-            //echo $request->get('company');
+     
             if($request->get('company') !== null){
                 $client = $this->getCompany($request->get('company'));
             }
             
-            //echo $client;
             $survey = ($request->get('survey') === null) ? $jwt[env('AUTH0_AUD')]->survey: $request->get('survey');
             $survey = $this->buildSurvey($survey,$client);
             
@@ -150,7 +148,6 @@ class Suite
             $dbQuery->where('contenido','!=', '');
             $dbQuery->where('date','>=', $this->_dateStartClient);
             $resp = $dbQuery->whereBetween('nps', [$this->_startMinNps,$this->_startMaxNps])->get();
-            //echo $resp;
         } catch (\Throwable $e) {
             return $data = [
                 'datas'     => $e->getMessage(),
@@ -158,7 +155,6 @@ class Suite
             ];
         }
         foreach ($resp as $key => $value) {
-           // echo '------'.$value->estado;
             $ticketCreated++;
             //estado_close 0 es sin gestion, gestionado = 1, pendiente = 2, datos no corresponde = 3
             //TODO visita = 0 and estado_close = 0 (ticketOpen)
