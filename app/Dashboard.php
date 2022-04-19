@@ -755,7 +755,7 @@ class Dashboard extends Generic
                         $infoNps = [$this->cbiResp($db, '', date('Y-m-d'),date('Y-m-01')), $this->infoNps($db,date('Y-m-d'),date('Y-m-01'),$npsInDb,$this->_initialFilter)];
                         
                         if (substr($value['base'],3,3) == 'com') 
-                                $otherGraph = [$this->infoCsat($db,date('m'),date('Y'), $csatInDb,$this->_initialFilter), $this->ces($db,date('Y-m-d'),date('Y-m-01'), $cesInDb)];
+                                $otherGraph = [$this->infoCsat($db,date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->_initialFilter), $this->ces($db,date('Y-m-d'),date('Y-m-01'), $cesInDb)];
                         
                         if (substr($value['base'],3,3) == 'via')
                             $otherGraph = [$this->infoCsat($db,date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->_initialFilter)];
@@ -978,6 +978,8 @@ class Dashboard extends Generic
                                 on a.token = b.token
                                 WHERE a.mes = $mes and a.annio = $annio $datafilters");
 
+
+
             $data2 = DB::select("SELECT COUNT(CASE WHEN a.csat!=99 THEN 1 END) as Total, 
                                 ROUND(((COUNT(CASE WHEN a.csat BETWEEN 6 AND 7 THEN 1 END) - COUNT(CASE WHEN a.csat BETWEEN 1 AND 4 THEN 1 END)) / (COUNT(CASE WHEN a.csat!=99 THEN 1 END)) * 100),1) AS INS,
                                 ROUND(((COUNT(CASE WHEN nps BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - COUNT(CASE WHEN nps BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
@@ -993,8 +995,18 @@ class Dashboard extends Generic
             return ['ins' => $data[0]->INS, 'nps' => $data[0]->NPS, 'insAct' => $data2[0]->INS, 'npsAct' => $data2[0]->NPS];
         }
 
+        if ($this->_dbSelected == 'customer_jetsmart') {
+            $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
+                                COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
+                                (COUNT(CASE WHEN $indicador != 99 THEN $indicador END)) * 100),1) AS NPS
+                                FROM $this->_dbSelected.$table as a
+                                left join $this->_dbSelected." . $table . "_start as b
+                                on a.token = b.token
+                                WHERE a.mes = $mes and a.annio = $annio and etapaencuesta = 'P2' $datafilters");
+            return $data[0]->NPS;
+        }
 
-        if ($this->_dbSelected == 'customer_colmena' && substr($table, 6, 3) == 'mut' || substr($table, 0, 3) == 'MUT') {
+        if ($this->_dbSelected == 'customer_colmena' && substr($table, 6, 3) == 'mut' || substr($table, 0, 3) == 'MUT' ) {
             $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
                                 COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
                                 (COUNT(CASE WHEN $indicador != 99 THEN $indicador END)) * 100),1) AS NPS
@@ -1189,6 +1201,7 @@ class Dashboard extends Generic
                                 WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' $datafilters $activeP2
                                 GROUP BY a.mes, a.annio
                                 ORDER BY date_survey ASC");
+
         }
 
         if (($data == null) || $data[0]->total == null || $data[0]->total == 0) {
@@ -1219,18 +1232,18 @@ class Dashboard extends Generic
                 $npsPreviousPeriod = $npsPreviousPeriod['nps'];
             }
 
-            if(substr($table, 6, 3) == 'jet'){
-                return [
-                    "name"              => "nps",
-                    "value"             => round($npsActive),
-                    "percentage"        => $npsActive - round($npsPreviousPeriod),
-                    "smAvg"             => $this->AVGLast6MonthNPS($table, $table2, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter),
-                    "percentageNPSAC"   => $npsActive,
-                    'NPSPReV'           => $npsPreviousPeriod,
-                    // 'mes'               => $mes,
-                    // 'annio'             => $annio,
-                ];
-            }
+            // if(substr($table, 6, 3) == 'jet'){
+            //     return [
+            //         "name"              => "nps",
+            //         "value"             => round($npsActive),
+            //         "percentage"        => $npsActive - round($npsPreviousPeriod),
+            //         "smAvg"             => $this->AVGLast6MonthNPS($table, $table2, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter),
+            //         "percentageNPSAC"   => $npsActive,
+            //         'NPSPReV'           => $npsPreviousPeriod,
+            //         // 'mes'               => $mes,
+            //         // 'annio'             => $annio,
+            //     ];
+            // }
 
             return [
                 "name"              => "nps",
