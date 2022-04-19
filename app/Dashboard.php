@@ -723,9 +723,9 @@ class Dashboard extends Generic
 
        
         if ($surveys['status'] == 200) {
-            // if($surveys['datas'][0]['customer'] == 'MUT001'){
-            //     array_push($surveys['datas'], $this->consolidateMutual());
-            // }
+            if($surveys['datas'][0]['customer'] == 'MUT001'){
+                array_push($surveys['datas'], $this->consolidateMutual());
+            }
 
             foreach ($surveys['datas'] as $key => $value) {
                
@@ -1601,6 +1601,10 @@ class Dashboard extends Generic
         if ($datafilters)
         $datafilters = " AND $datafilters";
 
+        $activeP2 ='';
+        if(substr($table, 6, 3) == 'jet')
+            $activeP2 = " AND etapaencuesta = 'P2' ";
+
         if ($filter != 'all') {
             if (substr($table, 6, 3) != 'mut') {
                 $data = DB::select("SELECT count(*) as total,
@@ -1608,8 +1612,16 @@ class Dashboard extends Generic
                                     $this->_fieldSelectInQuery
                                     FROM $this->_dbSelected.$table as a
                                     INNER JOIN $this->_dbSelected." . $table . "_start as b  ON a.token  =  b.token 
-                                    WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters
+                                    WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni'  $activeP2 $datafilters
                                     GROUP BY a.mes, a.annio");
+                // echo "SELECT count(*) as total,
+                // ((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN $indicador END)*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as csat, 
+                // $this->_fieldSelectInQuery
+                // FROM $this->_dbSelected.$table as a
+                // INNER JOIN $this->_dbSelected." . $table . "_start as b  ON a.token  =  b.token 
+                // WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters
+                // GROUP BY a.mes, a.annio";exit;
+
             }
 
             if (substr($table, 6, 3) == 'mut') {
@@ -1642,6 +1654,7 @@ class Dashboard extends Generic
                                 INNER JOIN $this->_dbSelected.".$table2."_start as b  ON a.token  =  b.token 
                                 WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni'  $datafilters
                                 GROUP BY a.mes, a.annio) AS A ");
+
 
         }
 
@@ -1716,6 +1729,7 @@ class Dashboard extends Generic
                                     WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $activeP2 $datafilters
                                     GROUP BY a.mes
                                     ORDER BY date_survey asc");
+
             }
 
             if (substr($table, 6, 3) == 'mut') {
@@ -1792,6 +1806,7 @@ class Dashboard extends Generic
                 }
             }    
         }
+        //print_r($graphCSAT);exit;
         return $graphCSAT;
     }
 
@@ -2051,7 +2066,7 @@ class Dashboard extends Generic
                         ]
                     ]
                 ];
-
+             
                 array_push($dataArray, $dataObj);
                 $count++;
             }
@@ -3452,6 +3467,10 @@ class Dashboard extends Generic
 
     private function nameSurvey($name)
     {
+        if($name== 'mutcon'){
+            return 'Consolidado';
+        }
+
         $data = DB::select("SELECT nomSurvey FROM $this->_dbSelected.survey WHERE codDbase = '$name'");
         return $data[0]->nomSurvey;
     }
@@ -3740,12 +3759,6 @@ class Dashboard extends Generic
 
         $mes = $monthAntEnd;
      
-
-        // $monthAnt = $mes - 1;
-        // if ($monthAnt == 0) {
-        //     $monthAnt = 12;
-        //     $annio = $annio - 1;
-        // }
 
         $data = DB::select("SELECT COUNT(*) as Total,
                             (COUNT(if(ces between  $this->_minMaxCes and  $this->_maxMaxCes , ces, NULL)) - COUNT(if(ces between $this->_minCes and $this->_maxCes, ces, NULL)))/COUNT(if(ces !=99,1,NULL ))* 100 AS CES 
@@ -5400,7 +5413,7 @@ class Dashboard extends Generic
                             ],
                             [
                                 "name"    => $dataCsat['name'],
-                                "value"   => $dataCsat['value'],
+                                "value"   => round($dataCsat['value']),
                                 "m2m"     => (int)round($dataCsat['percentage']),
                             ],
                         ];
@@ -5729,33 +5742,33 @@ class Dashboard extends Generic
     }
 
 
-    // private function consolidateMutual(){
-    //     return [
-    //         'name'      => 'CONSOLIDADO',
-    //         'base'      => 'mutcon',
-    //         'customer'  => 'MUT001',
-    //     ];
-    // }
-
-
-    public function arrayPushToValues($array,$valuesReferences,$keyReferences){
-        if($keyReferences == 'GAP'){
-            foreach($valuesReferences as $key => $value){
-                array_push($array, ['name' => $value, 'exp' => 9]);
-            }
-        }
-        if($keyReferences == 'frec'){
-            foreach($valuesReferences as $key => $value){
-                array_push($array, ["icon" => "plane","percentage"=> $value, "quantity" => '']);
-            }
-        }
-        if($keyReferences == 'lab'){
-            foreach($valuesReferences as $key => $value){
-                array_push($array, ["icon" => "star", "percentage" => $value, "quantity" =>  '']);
-            }
-        }
-        return $array;
+    private function consolidateMutual(){
+        return [
+            'name'      => 'CONSOLIDADO',
+            'base'      => 'mutcon',
+            'customer'  => 'MUT001',
+        ];
     }
+
+
+    // public function arrayPushToValues($array,$valuesReferences,$keyReferences){
+    //     if($keyReferences == 'GAP'){
+    //         foreach($valuesReferences as $key => $value){
+    //             array_push($array, ['name' => $value, 'exp' => 9]);
+    //         }
+    //     }
+    //     if($keyReferences == 'frec'){
+    //         foreach($valuesReferences as $key => $value){
+    //             array_push($array, ["icon" => "plane","percentage"=> $value, "quantity" => '']);
+    //         }
+    //     }
+    //     if($keyReferences == 'lab'){
+    //         foreach($valuesReferences as $key => $value){
+    //             array_push($array, ["icon" => "star", "percentage" => $value, "quantity" =>  '']);
+    //         }
+    //     }
+    //     return $array;
+    // }
 
 
     //DETAILS DASH
@@ -5883,69 +5896,69 @@ class Dashboard extends Generic
         $jetNamesLab = [
             'title' => 'Situación Laboral',
             'data' => [
-                $this->arrayPushToValues([],['Cesante','Empleado','Emprendedor','Estudiante','Ret/Jub'],'lab')
-                // [
-                //     "icon" => "star",
-                //     "percentage" => 'Cesante',
-                //     "quantity" =>  '',
-                // ],
-                // [
-                //     "icon" => "star",
-                //     "percentage" => 'Empleado',
-                //     "quantity" =>  '',
-                // ],
-                // [
-                //     "icon" => "star",
-                //     "percentage" => 'Emprendedor',
-                //     "quantity" =>  '',
-                // ],
-                // [
-                //     "icon" => "star",
-                //     "percentage" => 'Estudiante',
-                //     "quantity" =>  '',
-                // ],
-                // [
-                //     "icon" => "star",
-                //     "percentage" => 'Ret/Jub',
-                //     "quantity" =>  '',
-                // ],
+                //$this->arrayPushToValues([],['Cesante','Empleado','Emprendedor','Estudiante','Ret/Jub'],'lab')
+                [
+                    "icon" => "star",
+                    "percentage" => 'Cesante',
+                    "quantity" =>  '',
+                ],
+                [
+                    "icon" => "star",
+                    "percentage" => 'Empleado',
+                    "quantity" =>  '',
+                ],
+                [
+                    "icon" => "star",
+                    "percentage" => 'Emprendedor',
+                    "quantity" =>  '',
+                ],
+                [
+                    "icon" => "star",
+                    "percentage" => 'Estudiante',
+                    "quantity" =>  '',
+                ],
+                [
+                    "icon" => "star",
+                    "percentage" => 'Ret/Jub',
+                    "quantity" =>  '',
+                ],
             ]
         ];
 
         $jetNamesFrecVuelo = [
             'title' => 'Frecuencia de Vuelo',
             'data' => [
-                $this->arrayPushToValues([],['1 / semana','2-3 / mes','1 / mes','2+ al  año','Act. no viajo','1 / año'],'frec')
-                // [
-                //     "icon" => "plane",
-                //     "percentage"=> '1 / semana',
-                //     "quantity" =>  '',
-                // ],
-                // [
-                //     "icon" => "plane",
-                //     "percentage"  => '2-3 / mes',
-                //     "quantity"=>  '',
-                // ],
-                // [
-                //     "icon" => "plane",
-                //     "percentage" => '1 / mes',
-                //     "quantity" =>  '',
-                // ],
-                // [
-                //     "icon" => "plane",
-                //     "percentage" => '2+ al  año',
-                //     "quantity" =>  '',
-                // ],
-                // [
-                //     "icon" => "plane",
-                //     "percentage" => 'Act. no viajo',
-                //     "quantity" =>  '',
-                // ],
-                // [
-                //     "icon" => "plane",
-                //     "percentage" => '1 / año',
-                //     "quantity" =>  '',
-                // ],
+               // $this->arrayPushToValues([],['1 / semana','2-3 / mes','1 / mes','2+ al  año','Act. no viajo','1 / año'],'frec')
+                [
+                    "icon" => "plane",
+                    "percentage"=> '1 / semana',
+                    "quantity" =>  '',
+                ],
+                [
+                    "icon" => "plane",
+                    "percentage"  => '2-3 / mes',
+                    "quantity"=>  '',
+                ],
+                [
+                    "icon" => "plane",
+                    "percentage" => '1 / mes',
+                    "quantity" =>  '',
+                ],
+                [
+                    "icon" => "plane",
+                    "percentage" => '2+ al  año',
+                    "quantity" =>  '',
+                ],
+                [
+                    "icon" => "plane",
+                    "percentage" => 'Act. no viajo',
+                    "quantity" =>  '',
+                ],
+                [
+                    "icon" => "plane",
+                    "percentage" => '1 / año',
+                    "quantity" =>  '',
+                ],
             ]
         ];
 
