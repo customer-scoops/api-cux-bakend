@@ -3727,15 +3727,15 @@ class Dashboard extends Generic
                 "value"         => "N/A",
                 "percentage"    => 0-ROUND($cesPrev['AntCes'])
             ];
+            
+            if($data[0]->Total != null){
+                return [
+                    "name"              => "CES",
+                    "value"             => ROUND($data[0]->CES),
+                    "percentage"        => ROUND($data[0]->CES)-ROUND($cesPrev['AntCes']),
+                ];
+            } 
         }
-        
-        if($data[0]->Total != null){
-            return [
-            "name"              => "CES",
-            "value"             => ROUND($data[0]->CES),
-            "percentage"        => ROUND($data[0]->CES)-ROUND($cesPrev['AntCes']),
-        ];
-        } 
     }
    
     private function cesPreviousPeriod($db, $dateEnd, $dateIni, $datafilters =null){
@@ -5339,7 +5339,7 @@ class Dashboard extends Generic
         if ($this->_dbSelected == 'customer_colmena' &&  $survey == 'mut') {    
             $name = $dataCes['name'];
             $val = $dataCes['value'];
-            $percentage = $dataCes['m2m'];
+            $percentage = $dataCes['percentage'];
         }
        
         if($this->_dbSelected == 'customer_colmena' && $survey == 'tra'){
@@ -5366,12 +5366,12 @@ class Dashboard extends Generic
                         [
                             "name"    => $dataNps['name'],
                             "value"   => $dataNps['value'],
-                            "m2m"     => (int)round($dataNps['percentage']),
+                            "percentage"     => (int)round($dataNps['percentage']),
                         ],
                         [
                             "name"    => $name,
                             "value"   => $val,
-                            "m2m"     => $percentage,
+                            "percentage"     => $percentage,
                         ],
                         
                     ];
@@ -5383,22 +5383,22 @@ class Dashboard extends Generic
                             [
                                 "name"    => $dataCbi['name'],
                                 "value"   => $dataCbi['value'],
-                                "m2m"     => (int)round($dataCbi['percentage']),
+                                "percentage"     => (int)round($dataCbi['percentage']),
                             ],
                             [
                                 "name"    => $dataNps['name'],
                                 "value"   => $dataNps['value'],
-                                "m2m"     => (int)round($dataNps['percentage']),
+                                "percentage"     => (int)round($dataNps['percentage']),
                             ],
                             [
                                 "name"    => $dataCsat['name'],
                                 "value"   => $dataCsat['value'],
-                                "m2m"     => (int)round($dataCsat['percentage']),
+                                "percentage"     => (int)round($dataCsat['percentage']),
                             ],
                             [
                                 "name"    => $dataCes['name'],
                                 "value"   => $dataCes['value'],
-                                "m2m"     => (int)round($dataCes['m2m']),
+                                "percentage"     => (int)round($dataCes['m2m']),
                             ]
                         ];
             }
@@ -5407,17 +5407,17 @@ class Dashboard extends Generic
                             [
                                 "name"    => $dataCbi['name'],
                                 "value"   => $dataCbi['value'],
-                                "m2m"     => (int)round($dataCbi['percentage']),
+                                "percentage"     => (int)round($dataCbi['percentage']),
                             ],
                             [
                                 "name"    => $dataNps['name'],
                                 "value"   => $dataNps['value'],
-                                "m2m"     => (int)round($dataNps['percentage']),
+                                "percentage"     => (int)round($dataNps['percentage']),
                             ],
                             [
                                 "name"    => $dataCsat['name'],
                                 "value"   => round($dataCsat['value']),
-                                "m2m"     => (int)round($dataCsat['percentage']),
+                                "percentage"     => (int)round($dataCsat['percentage']),
                             ],
                         ];
             }
