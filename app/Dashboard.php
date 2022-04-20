@@ -2781,8 +2781,8 @@ class Dashboard extends Generic
         if ($filter != 'all') {
             
             if (substr($db, 6, 3) != 'jet'){
-                if ($indetifyClient == 'vid')
-                    $db = $this->primaryTable($db);
+               // if ($indetifyClient == 'vid')
+                   // $db = $this->primaryTable($db);
 
                 $data = DB::select("SELECT COUNT(*) as Total,  
                                     ROUND(((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
@@ -2802,26 +2802,25 @@ class Dashboard extends Generic
 
             $data   = DB::select("SELECT SUM(Total) as Total, SUM(NPS) AS NPS, sum(CSAT) AS CSAT, age, $this->_fieldSelectInQuery
                                   FROM (SELECT COUNT(*) as Total, b.age,
-                                  ROUND((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
+                                  ROUND(((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
                                   COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) / 
-                                  COUNT(CASE WHEN a.$indicatorNPS!=99 THEN 1 END) * 100)*$this->_porcentageBan AS NPS,
-                                  ROUND(COUNT(if($indicatorCSAT between  9 and  10 , $indicatorCSAT, NULL))* 100/COUNT(if($indicatorCSAT !=99,1,NULL )))*$this->_porcentageBan AS CSAT, $this->_fieldSelectInQuery
+                                  COUNT(CASE WHEN a.$indicatorNPS!=99 THEN 1 END) * 100)*$this->_porcentageBan) AS NPS,
+                                  ROUND((COUNT(if($indicatorCSAT between  9 and  10 , $indicatorCSAT, NULL))* 100/COUNT(if($indicatorCSAT !=99,1,NULL )))*$this->_porcentageBan) AS CSAT, $this->_fieldSelectInQuery
                                   FROM $this->_dbSelected.$db as a
                                   LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token 
                                   WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND sex in(1,2,'F','M') and nps!= 99  $datafilters
                                   GROUP BY (b.age BETWEEN 14 AND 22), (b.age BETWEEN 23 AND 38), (b.age BETWEEN 39 AND 54), (b.age BETWEEN 55 AND 73), (b.age BETWEEN 74 AND 99)
                                   UNION
                                   SELECT COUNT(*) as Total, b.age,
-                                  ROUND((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
+                                  ROUND(((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
                                   COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) / 
-                                  COUNT(CASE WHEN a.$indicatorNPS!=99 THEN 1 END) * 100)*$this->_porcentageVid AS NPS,
-                                  ROUND(COUNT(if($indicatorCSAT between  9 and  10 , $indicatorCSAT, NULL))* 100/COUNT(if($indicatorCSAT !=99,1,NULL )))*$this->_porcentageVid AS CSAT, $this->_fieldSelectInQuery
+                                  COUNT(CASE WHEN a.$indicatorNPS!=99 THEN 1 END) * 100)*$this->_porcentageVid) AS NPS,
+                                  ROUND((COUNT(if($indicatorCSAT between  9 and  10 , $indicatorCSAT, NULL))* 100/COUNT(if($indicatorCSAT !=99,1,NULL )))*$this->_porcentageVid) AS CSAT, $this->_fieldSelectInQuery
                                   FROM $this->_dbSelected.$db2 as a
                                   LEFT JOIN $this->_dbSelected." . $db2 . "_start as b on a.token = b.token 
                                   WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND sex in(1,2,'F','M') and nps!= 99  $datafilters
                                   GROUP BY (b.age BETWEEN 14 AND 22), (b.age BETWEEN 23 AND 38), (b.age BETWEEN 39 AND 54), (b.age BETWEEN 55 AND 73), (b.age BETWEEN 74 AND 99)) AS A
-                                  GROUP BY (age BETWEEN 14 AND 22), (age BETWEEN 23 AND 38), (age BETWEEN 39 AND 54), (age BETWEEN 55 AND 73), (age BETWEEN 74 AND 99)
-                                  ORDER BY age");
+                                  GROUP BY (age BETWEEN 14 AND 22), (age BETWEEN 23 AND 38), (age BETWEEN 39 AND 54), (age BETWEEN 55 AND 73), (age BETWEEN 74 AND 99)");
         }
 
 
@@ -3016,13 +3015,13 @@ class Dashboard extends Generic
         if ($datafilters)
             $datafilters = " AND $datafilters";
         if ($filter != 'all') {
-            if ($indetifyClient == 'vid')
-                $db =  $this->primaryTable($db);
+            //if ($indetifyClient == 'vid')
+                //$db =  $this->primaryTable($db);
 
             $data = DB::select("SELECT COUNT(*) as Total, 
                                 ROUND(((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
                                 COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
-                                (COUNT(a.$indicatorNPS) - COUNT(CASE WHEN a.$indicatorNPS=99 THEN 1 END)) * 100),1) AS NPS, 
+                                (COUNT(a.$indicatorNPS) - COUNT(CASE WHEN a.$indicatorNPS=99 THEN 1 END)) * 100)) AS NPS, 
                                 ROUND(COUNT(if($indicatorCSAT between  9 and  10 , $indicatorCSAT, NULL))* 100/COUNT(if($indicatorCSAT !=99,1,NULL ))) AS CSAT, $this->_fieldSelectInQuery
                                 FROM $this->_dbSelected.$db as a 
                                 LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token 
@@ -3038,8 +3037,8 @@ class Dashboard extends Generic
                                   FROM (SELECT COUNT(*) as Total, 
                                   ROUND(((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
                                   COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
-                                  (COUNT(a.$indicatorNPS) - COUNT(CASE WHEN a.$indicatorNPS=99 THEN 1 END)) * 100),1) *$this->_porcentageBan AS NPS, 
-                                  ROUND(COUNT(if($indicatorCSAT between  9 and  10 , $indicatorCSAT, NULL))* 100/COUNT(if($indicatorCSAT !=99,1,NULL )))*$this->_porcentageBan AS CSAT, $this->_fieldSelectInQuery
+                                  (COUNT(a.$indicatorNPS) - COUNT(CASE WHEN a.$indicatorNPS=99 THEN 1 END)) * 100) *$this->_porcentageBan) AS NPS, 
+                                  ROUND(COUNT(if($indicatorCSAT between  9 and  10 , $indicatorCSAT, NULL))* 100/COUNT(if($indicatorCSAT !=99,1,NULL ))*$this->_porcentageBan) AS CSAT, $this->_fieldSelectInQuery
                                   FROM $this->_dbSelected.$db as a 
                                   LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token 
                                   WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and nps!= 99 $datafilters
@@ -3048,8 +3047,8 @@ class Dashboard extends Generic
                                   SELECT COUNT(*) as Total, 
                                   ROUND(((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
                                   COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
-                                  (COUNT(a.$indicatorNPS) - COUNT(CASE WHEN a.$indicatorNPS=99 THEN 1 END)) * 100),1)*$this->_porcentageVid AS NPS, 
-                                  ROUND(COUNT(if($indicatorCSAT between  9 and  10 , $indicatorCSAT, NULL))* 100/COUNT(if($indicatorCSAT !=99,1,NULL )))*$this->_porcentageVid AS CSAT, $this->_fieldSelectInQuery 
+                                  (COUNT(a.$indicatorNPS) - COUNT(CASE WHEN a.$indicatorNPS=99 THEN 1 END)) * 100)*$this->_porcentageVid) AS NPS, 
+                                  ROUND(COUNT(if($indicatorCSAT between  9 and  10 , $indicatorCSAT, NULL))* 100/COUNT(if($indicatorCSAT !=99,1,NULL ))*$this->_porcentageVid) AS CSAT, $this->_fieldSelectInQuery 
                                   FROM $this->_dbSelected.$db2 as a 
                                   LEFT JOIN $this->_dbSelected." . $db2 . "_start as b on a.token = b.token 
                                   WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and nps!= 99 $datafilters
@@ -3642,8 +3641,8 @@ class Dashboard extends Generic
                       FROM (SELECT COUNT(*) as Total,
                       ROUND(((COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
                       COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
-                      (COUNT(a.$npsInDb) - COUNT(CASE WHEN a.$npsInDb=99 THEN 1 END)) * 100),1)*$this->_porcentageBan AS NPS,
-                      ROUND(COUNT(if($csatInDb between  9 and  10 , $csatInDb, NULL))* 100/COUNT(if($csatInDb !=99,1,NULL )))*$this->_porcentageBan AS CSAT,  $this->_fieldSelectInQuery
+                      (COUNT(a.$npsInDb) - COUNT(CASE WHEN a.$npsInDb=99 THEN 1 END)) * 100)*$this->_porcentageBan) AS NPS,
+                      ROUND((COUNT(if($csatInDb between  9 and  10 , $csatInDb, NULL))* 100/COUNT(if($csatInDb !=99,1,NULL )))*$this->_porcentageBan) AS CSAT,  $this->_fieldSelectInQuery
                       FROM $this->_dbSelected.$db as a
                       LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token
                       WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' and $fieldFilter != '' and nps!= 99  $datafilters
@@ -3652,8 +3651,8 @@ class Dashboard extends Generic
                       SELECT COUNT(*) as Total,
                       ROUND(((COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
                       COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
-                      (COUNT(a.$npsInDb) - COUNT(CASE WHEN a.$npsInDb=99 THEN 1 END)) * 100),1)*$this->_porcentageVid AS NPS,
-                      ROUND(COUNT(if($csatInDb between  9 and  10 , $csatInDb, NULL))* 100/COUNT(if($csatInDb !=99,1,NULL )))*$this->_porcentageVid AS CSAT,  $this->_fieldSelectInQuery
+                      (COUNT(a.$npsInDb) - COUNT(CASE WHEN a.$npsInDb=99 THEN 1 END)) * 100)*$this->_porcentageVid) AS NPS,
+                      ROUND((COUNT(if($csatInDb between  9 and  10 , $csatInDb, NULL))* 100/COUNT(if($csatInDb !=99,1,NULL )))*$this->_porcentageVid) AS CSAT,  $this->_fieldSelectInQuery
                       FROM $this->_dbSelected.$db2 as a
                       LEFT JOIN $this->_dbSelected." . $db2 . "_start as b on a.token = b.token 
                       WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' and $fieldFilter != '' and nps!= 99  $datafilters
@@ -3726,15 +3725,15 @@ class Dashboard extends Generic
             return [
                 "name"          => "CES",
                 "value"         => "N/A",
-                "m2m"           => "0"
+                "percentage"    => 0-ROUND($cesPrev['AntCes'])
             ];
         }
         
         if($data[0]->Total != null){
             return [
-            "name"      => "CES",
-            "value"     => ROUND($data[0]->CES),
-            "m2m"       => ROUND($data[0]->CES)-ROUND($cesPrev['AntCes']),
+            "name"              => "CES",
+            "value"             => ROUND($data[0]->CES),
+            "percentage"        => ROUND($data[0]->CES)-ROUND($cesPrev['AntCes']),
         ];
         } 
     }
@@ -5173,12 +5172,7 @@ class Dashboard extends Generic
 
     private function statsByTaps($db, $db2, $mes, $year, $npsInDb, $csatInDb, $startDateFilterMonth, $endDateFilterMonth, $datafilters = null, $filterClient, $indetifyClient)
     {
-        if ($filterClient != 'all'){
-            if($indetifyClient == 'vid'){
-                $db = $this->primaryTable($db);
-            }
-        }
-
+    
         $standarStruct = [
             [
                 "text" => "NPS",
@@ -5552,7 +5546,7 @@ class Dashboard extends Generic
             "type" => "chart",
             "props" => [
                 "icon" => "arrow-right",
-                "text" => $nameIndicatorPrincipal != 'JetSmart' ? "NPS Consolidado • " . $nameIndicatorPrincipal : $indicador,
+                "text" => $nameIndicatorPrincipal != 'JetSmart' ? "NPS • " . $nameIndicatorPrincipal : $indicador,
                 "chart" => [
                     "fields" => [
                         [
@@ -5595,7 +5589,7 @@ class Dashboard extends Generic
             "type" => "chart",
             "props" => [
                 "icon" => "arrow-right",
-                "text" => "NPS Consolidado • " . $nameIndicatorPrincipal2,
+                "text" => "NPS • " . $nameIndicatorPrincipal2,
                 "chart" => [
                     "fields" => [
                         [
