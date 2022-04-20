@@ -3700,7 +3700,7 @@ class Dashboard extends Generic
     private function ces($db, $dateIni, $dateEnd, $ces, $datafilters=null){
         $data = null;   
         $str = substr($db,10,3);
-
+        $cesPrev = 0;
         // $activeP2 ='';
         // if(substr($db, 6, 3) == 'jet')
         //     $activeP2 = " AND etapaencuesta = 'P2' ";
@@ -3725,7 +3725,7 @@ class Dashboard extends Generic
             return [
                 "name"          => "CES",
                 "value"         => "N/A",
-                "percentage"    => 0-ROUND($cesPrev['AntCes'])
+                "percentage"    => 0-ROUND($cesPrev)
             ];
             
         }
@@ -3733,7 +3733,7 @@ class Dashboard extends Generic
             return [
             "name"              => "CES",
             "value"             => ROUND($data[0]->CES),
-            "percentage"        => ROUND($data[0]->CES)-ROUND($cesPrev['AntCes']),
+            "percentage"        => ROUND($data[0]->CES)-ROUND($cesPrev),
             ];
         } 
     }
@@ -3775,7 +3775,7 @@ class Dashboard extends Generic
                             on a.token = b.token
                             WHERE a.mes = $mes AND a.annio = $annio $activeP2 $datafilters");
 
-        return ['AntCes' => $data[0]->CES];
+        return $data[0]->CES;
     }
 
     private function getDetailsAntiquity($db, $db2,$month,$year,$npsInDb,$csatInDb, $dateIni, $dateEnd,$fieldFilter, $datafilters = null, $filter)
