@@ -3728,14 +3728,14 @@ class Dashboard extends Generic
                 "percentage"    => 0-ROUND($cesPrev['AntCes'])
             ];
             
-            if($data[0]->Total != null){
-                return [
-                    "name"              => "CES",
-                    "value"             => ROUND($data[0]->CES),
-                    "percentage"        => ROUND($data[0]->CES)-ROUND($cesPrev['AntCes']),
-                ];
-            } 
         }
+        if($data[0]->Total != null){
+            return [
+            "name"              => "CES",
+            "value"             => ROUND($data[0]->CES),
+            "percentage"        => ROUND($data[0]->CES)-ROUND($cesPrev['AntCes']),
+            ];
+        } 
     }
    
     private function cesPreviousPeriod($db, $dateEnd, $dateIni, $datafilters =null){
