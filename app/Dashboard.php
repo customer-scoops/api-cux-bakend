@@ -5398,7 +5398,7 @@ class Dashboard extends Generic
                             [
                                 "name"    => $dataCes['name'],
                                 "value"   => $dataCes['value'],
-                                "percentage"     => (int)round($dataCes['m2m']),
+                                "percentage"     => (int)round($dataCes['percentage']),
                             ]
                         ];
             }
