@@ -111,7 +111,7 @@ class PeriodCompare
         $select = "";
         $diff = 0;
 
-        //($request->filterWeeks !== null)? $filter = 'one' : $filter = 'all'; 
+        ($dbSelected !== 'customer_banmedica')? $filter = 'one' : $filter = 'all'; 
         
         if($filter == 'all'){
             $fieldBd = $dash->getFielInDbCsat($survey);
