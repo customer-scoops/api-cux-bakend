@@ -6101,8 +6101,8 @@ class Dashboard extends Generic
             $npsConsolidado     = $this->cardNpsConsolidado($name, $dataNPSGraph, $this->ButFilterWeeks);
             $npsBan             = null;
             $npsVid             = null;
-            $csatJourney        = $this->CSATJourney($graphCSATDrivers);
-            $csatDrivers        = $this->CSATDrivers($graphCSATDrivers);
+            $csatJourney        = substr($request->survey, 3, 3) == 'con'? null : $this->CSATJourney($graphCSATDrivers);
+            $csatDrivers        = substr($request->survey, 3, 3) == 'con'? null : $this->CSATDrivers($graphCSATDrivers);
             $cx                 = null;
             $wordCloud          = null;
             $closedLoop         = $csat1;
