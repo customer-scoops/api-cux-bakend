@@ -28,11 +28,6 @@ class Suite
         //$this->nameDbSelected($this->_jwt[env('AUTH0_AUD')]->client);
         //$this->minMaxIndicatorNps($this->_jwt[env('AUTH0_AUD')]->client);
     }
-
-    public function getDBSelected(){
-        return $this->_dbSelected;
-    }
-
     public function saveUpdate($request, $jwt)
     {
         $rules = [
@@ -382,11 +377,6 @@ class Suite
             return  $this->_low;
         }
     }
-
-    protected function sendedEmail($nombre,$mail,$hash,$encuesta){
-        $this->sendedmail($nombre,$mail,$hash,$encuesta);
-    }
-
     private function sendedmail($nombre,$mail,$hash,$encuesta){
         $curl = curl_init();
         curl_setopt_array($curl, array(
