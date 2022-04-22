@@ -204,6 +204,7 @@ class Suite
         return [
             'datas'  => [
                 'client'            => $this->_nameClient,
+                'survey'            => $survey,
                 'startCalendar'     => $this->_dateStartClient,
                 'clients'           => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
                 'ticketCreated'     => (object)['high' =>$high,'medium' =>$medium, 'low' =>$low] ,
