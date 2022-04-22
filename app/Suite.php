@@ -320,6 +320,7 @@ class Suite
                 }
                 $data[] = [
                     "ticket" => $value->ticket,
+                    "survey" => $survey,
                     "client" => array(
                         'name' => $value->nom,
                         'rut'  => $value->rut
