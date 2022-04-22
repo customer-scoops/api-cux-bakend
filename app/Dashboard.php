@@ -1197,20 +1197,20 @@ class Dashboard extends Generic
                                 WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' $datafilters $activeP2
                                 GROUP BY a.mes, a.annio
                                 ORDER BY date_survey ASC");
-                                echo "SELECT count(*) as total, 
-                                ((count(if($indicador < $this->_maxNps, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador !=99 THEN 1 END)) as detractor, 
-                                ((count(if($indicador = $this->_minMaxNps or  $indicador = $this->_maxMaxNps , $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)) as promotor,
-                                ((count(if($indicador =  $this->_maxMediumNps OR $indicador = $this->_minMediumNps, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)) as neutral,
-                                AVG($indicador) as promedio,
-                                ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
-                                COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) / 
-                                (COUNT(CASE WHEN $indicador != 99 THEN $indicador END)) * 100),1) AS NPS,  $this->_fieldSelectInQuery
-                                FROM $this->_dbSelected.$table as a
-                                LEFT JOIN $this->_dbSelected." . $table . "_start as b
-                                on a.token = b.token
-                                WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' $datafilters $activeP2
-                                GROUP BY a.mes, a.annio
-                                ORDER BY date_survey ASC";
+                                // echo "SELECT count(*) as total, 
+                                // ((count(if($indicador < $this->_maxNps, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador !=99 THEN 1 END)) as detractor, 
+                                // ((count(if($indicador = $this->_minMaxNps or  $indicador = $this->_maxMaxNps , $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)) as promotor,
+                                // ((count(if($indicador =  $this->_maxMediumNps OR $indicador = $this->_minMediumNps, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)) as neutral,
+                                // AVG($indicador) as promedio,
+                                // ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
+                                // COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) / 
+                                // (COUNT(CASE WHEN $indicador != 99 THEN $indicador END)) * 100),1) AS NPS,  $this->_fieldSelectInQuery
+                                // FROM $this->_dbSelected.$table as a
+                                // LEFT JOIN $this->_dbSelected." . $table . "_start as b
+                                // on a.token = b.token
+                                // WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' $datafilters $activeP2
+                                // GROUP BY a.mes, a.annio
+                                // ORDER BY date_survey ASC";
          
 
         }
