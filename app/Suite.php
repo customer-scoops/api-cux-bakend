@@ -25,6 +25,7 @@ class Suite
     {
         $this->_jwt = $_jwt;
         $this->setDetailsClient($this->_jwt[env('AUTH0_AUD')]->client);
+        //echo $this->_jwt[env('AUTH0_AUD')]->client;
         //$this->nameDbSelected($this->_jwt[env('AUTH0_AUD')]->client);
         //$this->minMaxIndicatorNps($this->_jwt[env('AUTH0_AUD')]->client);
     }
@@ -97,6 +98,7 @@ class Suite
             
             //$codCustomer = ($request->get('company') !== null) ? $request->get('company'): $jwt[env('AUTH0_AUD')]->client;
             $resp = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1)->get();
+            //echo $resp;exit;  
             //dd(\DB::getQueryLog());
             if($codCustomer == 'TRA001')
                 $resp = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1)->where('codsurvey','TRA_VIA')->get();
@@ -121,6 +123,7 @@ class Suite
             'datas'     => isset($surveys) ? $surveys: 'NO ENCONTRAMOS INFORMACION',
             'status'    => Response::HTTP_OK
         ];
+        //print_r($data);exit;
         return $data;
     }
     public function indicatorPrincipal($request, $jwt)

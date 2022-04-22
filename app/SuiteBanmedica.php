@@ -22,13 +22,17 @@ class SuiteBanmedica extends Suite
            "ticket" => 'required|numeric',
            "status" => 'required|numeric',
            "detail" => 'required|string',
-           "data.field1" => 'required|string',
-           "data.field2" => 'required|string',
-           "data.field3" => 'required|string',
-           "dateSchedule" => 'required|date_format:Y-m-d',
-           "timeSchedule" => 'required|date_format:H:i:s'
+           "sbuStatus1" => 'required|string',
+           "sbuStatus2" => 'required|string',
+           //"data.field1" => 'required|string',
+           //"data.field2" => 'required|string',
+           //"data.field3" => 'required|string',
+           //"dateSchedule" => 'required|date_format:Y-m-d',
+           //"timeSchedule" => 'required|date_format:H:i:s'
        ];
-       
+
+       //print_r($request);
+       //echo $request->sbuStatus1;exit;
        $validator = \Validator::make($request->all(), $rules);
        
        if ($validator->fails()) {
@@ -45,11 +49,13 @@ class SuiteBanmedica extends Suite
                     'estado_close' => $request->status, 
                     'det_close' => $request->detail, 
                     'fec_close'=>date('Y-m-d'),
-                    'fecha_programa_llamada'=> $request->dateSchedule,
-                    'hora_programa_llamada'=> $request->timeSchedule,
-                    'field_1'=>$request->data["field1"],
-                    'field_2'=>$request->data["field2"],
-                    'field_3'=>$request->data["field3"]
+                    //'fecha_programa_llamada'=> $request->dateSchedule,
+                    //'hora_programa_llamada'=> $request->timeSchedule,
+                    'field_1'=>$request->sbuStatus1,
+                    'field_2'=>$request->sbuStatus2,
+                    //'field_1'=>$request->data["field1"],
+                    //'field_2'=>$request->data["field2"],
+                    //'field_3'=>$request->data["field3"]
                     ]
                 );
                 
