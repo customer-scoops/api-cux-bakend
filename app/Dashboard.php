@@ -162,10 +162,10 @@ class Dashboard extends Generic
     public function filters($request, $jwt)
     {
         $survey = $request->get('survey');
-        $content = '';
-        $regiones =         [];
-        $genero =           [];
-        $tramo =            [];
+        $content        =   '';
+        $regiones       =   [];
+        $genero         =   [];
+        $tramo          =   [];
         $nicho =            [];
         $sucursal =         [];
         $web =              [];
@@ -178,16 +178,16 @@ class Dashboard extends Generic
         $CenAtencionn =     [];
         $TipoClienteT =     [];
         $TipoServicio =     [];
+        $AreaAten      =    [];
         $CondServicio =     [];
         $Zona =             [];
         $Sentido =          [];
         $ZonaHos =          [];
         $Reserva =          [];
-        $CanalT =            [];
+        $CanalT =           [];
         $Convenio =         [];
         $db = 'adata_' . substr($survey, 0, 3) . '_' . substr($survey, 3, 6);
         $dbC = substr($survey, 3, 6);
-
 
         //BANMEDICA
         if ($this->_dbSelected  == 'customer_banmedica') {
@@ -240,7 +240,6 @@ class Dashboard extends Generic
 
             return ['filters' => [(object)$regiones, (object)$genero, (object)$tramo, (object)$nicho], 'status' => Response::HTTP_OK];
         }
-
 
         // //ANTIGUEDAD
         // $data = DB::select("SELECT antIsapre 
@@ -314,7 +313,7 @@ class Dashboard extends Generic
             }
 
 
-            if ($dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh') {
+            if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
                 $data = DB::select("SELECT DISTINCT(tatencion)
                                 FROM $this->_dbSelected.adata_mut_" . $dbC . "_start
                                 where tatencion != '0'");
@@ -324,19 +323,19 @@ class Dashboard extends Generic
                 $tipAtencion = ['filter' => 'TipoAtencion', 'datas' => $this->contentfilter($data, 'tatencion')];
             }
 
-            if ($dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh') {
-                $data = DB::select("SELECT DISTINCT(catencion)
-                                FROM $this->_dbSelected.adata_mut_" . $dbC . "_start ");
+            // if ($dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh') {
+            //     $data = DB::select("SELECT DISTINCT(catencion)
+            //                     FROM $this->_dbSelected.adata_mut_" . $dbC . "_start ");
 
-                $this->_fieldSelectInQuery = 'catencion';
+            //     $this->_fieldSelectInQuery = 'catencion';
 
-                $CenAtencion = ['filter' => 'CentroAtencion', 'datas' => $this->contentfilter($data, 'catencion')];
+            //     $CenAtencion = ['filter' => 'CentroAtencion', 'datas' => $this->contentfilter($data, 'catencion')];
 
-                return ['filters' => [(object)$tipAtencion, (object)$CenAtencion], 'status' => Response::HTTP_OK];
-            }
+            //     return ['filters' => [(object)$tipAtencion, (object)$CenAtencion], 'status' => Response::HTTP_OK];
+            // }
 
 
-            if ($dbC == 'hos') {
+            if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
                 $data = DB::select("SELECT DISTINCT(gerenciamedica)
                                     FROM $this->_dbSelected.adata_mut_" . $dbC . "_start
                                     WHERE gerenciamedica != ''");
@@ -346,33 +345,32 @@ class Dashboard extends Generic
                 $Gerencia = ['filter' => 'GerenciaMedica', 'datas' => $this->contentfilter($data, 'gerenciamedica')];
             }
 
-            if ($dbC == 'hos') {
+            if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
                 $data = DB::select("SELECT DISTINCT(aatencion)
                                     FROM $this->_dbSelected.adata_mut_" . $dbC . "_start
                                     WHERE aatencion != '0' AND aatencion != '9' AND aatencion != ''");
                                     
                 $this->_fieldSelectInQuery = 'aatencion';
 
-                $ZonaHos = ['filter' => 'AreaAtencion', 'datas' => $this->contentfilter($data, 'aatencion')];
+                $AreaAten = ['filter' => 'AreaAtencion', 'datas' => $this->contentfilter($data, 'aatencion')];
             }
 
-            if ($dbC == 'hos') {
-                $data = DB::select("SELECT DISTINCT(catencion)
+            if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
+                $data = DB::select("SELECT DISTINCT(zonal)
                                     FROM $this->_dbSelected.adata_mut_" . $dbC . "_start
-                                    WHERE catencion != ''");
+                                    WHERE zonal != '0' AND zonal != ''");
                                     
-                $this->_fieldSelectInQuery = 'catencion';
+                $this->_fieldSelectInQuery = 'zonal';
 
-                $CenAtencionn = ['filter' => 'CentroAtencion', 'datas' => $this->contentfilter($data, 'catencion')];
+                $ZonaHos = ['filter' => 'Zona', 'datas' => $this->contentfilter($data, 'zonal')];
 
-                return ['filters' => [(object)$CenAtencionn, (object)$ZonaHos, (object)$Gerencia], 'status' => Response::HTTP_OK];
+                return ['filters' => [(object)$ZonaHos, (object)$Gerencia, (object)$tipAtencion, (object)$AreaAten], 'status' => Response::HTTP_OK];
+            }
 
             // $response = ['filters' => [(object)$TipoClienteT, (object)$TipoServicio, (object)$CondServicio, (object)$Sentido, (object)$Zona, (object)$Reserva, (object)$CanalT, (object)$Convenio], 'status' => Response::HTTP_OK];
             // \Cache::put('customer_colmena-mut', $response, $this->expiresAtCache);
 
             // return $response;
-
-            }
 
             return ['filters' => [(object)$macrosegmento], 'status' => Response::HTTP_OK];
         }
@@ -445,7 +443,6 @@ class Dashboard extends Generic
 
     public function detailsDashCxWord($request,$jwt)
     {
-
         $request->merge([
             'startDate' => date('Y-m-d',strtotime(date('Y-m-01')."- $this->_periodCxWord month")),
             'endDate'   => date('Y-m-d'),
@@ -553,7 +550,6 @@ class Dashboard extends Generic
         if ($dataMatriz['datas']->cx->painpoint == null) {
             $painPoint = $this->_anomaliasPain;
         }
-
 
         $resp = [
             "height" => 4,
@@ -720,7 +716,7 @@ class Dashboard extends Generic
         $data = [];
         $surveys = $indicators->getSurvey($request, $jwt);
         //print_r($surveys);
-
+        $otherGraph = [];
        
         if ($surveys['status'] == 200) {
             if($surveys['datas'][0]['customer'] == 'MUT001'){
@@ -753,9 +749,9 @@ class Dashboard extends Generic
                     
                     if (substr($value['base'],0,3) == 'jet'){
                         $infoNps = [$this->cbiResp($db, '', date('Y-m-d'),date('Y-m-01')), $this->infoNps($db,date('Y-m-d'),date('Y-m-01'),$npsInDb,$this->_initialFilter)];
-                        
+        
                         if (substr($value['base'],3,3) == 'com') 
-                                $otherGraph = [$this->infoCsat($db,date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->_initialFilter), $this->ces($db,date('Y-m-d'),date('Y-m-01'), $cesInDb)];
+                            $otherGraph = [$this->infoCsat($db,date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->_initialFilter), $this->ces($db,date('Y-m-d'),date('Y-m-01'), $cesInDb)];
                         
                         if (substr($value['base'],3,3) == 'via')
                             $otherGraph = [$this->infoCsat($db,date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->_initialFilter)];
@@ -1188,9 +1184,9 @@ class Dashboard extends Generic
        
         if ($filter != 'all') {
             $data = DB::select("SELECT count(*) as total, 
-                                ((count(if($indicador < 7, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador !=99 THEN 1 END)) as detractor, 
-                                ((count(if($indicador = 9 or  $indicador =10, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)) as promotor,
-                                ((count(if($indicador = 7 OR $indicador = 8, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)) as neutral,
+                                ((count(if($indicador < $this->_maxNps, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador !=99 THEN 1 END)) as detractor, 
+                                ((count(if($indicador = $this->_minMaxNps or  $indicador = $this->_maxMaxNps , $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)) as promotor,
+                                ((count(if($indicador =  $this->_maxMediumNps OR $indicador = $this->_minMediumNps, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)) as neutral,
                                 AVG($indicador) as promedio,
                                 ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
                                 COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) / 
@@ -1201,6 +1197,8 @@ class Dashboard extends Generic
                                 WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' $datafilters $activeP2
                                 GROUP BY a.mes, a.annio
                                 ORDER BY date_survey ASC");
+
+         
 
         }
 
@@ -5295,7 +5293,8 @@ class Dashboard extends Generic
             $where .= $this->structfilter($request, 'tatencion',        'TipoAtencion',      $where);
             $where .= $this->structfilter($request, 'catencion',        'CentroAtencion',    $where);
             $where .= $this->structfilter($request, 'aatencion',        'AreaAtencion',      $where);
-            $where .= $this->structfilter($request, 'gerenciamedica',   'GerenciaMedica',      $where);
+            $where .= $this->structfilter($request, 'gerenciamedica',   'GerenciaMedica',    $where);
+            $where .= $this->structfilter($request, 'zonal',             'Zona',             $where);
                 
             return $where;
         }
