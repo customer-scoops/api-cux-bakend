@@ -20,7 +20,6 @@ $router->group(['prefix' => 'api', 'middleware' => ['auth','throttle:10,1']], fu
     $router->get('/surveys', 'SuiteController@getSurvey');
     $router->get('/suite/indicators', 'SuiteController@getDataCards');
     $router->put('/suite', 'SuiteController@saveRegister');
-    $router->put('/suite/banmedica', 'SuiteController@updateRegisterBanmedica');
   });
 // RUTAS API DASHBOARD
 $router->group(['prefix' => 'dashboard', 'middleware' => ['auth','throttle:10,1']], function () use ($router) {
