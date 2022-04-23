@@ -5374,7 +5374,7 @@ class Dashboard extends Generic
         $width = 6;
         $resp = [];
         //print_r($dataCes);
-        //print_r($dataCsat);
+       // print_r($dataCsat);
 
         if ($datafilters)
             $datafilters = " AND $datafilters";
@@ -5408,12 +5408,12 @@ class Dashboard extends Generic
                         [
                             "name"    => $dataNps['name'],
                             "value"   => $dataNps['value'],
-                            "percentage"     => (int)round($dataNps['percentage']),
+                            "m2m"     => (int)round($dataNps['percentage']),
                         ],
                         [
                             "name"    => $name,
                             "value"   => $val,
-                            "percentage"     => $percentage,
+                            "m2m"  => $percentage,
                         ],
                         
                     ];
@@ -5425,22 +5425,22 @@ class Dashboard extends Generic
                             [
                                 "name"    => $dataCbi['name'],
                                 "value"   => $dataCbi['value'],
-                                "percentage"     => (int)round($dataCbi['percentage']),
+                                "m2m"     => (int)round($dataCbi['percentage']),
                             ],
                             [
                                 "name"    => $dataNps['name'],
                                 "value"   => $dataNps['value'],
-                                "percentage"     => (int)round($dataNps['percentage']),
+                                "m2m"     => (int)round($dataNps['percentage']),
                             ],
                             [
                                 "name"    => $dataCsat['name'],
                                 "value"   => $dataCsat['value'],
-                                "percentage"     => (int)round($dataCsat['percentage']),
+                                "m2m"     => (int)round($dataCsat['percentage']),
                             ],
                             [
                                 "name"    => $dataCes['name'],
                                 "value"   => $dataCes['value'],
-                                "percentage"     => (int)round($dataCes['percentage']),
+                                "m2m"     => (int)round($dataCes['percentage']),
                             ]
                         ];
             }
@@ -5449,17 +5449,17 @@ class Dashboard extends Generic
                             [
                                 "name"    => $dataCbi['name'],
                                 "value"   => $dataCbi['value'],
-                                "percentage"     => (int)round($dataCbi['percentage']),
+                                "m2m"     => (int)round($dataCbi['percentage']),
                             ],
                             [
                                 "name"    => $dataNps['name'],
                                 "value"   => $dataNps['value'],
-                                "percentage"     => (int)round($dataNps['percentage']),
+                                "m2m"     => (int)round($dataNps['percentage']),
                             ],
                             [
                                 "name"    =>  $survey == 'mut'? 'ISN' : $dataCsat['name'],
                                 "value"   => round($dataCsat['value']),
-                                "percentage"     => (int)round($dataCsat['percentage']),
+                                "m2m"     => (int)round($dataCsat['percentage']),
                             ],
                         ];
             }
