@@ -338,6 +338,8 @@ class Suite
                     "tableName" =>$value->tableName,
                     "visita"    => $value->visita,
                     "estapaEncuesta"=> $value->etapaencuesta,
+                    "subStatus1" => $value->field_1,
+                    "subStatus2" => $value->field_2,
                     "comentarios" => array(
                         'date'      => $value->fechacarga, 
                         'content'   => $value->contenido,
