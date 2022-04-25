@@ -1205,7 +1205,6 @@ class Dashboard extends Generic
                       LEFT JOIN $this->_dbSelected." . $table . "_start as b
                       on a.token = b.token
                       WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' $datafilters
-                      GROUP BY a.mes, a.annio
                       UNION
                       SELECT COUNT(CASE WHEN $indicador != 99 THEN 1 END) as total,
                       ((count(if($indicador between 0 and  6, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador !=99 THEN 1 END)*$this->_porcentageVid) as detractor, 
@@ -1218,8 +1217,7 @@ class Dashboard extends Generic
                       FROM $this->_dbSelected.$table2 as a
                       LEFT JOIN $this->_dbSelected." . $table2 . "_start as b
                       on a.token = b.token
-                      WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' $datafilters
-                      GROUP BY a.mes, a.annio) AS A ";
+                      WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' $datafilters) AS A ";
 
             $data = DB::select($query);
         }
@@ -1691,14 +1689,12 @@ class Dashboard extends Generic
                                 FROM $this->_dbSelected.$table as a
                                 INNER JOIN $this->_dbSelected.".$table."_start as b  ON a.token  =  b.token 
                                 WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni'  $datafilters
-                                GROUP BY a.mes, a.annio
                                 UNION
                                 SELECT count(*) as total, date_survey, a.mes, a.annio,
                                 ((COUNT(CASE WHEN $indicador2 BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN $indicador2 END)*100)/COUNT(CASE WHEN $indicador2 != 99 THEN $indicador2 END))*$this->_porcentageVid as csat, $this->_fieldSelectInQuery
                                 FROM $this->_dbSelected.$table2 as a
                                 INNER JOIN $this->_dbSelected.".$table2."_start as b  ON a.token  =  b.token 
-                                WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni'  $datafilters
-                                GROUP BY a.mes, a.annio) AS A ");
+                                WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni'  $datafilters) AS A ");
 
 
         }
