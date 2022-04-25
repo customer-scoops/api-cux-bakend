@@ -714,8 +714,14 @@ class Dashboard extends Generic
     public function generalInfo($request, $jwt){
         $indicators = new Suite($this->_jwt);
         $data = [];
-        $surveys = $indicators->getSurvey($request, $jwt);
-        //print_r($surveys);
+        //$surveys = $indicators->getSurvey($request, $jwt);
+        $surveys = ["datas" => 
+        [        
+                  [ "name" => "Conductores",
+                    "base" => "tracond",
+                    "customer" => "TRA001"]],
+                    "status" => 200
+                ];
         $otherGraph = [];
        
         if ($surveys['status'] == 200) {
@@ -736,10 +742,13 @@ class Dashboard extends Generic
                     if(substr($value['base'],0,3) == 'mut'){
                         $otherGraph = [$this->infoCsat($db,date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->_initialFilter)];
                     } 
-                    //print_r ($otherGraph);
                     if (substr($value['base'],0,3) == 'tra'){
-                        $db = 'adata_tra_via';
-                        $datas = $this->npsPreviousPeriod('adata_tra_via',date('Y-m-d'),date('Y-m-01'),'csat','' );
+                        if(substr($value['base'],3,3) == 'con')
+                            $db = 'adata_tra_cond';
+                        if(substr($value['base'],3,3) == 'via')
+                            $db = 'adata_tra_via';
+                        $datas = $this->npsPreviousPeriod($db,date('Y-m-d'),date('Y-m-01'),'csat','' );
+
                         $otherGraph =  [[
                             "name"          => "INS",
                             "value"         => Round($datas['insAct']),
@@ -807,6 +816,7 @@ class Dashboard extends Generic
             "demdem" => "8",
             //transvip
             "travia" => "11",
+            "tracond" => "8",
             //JetSmart
             "jetvia" => "10",
             "jetcom" => "6",
@@ -981,7 +991,7 @@ class Dashboard extends Generic
                                 GROUP by a.mes, a.annio
                                 ORDER by a.date_survey ASC");
           
-            return ['ins' => $data[0]->INS, 'nps' => $data[0]->NPS, 'insAct' => $data2[0]->INS, 'npsAct' => $data2[0]->NPS];
+            return ['ins' => $data[0]->INS, 'nps' => $data[0]->NPS, 'insAct' => count($data2) === 0 ? 0 : $data2[0]->INS, 'npsAct' => count($data2) === 0 ? 0 : $data2[0]->NPS];
         }
 
         if ($this->_dbSelected == 'customer_jetsmart') {
@@ -5885,7 +5895,11 @@ class Dashboard extends Generic
         $dbVT       = 'adata_' . $indicatordb . '_' . substr($request->survey, 3, 6);
 
         if (substr($request->survey, 0, 3) == 'tra') {
-            $db = 'adata_tra_via';
+            if(substr($request->survey,3,3) == 'con')
+                $db = 'adata_tra_cond';
+            if(substr($request->survey,3,3) == 'via')
+                $db = 'adata_tra_via';
+           
         }
 
         $dataNps    = $this->resumenNps($db, $dateIni, $dateEndIndicatorPrincipal, $npsInDb, $filterClient, $datafilters);
@@ -6158,7 +6172,7 @@ class Dashboard extends Generic
         if ($this->_dbSelected  == 'customer_colmena'  && substr($request->survey, 0, 3) == 'tra') {
             $name = 'Transvip';
             $datasStatsByTaps   = null;
-            $dataCL             = $this->closedloopTransvip($datafilters, $dateIni, $dateEnd);
+            $dataCL             = null; //$this->closedloopTransvip($datafilters, $dateIni, $dateEnd);
             //REVISAR QUERYS SE DEMORAN 2 SEG DESDE ACA
             $datasCbiResp       = $this->cbiResp($db,$datafilters, $dateIni, $dateEndIndicatorPrincipal);
             $drivers            = $this->csatsDriversTransvip($db, trim($request->survey), $dateIni, $dateEnd, $datafilters);
@@ -6174,7 +6188,7 @@ class Dashboard extends Generic
             $npsConsolidado     = $this->graphNpsIsn($dataisn, $this->ButFilterWeeks);
             $npsVid             = $this->wordCloud($request); //null;
             $csatJourney        = $this->CSATJourney($graphCSATDrivers);
-            $csatDrivers        = $this->graphCLTransvip($dataCL);
+            $csatDrivers        = null; //$this->graphCLTransvip($dataCL);
             $cx                 = $this->graphCbiResp($datasCbiResp);
             $wordCloud          = $this->globales($db, date('m'), date('Y'), 'sentido', 'Sentido', 'cbi', 'ins', 4, $datafilters);
             $closedLoop         = $this->globales($db, date('m'), date('Y'), 'tiposervicio', 'Vehículo', 'cbi', 'ins', 4, $datafilters);
