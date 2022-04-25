@@ -1372,7 +1372,6 @@ class Dashboard extends Generic
                                 FROM $this->_dbSelected.$table as a
                                 LEFT JOIN $this->_dbSelected." . $table . "_start as b ON a.token = b.token 
                                 WHERE $where $datafilters
-                                GROUP BY $group
                                 UNION
                                 SELECT ROUND(((COUNT(CASE WHEN $indicador2 BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
                                 COUNT(CASE WHEN $indicador2 BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) / 
@@ -1387,8 +1386,7 @@ class Dashboard extends Generic
                                 a.mes, a.annio,date_survey, WEEK(date_survey) AS week, $this->_fieldSelectInQuery
                                 FROM $this->_dbSelected.$table2 as a
                                 LEFT JOIN $this->_dbSelected." . $table2 . "_start as b ON a.token = b.token 
-                                WHERE $where $datafilters
-                                GROUP BY $group) AS A GROUP BY $group2 ORDER BY date_survey ASC");
+                                WHERE $where $datafilters) AS A GROUP BY $group2 ORDER BY date_survey ASC");
             //}
         }
 
@@ -1804,14 +1802,12 @@ class Dashboard extends Generic
                                 FROM $this->_dbSelected.$table as a
                                 INNER JOIN $this->_dbSelected." . $table . "_start as b on a.token = b. token
                                 WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and  $indicador != 99  $datafilters
-                                GROUP BY a.mes
                                 UNION
                                 SELECT ((COUNT(CASE WHEN $indicador BETWEEN 9 AND 10 THEN $indicador END)*100)/COUNT(CASE WHEN $indicador != 99 THEN $indicador END))*0.23 AS csat,
                                 a.mes, a.annio, date_survey, $this->_fieldSelectInQuery
                                 FROM $this->_dbSelected.$table2 as a
                                 INNER JOIN $this->_dbSelected." . $table2 . "_start as b on a.token = b. token
                                 WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and  $indicador != 99  $datafilters
-                                GROUP BY a.mes
                                 ) AS A
                                 GROUP BY mes
                                 ORDER BY date_survey ASC ");
