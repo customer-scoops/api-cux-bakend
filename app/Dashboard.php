@@ -323,7 +323,7 @@ class Dashboard extends Generic
                 $tipAtencion = ['filter' => 'TipoAtencion', 'datas' => $this->contentfilter($data, 'tatencion')];
             }
 
-            if ($dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh') {
+            if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh'|| $dbC == 'img') {
                 $data = DB::select("SELECT DISTINCT(catencion)
                                 FROM $this->_dbSelected.adata_mut_" . $dbC . "_start ");
 
@@ -331,7 +331,6 @@ class Dashboard extends Generic
 
                 $CenAtencion = ['filter' => 'CentroAtencion', 'datas' => $this->contentfilter($data, 'catencion')];
 
-                return ['filters' => [(object)$tipAtencion, (object)$CenAtencion], 'status' => Response::HTTP_OK];
             }
 
 
@@ -364,7 +363,7 @@ class Dashboard extends Generic
 
                 $ZonaHos = ['filter' => 'Zona', 'datas' => $this->contentfilter($data, 'zonal')];
 
-                return ['filters' => [(object)$ZonaHos, (object)$Gerencia, (object)$tipAtencion, (object)$AreaAten], 'status' => Response::HTTP_OK];
+                return ['filters' => [(object)$ZonaHos, (object)$Gerencia, (object)$tipAtencion, (object)$AreaAten, (object)$CenAtencion], 'status' => Response::HTTP_OK];
             }
 
             // $response = ['filters' => [(object)$TipoClienteT, (object)$TipoServicio, (object)$CondServicio, (object)$Sentido, (object)$Zona, (object)$Reserva, (object)$CanalT, (object)$Convenio], 'status' => Response::HTTP_OK];
