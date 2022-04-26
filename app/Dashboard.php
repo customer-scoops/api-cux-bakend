@@ -267,7 +267,7 @@ class Dashboard extends Generic
                     $dbC = substr($request->client, 3, 6);
                 }
             }
-            $filters = null;
+          
 
             if ($dbC == 'be' || $dbC == 'ges') {
                 $data = DB::select("SELECT DISTINCT(macroseg)
@@ -323,22 +323,22 @@ class Dashboard extends Generic
                 $tipAtencion = ['filter' => 'TipoAtencion', 'datas' => $this->contentfilter($data, 'tatencion')];
             }
 
-            // if ($dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh') {
-            //     $data = DB::select("SELECT DISTINCT(catencion)
-            //                     FROM $this->_dbSelected.adata_mut_" . $dbC . "_start ");
+            if ($dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh') {
+                $data = DB::select("SELECT DISTINCT(catencion)
+                                FROM $this->_dbSelected.adata_mut_" . $dbC . "_start ");
 
-            //     $this->_fieldSelectInQuery = 'catencion';
+                $this->_fieldSelectInQuery = 'catencion';
 
-            //     $CenAtencion = ['filter' => 'CentroAtencion', 'datas' => $this->contentfilter($data, 'catencion')];
+                $CenAtencion = ['filter' => 'CentroAtencion', 'datas' => $this->contentfilter($data, 'catencion')];
 
-            //     return ['filters' => [(object)$tipAtencion, (object)$CenAtencion], 'status' => Response::HTTP_OK];
-            // }
+                return ['filters' => [(object)$tipAtencion, (object)$CenAtencion], 'status' => Response::HTTP_OK];
+            }
 
 
             if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
                 $data = DB::select("SELECT DISTINCT(gerenciamedica)
                                     FROM $this->_dbSelected.adata_mut_" . $dbC . "_start
-                                    WHERE gerenciamedica != ''");
+                                    WHERE gerenciamedica != '' and gerenciamedica != '1' gerenciamedica != '0'");
                                     
                 $this->_fieldSelectInQuery = 'gerenciamedica';
 
@@ -4718,6 +4718,7 @@ class Dashboard extends Generic
             $datafilters = '';
         }
 
+        //echo($db);
         if($filterClient != 'all'){
         
             $querydataTop = "SELECT UPPER($indicatordb) as  $indicator,
@@ -4741,7 +4742,7 @@ class Dashboard extends Generic
                                 group by  $indicator
                                 order by CNPS asc
                                 LIMIT $limit) as a
-                                order by CNPS desc";
+                                order by CNPS ";
         }
 
         if($filterClient == 'all'){
@@ -5381,7 +5382,7 @@ class Dashboard extends Generic
             $ins = $this->NpsIsnTransvip('adata_tra_via', $dateIni, $dateEnd,'nps','csat',$datafilters,'', 'x' );
             $insPreviousPeriod = $this->npsPreviousPeriod('adata_tra_via',$dateEnd, $dateIni,'csat',''); 
             
-            $name = 'INS';
+            $name = 'ISN';
             $val = round($ins['value']);
             $percentage= round($ins['value']-$insPreviousPeriod['ins']);  
         }
@@ -6128,7 +6129,7 @@ class Dashboard extends Generic
                 $Procedencia = $this->graphProcedencia($db, $endDateFilterMonth, $startDateFilterMonth, $filterClient);
             }
 
-            if ($db == 'adata_mut_hos' || $db == 'adata_mut_reh' || $db == 'adata_mut_urg' || $db == 'adata_mut_img' || $db == 'adata_mut_amb') {
+            if ($db == 'adata_mut_img' || $db == 'adata_mut_amb') {
                 $rankingSuc = $this->ranking($db, 'catencion', 'CentroAtencion', $endDateFilterMonth, $startDateFilterMonth, 'one',$datafilters, 6, 10);
             } 
           
