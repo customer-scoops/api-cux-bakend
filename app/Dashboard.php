@@ -338,7 +338,7 @@ class Dashboard extends Generic
             if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
                 $data = DB::select("SELECT DISTINCT(gerenciamedica)
                                     FROM $this->_dbSelected.adata_mut_" . $dbC . "_start
-                                    WHERE gerenciamedica != '' and gerenciamedica != '1' gerenciamedica != '0'");
+                                    WHERE gerenciamedica != '' and gerenciamedica != 1 gerenciamedica != 0");
                                     
                 $this->_fieldSelectInQuery = 'gerenciamedica';
 
@@ -348,7 +348,7 @@ class Dashboard extends Generic
             if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
                 $data = DB::select("SELECT DISTINCT(aatencion)
                                     FROM $this->_dbSelected.adata_mut_" . $dbC . "_start
-                                    WHERE aatencion != '0' AND aatencion != '9' AND aatencion != ''");
+                                    WHERE aatencion != 0 AND aatencion != 9 AND aatencion != ''");
                                     
                 $this->_fieldSelectInQuery = 'aatencion';
 
@@ -358,7 +358,7 @@ class Dashboard extends Generic
             if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
                 $data = DB::select("SELECT DISTINCT(zonal)
                                     FROM $this->_dbSelected.adata_mut_" . $dbC . "_start
-                                    WHERE zonal != '0' AND zonal != ''");
+                                    WHERE zonal != 0 AND zonal != ''");
                                     
                 $this->_fieldSelectInQuery = 'zonal';
 
