@@ -1554,36 +1554,18 @@ class Dashboard extends Generic
                                 COUNT(CASE WHEN $indicador BETWEEN $this->_minCsat AND $this->_maxCsat THEN 1 END)) / 
                                 (COUNT(CASE WHEN $indicador!=99 THEN 1 END)) * 100),1) AS CSAT, 
                                 count(if($indicador < $this->_minMediumCsat, $indicador, NULL)) as Cdet,
-					            count(if($indicador = $this->_minMaxCsat AND $indicador = $this->_maxMaxCsat, $indicador, NULL)) as Cpro,
-					            count(if($indicador=$this->_maxMediumCsat, $indicador, NULL)) as Cneu,              
-                                count(*) as total, 
+					            count(if($indicador = $this->_minMaxCsat OR $indicador = $this->_maxMaxCsat, $indicador, NULL)) as Cpro,
+					            count(if($indicador=$this->_maxMediumCsat OR $indicador=$this->_minMediumCsat, $indicador, NULL)) as Cneu,              
+                                COUNT(CASE WHEN $indicador!=99 THEN 1 END) as total, 
                                 ((count(if($indicador < $this->_minMediumCsat, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as detractor, 
                                 ((count(if($indicador = $this->_minMaxCsat OR $indicador = $this->_maxMaxCsat, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as promotor, 
-                                ((count(if($indicador=$this->_maxMediumCsat, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as neutral,              
+                                ((count(if($indicador=$this->_maxMediumCsat OR $indicador=$this->_minMediumCsat, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as neutral,              
                                 a.mes, a.annio, WEEK(date_survey) AS week,$this->_fieldSelectInQuery  
                                 FROM $this->_dbSelected.$table as a
                                 INNER JOIN $this->_dbSelected." . $table . "_start as b ON a.token = b.token 
                                 WHERE  $where AND etapaencuesta = 'P2' $datafilters 
                                 GROUP BY $group
                                 ORDER BY date_survey ASC");
-
-
-            // echo "SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN 1 END) - 
-            // COUNT(CASE WHEN $indicador BETWEEN $this->_minCsat AND $this->_maxCsat THEN 1 END)) / 
-            // (COUNT(CASE WHEN $indicador!=99 THEN 1 END)) * 100),1) AS CSAT, 
-            // count(if($indicador < $this->_minMediumCsat, $indicador, NULL)) as Cdet,
-            // count(if($indicador = $this->_minMaxCsat AND $indicador = $this->_maxMaxCsat, $indicador, NULL)) as Cpro,
-            // count(if($indicador=$this->_maxMediumCsat, $indicador, NULL)) as Cneu,              
-            // count(*) as total, 
-            // ((count(if($indicador < $this->_minMediumCsat, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as detractor, 
-            // ((count(if($indicador = $this->_minMaxCsat OR $indicador = $this->_maxMaxCsat, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as promotor, 
-            // ((count(if($indicador=$this->_maxMediumCsat, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as neutral,              
-            // a.mes, a.annio, WEEK(date_survey) AS week,$this->_fieldSelectInQuery  
-            // FROM $this->_dbSelected.$table as a
-            // INNER JOIN $this->_dbSelected." . $table . "_start as b ON a.token = b.token 
-            // WHERE  $where AND etapaencuesta = 'P2' $datafilters 
-            // GROUP BY $group
-            // ORDER BY date_survey ASC";
         }
        
         if (trim($group) == 'week') 
