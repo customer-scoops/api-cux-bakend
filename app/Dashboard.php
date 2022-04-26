@@ -1057,14 +1057,6 @@ class Dashboard extends Generic
 
         $mes = $monthAntEnd;
 
-        // $monthAnt = $mes - 1;
-        // if ($monthAnt == 0) {
-        //     $monthAnt = 12;
-        //     $annio = $annio - 1;
-        // }
-
-        //$table2 = $this->primaryTable($table);
-
         if ($this->_dbSelected == 'customer_jetsmart') {
 
             $data = DB::select("SELECT ROUND((COUNT(CASE WHEN $indicador BETWEEN 4 AND 5 THEN 1 END)  /
@@ -1276,19 +1268,16 @@ class Dashboard extends Generic
             if (substr($table, 6, 3) == 'tra'){
                 $npsPreviousPeriod = $npsPreviousPeriod['nps'];
             }
-
-            // if(substr($table, 6, 3) == 'jet'){
-            //     return [
-            //         "name"              => "nps",
-            //         "value"             => round($npsActive),
-            //         "percentage"        => $npsActive - round($npsPreviousPeriod),
-            //         "smAvg"             => $this->AVGLast6MonthNPS($table, $table2, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter),
-            //         "percentageNPSAC"   => $npsActive,
-            //         'NPSPReV'           => $npsPreviousPeriod,
-            //         // 'mes'               => $mes,
-            //         // 'annio'             => $annio,
-            //     ];
-            // }
+            if (substr($table, 6, 3) == 'mut'){
+                return [
+                    "name"              => "nps",
+                    "value"             => round($npsActive),
+                    "percentageGraph"   => true,
+                    "promotors"         => round($data[0]->promotor),
+                    "neutrals"          => 100 - (round($data[0]->detractor) + round($data[0]->promotor)),
+                    "detractors"        => round($data[0]->detractor),
+                ];
+            }
 
             return [
                 "name"              => "nps",
@@ -1320,6 +1309,11 @@ class Dashboard extends Generic
     private function graphNps($table, $indicador, $dateIni, $dateEnd, $filter, $struct = 'two', $datafilters = null, $group = null)
     {
         $activeP2 ='';
+        $graphNPS  = [];
+
+        if(substr($table, 6, 3) == 'mut'){
+            return $graphNPS;
+        }
         if(substr($table, 6, 3) == 'jet' || substr($table, 6, 3) == 'mut' )
             $activeP2 = " AND etapaencuesta = 'P2' ";
         
@@ -1340,7 +1334,7 @@ class Dashboard extends Generic
         if ($datafilters)
             $datafilters = " AND $datafilters";
 
-        $graphNPS  = [];
+        
         
         if ($filter != 'all') {
             $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
@@ -1472,6 +1466,7 @@ class Dashboard extends Generic
                     ];
                 }
         }
+
         return $graphNPS;
     }
 
@@ -1611,13 +1606,7 @@ class Dashboard extends Generic
         }
 
         $mes = $monthAntEnd;
-        
-
-        // $monthAnt = $mes - 1;
-        // if ($monthAnt == 0) {
-        //     $monthAnt = 12;
-        //     $annio = $annio - 1;
-        // }
+    
 
         if ($filter != 'all') {
             if (substr($table, 6, 3) == 'mut' || substr($table, 0, 3) == 'MUT') {
