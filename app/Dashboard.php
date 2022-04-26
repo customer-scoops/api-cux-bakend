@@ -4727,7 +4727,7 @@ class Dashboard extends Generic
             $datafilters = '';
         }
 
-        //echo($db);
+        
         if($filterClient != 'all'){
         
             $querydataTop = "SELECT UPPER($indicatordb) as  $indicator,
@@ -4774,7 +4774,7 @@ class Dashboard extends Generic
                             group by  $indicator) as a
                             group by  $indicator
                             order by CNPS DESC
-                            LIMIT $limit ";            
+                            LIMIT 5 ";            
         
             $querydataBottom = "SELECT $indicator, sum(CNPS) as CNPS, total, annio from (SELECT UPPER($indicatordb) as  $indicator, count(UPPER($indicatordb)) as total,
                                 round((count(case when nps = 9 OR nps =10 then 1 end)-count(case when nps between  0 and  6 then 1 end)) / count(case when nps != 99 then 1 end) *100) as CNPS,
@@ -4795,7 +4795,7 @@ class Dashboard extends Generic
                                 group by  $indicator) AS A
                                 group by  $indicator
                                 order by CNPS DESC
-                                LIMIT $limit";
+                                LIMIT 5";
         }
 
        $dataTop = DB::select($querydataTop);
