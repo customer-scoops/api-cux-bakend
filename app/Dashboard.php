@@ -1168,7 +1168,7 @@ class Dashboard extends Generic
             GROUP BY  a.mes, a.annio 
             ORDER BY date_survey ASC");
         }
-        if ($data != 0){
+        if ($data != 0 && $data[0]->ISN != 0){
             return[
                 "name"              => "ins",
                 "value"             => round($data[0]->ISN),
