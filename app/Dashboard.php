@@ -1168,12 +1168,22 @@ class Dashboard extends Generic
             GROUP BY  a.mes, a.annio 
             ORDER BY date_survey ASC");
         }
-        //print_r($data->ISN);
-        return[
-            "name"              => "ins",
-            "value"             => round($data[0]->ISN),
-            "percentage"        => round($data[0]->ISN - $data2[0]->ISN),
-        ];
+        if ($data[0]->ISN != null){
+            return[
+                "name"              => "ins",
+                "value"             => round($data[0]->ISN),
+                "percentage"        => round($data[0]->ISN - $data2[0]->ISN),
+            ];
+        }
+
+
+        if ($data[0]->ISN == null){
+            return[
+                "name"              => "ins",
+                "value"             => round(0),
+                "percentage"        => round(0),
+            ];
+        }
    
     } 
 
