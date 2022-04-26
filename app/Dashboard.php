@@ -1268,16 +1268,7 @@ class Dashboard extends Generic
             if (substr($table, 6, 3) == 'tra'){
                 $npsPreviousPeriod = $npsPreviousPeriod['nps'];
             }
-            if (substr($table, 6, 3) == 'mut'){
-                return [
-                    "name"              => "nps",
-                    "value"             => round($npsActive),
-                    "percentageGraph"   => true,
-                    "promotors"         => round($data[0]->promotor),
-                    "neutrals"          => 100 - (round($data[0]->detractor) + round($data[0]->promotor)),
-                    "detractors"        => round($data[0]->detractor),
-                ];
-            }
+       
 
             return [
                 "name"              => "nps",
