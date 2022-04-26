@@ -1379,6 +1379,7 @@ class Dashboard extends Generic
                                 FROM $this->_dbSelected.$table as a
                                 LEFT JOIN $this->_dbSelected." . $table . "_start as b ON a.token = b.token 
                                 WHERE $where $datafilters
+                                GROUP BY $group
                                 UNION
                                 SELECT ROUND(((COUNT(CASE WHEN $indicador2 BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
                                 COUNT(CASE WHEN $indicador2 BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) / 
@@ -1393,7 +1394,8 @@ class Dashboard extends Generic
                                 a.mes, a.annio,date_survey, WEEK(date_survey) AS week, $this->_fieldSelectInQuery
                                 FROM $this->_dbSelected.$table2 as a
                                 LEFT JOIN $this->_dbSelected." . $table2 . "_start as b ON a.token = b.token 
-                                WHERE $where $datafilters) AS A GROUP BY $group2 ORDER BY date_survey ASC");
+                                WHERE $where $datafilters
+                                GROUP BY $group) AS A GROUP BY $group2 ORDER BY date_survey ASC");
             //}
         }
 
@@ -1807,14 +1809,16 @@ class Dashboard extends Generic
                                 FROM $this->_dbSelected.$table as a
                                 INNER JOIN $this->_dbSelected." . $table . "_start as b on a.token = b. token
                                 WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and  $indicador != 99  $datafilters
+                                GROUP BY $group
                                 UNION
                                 SELECT ((COUNT(CASE WHEN $indicador BETWEEN 9 AND 10 THEN $indicador END)*100)/COUNT(CASE WHEN $indicador != 99 THEN $indicador END))*0.23 AS csat,
                                 a.mes, a.annio, date_survey, $this->_fieldSelectInQuery
                                 FROM $this->_dbSelected.$table2 as a
                                 INNER JOIN $this->_dbSelected." . $table2 . "_start as b on a.token = b. token
                                 WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and  $indicador != 99  $datafilters
+                                GROUP BY $group
                                 ) AS A
-                                GROUP BY mes
+                                GROUP BY $group
                                 ORDER BY date_survey ASC ");
 
         }
@@ -4726,9 +4730,9 @@ class Dashboard extends Generic
         if (substr($datafilters, 30, 3) == 'NOW') {
             $datafilters = '';
         }
-
         
         if($filterClient != 'all'){
+            if (substr($db, 6, 3) != 'mut'){
         
             $querydataTop = "SELECT UPPER($indicatordb) as  $indicator,
                             round((count(case when nps = 9 OR nps =10 then 1 end)-count(case when nps between  0 and  6 then 1 end)) / count(case when nps != 99 then 1 end) *100) as CNPS,
@@ -4752,6 +4756,47 @@ class Dashboard extends Generic
                                 order by CNPS asc
                                 LIMIT 5) as a
                                 order by CNPS ";
+            }
+
+            if (substr($db, 6, 3) == 'mut'){
+                $dataTop = "SELECT UPPER($indicatordb) as  $indicator,
+                            count(case when csat != 99 then 1 end) as total,
+                            round((count(case when nps = 6 OR nps =7 then 1 end)-count(case when nps between  1 and  4 then 1 end)) / count(case when nps != 99 then 1 end) *100) as NPS,
+                            round((count(case when csat = 6 OR csat = 7 then 1 end)-count(case when csat between  1 and  4 then 1 end)) / count(case when csat != 99 then 1 end) *100) as ISN,
+                            b.annio
+                            FROM $this->_dbSelected." . $db . "_start as a
+                            left join $this->_dbSelected.$db as b
+                            on a.token = b.token
+                            where date_survey between '$startDateFilterMonth' and '$endDateFilterMonth' and etapaencuesta = 'P2' and $indicatordb != '' $datafilters
+                            group by  $indicator
+                            order by total DESC
+                            LIMIT 10 ";
+
+                $data = DB::select($dataTop);   
+                if($data){
+                    foreach ($data as $key => $value){
+                        $arrayTop[]= $value-> $indicator.' NPS->'.$value->NPS.'% '.'INS->'.$value->ISN.'% ('. $value->total.')';   
+                    }
+            }   
+            
+            return  [
+                "height" => 4,
+                "width" => $width,
+                "type" => "lists",
+                "props" => [
+                    "icon" => "arrow-right",
+                    "text" => "RANKING By Centro de atención",
+                    "lists" => [
+                                    [
+                                        "header" => "Top 10 ",
+                                        "color" => "#17C784",
+                                        "items" => $arrayTop,
+                                        "numbered" => true
+                                    ]
+                                ]
+                            ]
+                    ];
+            }
         }
 
         if($filterClient == 'all'){
@@ -5391,7 +5436,7 @@ class Dashboard extends Generic
             $ins = $this->NpsIsnTransvip('adata_tra_via', $dateIni, $dateEnd,'nps','csat',$datafilters,'', 'x' );
             $insPreviousPeriod = $this->npsPreviousPeriod('adata_tra_via',$dateEnd, $dateIni,'csat',''); 
             
-            $name = 'ISN';
+            $name = 'INS';
             $val = round($ins['value']);
             $percentage= round($ins['value']-$insPreviousPeriod['ins']);  
         }
@@ -6144,7 +6189,7 @@ class Dashboard extends Generic
           
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient,$request->survey, $db);
             $performance        = $this->cardsPerformace($dataNps, $dataIsnP , $dateEnd, $dateIni, substr($request->survey, 0, 3), $datafilters);
-            $npsConsolidado     = $this->cardCsatDriversMutual('ISN', $name, $dataIsn , $this->ButFilterWeeks, 12, 4);
+            $npsConsolidado     = $this->cardCsatDriversMutual('INS', $name, $dataIsn , $this->ButFilterWeeks, 12, 4);
             $npsBan             = null;
             $npsVid             = null;
             $csatJourney        = substr($request->survey, 3, 3) == 'con'? null : $this->CSATJourney($graphCSATDrivers);
