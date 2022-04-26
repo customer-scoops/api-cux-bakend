@@ -338,7 +338,7 @@ class Dashboard extends Generic
             if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
                 $data = DB::select("SELECT DISTINCT(gerenciamedica)
                                     FROM $this->_dbSelected.adata_mut_" . $dbC . "_start
-                                    WHERE gerenciamedica != '' and gerenciamedica != 1 gerenciamedica != 0");
+                                    WHERE gerenciamedica != '' and gerenciamedica != 1 and gerenciamedica != 0");
                                     
                 $this->_fieldSelectInQuery = 'gerenciamedica';
 
