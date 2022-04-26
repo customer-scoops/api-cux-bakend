@@ -816,7 +816,7 @@ class Dashboard extends Generic
             "demdem" => "8",
             //transvip
             "travia" => "11",
-            "tracond" => "8",
+            "tracond" => "7",
             //JetSmart
             "jetvia" => "10",
             "jetcom" => "6",
@@ -3246,12 +3246,29 @@ class Dashboard extends Generic
         return $graphCSAT;
     }  
     
-    private function graphCsatTransvip($graphCSAT){
-       $colors = ['#A2F584', '#F5C478', '#90C8F5', '#F580E7', '#3DA3F5', '#F5483E', '#8F65C2', '#F5EB4E', '#FFB203','#F5C76C', '#7DF5C5'];
-       $drivers = ['Canal','Tiempo encontrar un conductor','Coordinación en Andén','Puntualidad del servicio','Tiempo llegada del vehículo',
-       'Tiempo de espera aeropuerto','Seguridad al trasladarte','Medidas Covid','Tiempo de traslado','Atención del Conductor','Conducción'];
+    private function graphCsatTransvip($graphCSAT, $survey){
+       
+        if(substr($survey,3,3) == 'via')
+        {
+            $colors = ['#A2F584', '#F5C478', '#90C8F5', '#F580E7', '#3DA3F5', '#F5483E', '#8F65C2', '#F5EB4E', '#FFB203','#F5C76C', '#7DF5C5'];
+            $drivers = ['Canal','Tiempo encontrar un conductor','Coordinación en Andén','Puntualidad del servicio','Tiempo llegada del vehículo',
+            'Tiempo de espera aeropuerto','Seguridad al trasladarte','Medidas Covid','Tiempo de traslado','Atención del Conductor','Conducción'];
+        }
+        if(substr($survey,3,3) == 'con')
+        {
+            $colors = ['#A2F584', '#F5C478', '#90C8F5', '#F580E7', '#3DA3F5', '#F5483E', '#8F65C2', '#F5EB4E'];
+            $drivers = [
+                "Proceso de inscripción, registro y activación",
+                "Orientación inicial",
+                "Aplicación Conductores",
+                "Medidas de identificación y verificación de pasajeros",
+                "Central de operaciones - Tráfico",
+                "Soporte",
+                "Pago de producción mensual",
+            ];
+        }
                 $fields = [];
-        for($i=1; $i <= 11; $i++){
+        for($i=1; $i <= count($drivers); $i++){
             array_push($fields,[
                         "type"=>"line",
                         "key"=>"csat".$i,
@@ -6205,7 +6222,7 @@ class Dashboard extends Generic
             $detailGender       = substr($request->survey, 0, 3) == 'via' ? $this->globales($db, date('m'), date('Y'), 'sucursal', 'Sucursal', 'cbi', 'ins', 4, $datafilters) : null;
             $detailGeneration   = substr($request->survey, 0, 3) == 'via' ? $this->ranking($db, 'convenio', 'Convenio', $endDateFilterMonth, $startDateFilterMonth, $filterClient,$datafilters, 6, 5) : null;
             $detailsProcedencia = $this->graphINS($tiempoVehiculo, $coordAnden, $tiempoAeropuerto, $tiempoLlegadaAnden);
-            $box14              = $this->graphCsatTransvip($drivers);
+            $box14              = $this->graphCsatTransvip($drivers, $request->survey);
             $box15              = substr($request->survey, 0, 3) == 'via' ? $this->traking($db, $startDateFilterMonth, $endDateFilterMonth) : null;
             $box16              = null;
             $box17              = null;
