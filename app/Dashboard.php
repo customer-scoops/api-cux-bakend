@@ -1818,7 +1818,7 @@ class Dashboard extends Generic
                                 WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and  $indicador != 99  $datafilters
                                 GROUP BY $group
                                 ) AS A
-                                GROUP BY $group
+                                GROUP BY mes, annio
                                 ORDER BY date_survey ASC ");
 
         }
