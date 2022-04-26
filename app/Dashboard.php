@@ -715,14 +715,14 @@ class Dashboard extends Generic
         $indicators = new Suite($this->_jwt);
         $data = [];
         $surveys = $indicators->getSurvey($request, $jwt);
-        // $surveys = ["datas" => 
-        // [        
-        //           [ "name" => "Conductores",
-        //             "base" => "tracond",
-        //             "customer" => "TRA001"]],
-        //             "status" => 200
-        //         ];
-        // $otherGraph = [];
+        $surveys = ["datas" => 
+        [        
+                  [ "name" => "Conductores",
+                    "base" => "tracond",
+                    "customer" => "TRA001"]],
+                    "status" => 200
+                ];
+        $otherGraph = [];
        
         if ($surveys['status'] == 200) {
             if($surveys['datas'][0]['customer'] == 'MUT001'){
@@ -987,7 +987,7 @@ class Dashboard extends Generic
                                 from $this->_dbSelected.$table as a
                                 left join $this->_dbSelected." . $table . "_start as b
                                 on a.token = b.token
-                                WHERE a.mes = $mes and a.annio = $annio $datafilters
+                                WHERE a.mes = $monthActualEnd and a.annio = $annio $datafilters
                                 GROUP by a.mes, a.annio
                                 ORDER by a.date_survey ASC");
           
@@ -2552,6 +2552,7 @@ class Dashboard extends Generic
         ];
     }
     private function NpsIsnTransvip($table,$dateIni, $dateEnd,$indicadorNPS, $indicadorINS,$datafilters, $group, $perf = null){
+        
         if($group != null){
             $where = $datafilters;
             $datafilters = '';
@@ -2567,7 +2568,7 @@ class Dashboard extends Generic
         }
 
         if ($datafilters)
-            $datafilters = " AND $datafilters";
+            $datafilters = " $datafilters";
 
         $data = DB::select("SELECT COUNT(CASE WHEN a.$indicadorNPS!=99 THEN 1 END) as Total, 
                             ROUND(((COUNT(CASE WHEN a.$indicadorNPS BETWEEN 9 AND 10 THEN 1 END) - COUNT(CASE WHEN a.$indicadorNPS BETWEEN 0 AND 6 THEN 1 END)) / (COUNT(CASE WHEN a.$indicadorNPS!=99 THEN 1 END)) * 100),1) AS NPS, 
@@ -2578,8 +2579,8 @@ class Dashboard extends Generic
                             on a.token = b.token
                             where $where $datafilters
                             GROUP by $group
-                            ORDER by a.date_survey ASC");
-      
+                            ORDER by a.date_survey ASC");      
+
         if ($group == 'week') 
         { 
             $mondayWeek = $this->getFirstMond();
@@ -5416,6 +5417,7 @@ class Dashboard extends Generic
             if(substr($survey,3,3) == 'via')
                 $db = 'adata_tra_via';
             $ins = $this->NpsIsnTransvip($db, $dateIni, $dateEnd,'nps','csat',$datafilters,'', 'x' );
+
             $insPreviousPeriod = $this->npsPreviousPeriod($db,$dateEnd, $dateIni,'csat',''); 
             
             $name = 'INS';
