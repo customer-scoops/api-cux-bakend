@@ -1359,7 +1359,6 @@ class Dashboard extends Generic
                                 WHERE  $where $activeP2 $datafilters 
                                 GROUP BY $group2
                                 ORDER BY date_survey ASC");
-
         }
 
         if ($filter == 'all') {
@@ -1567,6 +1566,24 @@ class Dashboard extends Generic
                                 WHERE  $where AND etapaencuesta = 'P2' $datafilters 
                                 GROUP BY $group
                                 ORDER BY date_survey ASC");
+
+
+            // echo "SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN 1 END) - 
+            // COUNT(CASE WHEN $indicador BETWEEN $this->_minCsat AND $this->_maxCsat THEN 1 END)) / 
+            // (COUNT(CASE WHEN $indicador!=99 THEN 1 END)) * 100),1) AS CSAT, 
+            // count(if($indicador < $this->_minMediumCsat, $indicador, NULL)) as Cdet,
+            // count(if($indicador = $this->_minMaxCsat AND $indicador = $this->_maxMaxCsat, $indicador, NULL)) as Cpro,
+            // count(if($indicador=$this->_maxMediumCsat, $indicador, NULL)) as Cneu,              
+            // count(*) as total, 
+            // ((count(if($indicador < $this->_minMediumCsat, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as detractor, 
+            // ((count(if($indicador = $this->_minMaxCsat OR $indicador = $this->_maxMaxCsat, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as promotor, 
+            // ((count(if($indicador=$this->_maxMediumCsat, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as neutral,              
+            // a.mes, a.annio, WEEK(date_survey) AS week,$this->_fieldSelectInQuery  
+            // FROM $this->_dbSelected.$table as a
+            // INNER JOIN $this->_dbSelected." . $table . "_start as b ON a.token = b.token 
+            // WHERE  $where AND etapaencuesta = 'P2' $datafilters 
+            // GROUP BY $group
+            // ORDER BY date_survey ASC";
         }
        
         if (trim($group) == 'week') 
@@ -2576,6 +2593,17 @@ class Dashboard extends Generic
                             where $where $datafilters
                             GROUP by $group
                             ORDER by a.date_survey ASC");
+
+                // echo "SELECT COUNT(CASE WHEN a.$indicadorNPS!=99 THEN 1 END) as Total, 
+                // ROUND(((COUNT(CASE WHEN a.$indicadorNPS BETWEEN 9 AND 10 THEN 1 END) - COUNT(CASE WHEN a.$indicadorNPS BETWEEN 0 AND 6 THEN 1 END)) / (COUNT(CASE WHEN a.$indicadorNPS!=99 THEN 1 END)) * 100),1) AS NPS, 
+                // ROUND(((COUNT(CASE WHEN a.$indicadorINS BETWEEN 6 AND 7 THEN 1 END) - COUNT(CASE WHEN a.$indicadorINS BETWEEN 1 AND 4 THEN 1 END)) / (COUNT(CASE WHEN a.$indicadorINS!=99 THEN 1 END)) * 100),1) AS INS,
+                // a.mes, a.annio, date_survey, WEEK(date_survey) AS week
+                // from $this->_dbSelected.$table as a
+                // left join $this->_dbSelected." . $table . "_start as b
+                // on a.token = b.token
+                // where $where $datafilters
+                // GROUP by $group
+                // ORDER by a.date_survey ASC";
       
         if ($group == 'week') 
         { 
@@ -4730,6 +4758,8 @@ class Dashboard extends Generic
         if (substr($datafilters, 30, 3) == 'NOW') {
             $datafilters = '';
         }
+
+        $arrayTop =[];
         
         if($filterClient != 'all'){
             if (substr($db, 6, 3) != 'mut'){
