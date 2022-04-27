@@ -575,6 +575,14 @@ class Suite
             "travia_csat10" => "Atención del Conductor",
             "travia_csat11" => "Conducción",
 
+            "tracond_csat1" => "Proceso de inscripción, registro y activación",
+            "tracond_csat2" => "Orientación inicial",
+            "tracond_csat3" => "Aplicación Conductores",
+            "tracond_csat4" => "Medidas de identificación y verificación de pasajeros",
+            "tracond_csat5" => "Central de operaciones - Tráfico",
+            "tracond_csat6" => "Soporte",
+            "tracond_csat7" => "Pago de producción mensual",
+
             //JETSMART
             "jetvia_csat1"  => "Proceso de compra online/web realizado",
             "jetvia_csat2"  => "Proceso de pago al comprar tu boleto",
