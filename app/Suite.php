@@ -94,7 +94,7 @@ class Suite
             $resp = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1)->get();
             //dd(\DB::getQueryLog());
             if($codCustomer == 'TRA001')
-                $resp = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1)->where('codsurvey','TRA_VIA')->get();
+                $resp = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1)->where('codsurvey','TRA_VIA')->orWhere('codsurvey','TRA_COND')->get();
             //$resp = DB::table('survey')->get();
         }catch (\Throwable $e) {
             return $data = [
