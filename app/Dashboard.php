@@ -312,7 +312,6 @@ class Dashboard extends Generic
                 return ['filters' => [(object)$tipoCliente, (object)$macrosegmento, (object)$tipoCanal], 'status' => Response::HTTP_OK];
             }
 
-
             if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
                 $data = DB::select("SELECT DISTINCT(tatencion)
                                 FROM $this->_dbSelected.adata_mut_" . $dbC . "_start
@@ -326,14 +325,13 @@ class Dashboard extends Generic
             if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh'|| $dbC == 'img') {
                 $data = DB::select("SELECT DISTINCT(catencion)
                                 FROM $this->_dbSelected.adata_mut_" . $dbC . "_start
-                                WHERE catencion != '' ");
+                                WHERE catencion != '' and catencion != '0' ");
 
                 $this->_fieldSelectInQuery = 'catencion';
 
                 $CenAtencionn = ['filter' => 'CentroAtencion', 'datas' => $this->contentfilter($data, 'catencion')];
 
             }
-
 
             if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
                 $data = DB::select("SELECT DISTINCT(gerenciamedica)
@@ -521,20 +519,20 @@ class Dashboard extends Generic
                     "icon" => "arrow-right",
                     "text" => "CX Intelligence",
                     "lists" => [
-                        [
-                            "header" => "Pain Points",
-                            "color" => "#F07667",
-                            "items" => [],
-                            "numbered" => true
-                        ],
-                        [
-                            "header" => "Gain Points",
-                            "color" => "#17C784",
-                            "items" => [],
-                            "numbered" => true
-                        ]
-                        ]
-                        ]
+                                    [
+                                        "header" => "Pain Points",
+                                        "color" => "#F07667",
+                                        "items" => [],
+                                        "numbered" => true
+                                    ],
+                                    [
+                                        "header" => "Gain Points",
+                                        "color" => "#17C784",
+                                        "items" => [],
+                                        "numbered" => true
+                                    ]
+                                ]
+                            ]
                         ];
                     }
                         
@@ -1276,8 +1274,8 @@ class Dashboard extends Generic
                 "promotors"         => round($data[0]->promotor),
                 "neutrals"          => 100 - (round($data[0]->detractor) + round($data[0]->promotor)),
                 "detractors"        => round($data[0]->detractor),
-                "percentage"        => $npsActive - round($npsPreviousPeriod),
-                "smAvg"             => $this->AVGLast6MonthNPS($table, $table2, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter),
+                "percentage"        => substr($table, 6, 3) == 'mut'? 0 : $npsActive - round($npsPreviousPeriod),
+                "smAvg"             => substr($table, 6, 3) == 'mut'? '0' :$this->AVGLast6MonthNPS($table, $table2, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter),
                 'NPSPReV'           => $npsPreviousPeriod,
                 // 'mes'               => $mes,
                 // 'annio'             => $annio,
@@ -4766,7 +4764,7 @@ class Dashboard extends Generic
                 $data = DB::select($dataTop);   
                 if($data){
                     foreach ($data as $key => $value){
-                        $arrayTop[]= $value-> $indicator.' NPS->'.$value->NPS.'% '.'INS->'.$value->ISN.'% ('. $value->total.')';   
+                        $arrayTop[]= $value-> $indicator.' NPS->'.$value->NPS.'% '.'ISN->'.$value->ISN.'% ('. $value->total.')';   
                     }
             }   
             
