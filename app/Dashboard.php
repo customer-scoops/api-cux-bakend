@@ -2302,9 +2302,9 @@ class Dashboard extends Generic
                             group by  a.mes, a.annio
                             order by a.annio, a.mes");
                         
-        if($data)
-        {
-            if(substr($db,6,3) == 'tra'){
+        if(substr($db,6,3) == 'tra'){
+            if($data)
+            {
                 $acumuladoResp = 0;
                 foreach ($data as $key => $value) {
                     $acumuladoResp += (int)$value->Total;
