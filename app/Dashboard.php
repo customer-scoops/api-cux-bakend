@@ -174,7 +174,7 @@ class Dashboard extends Generic
         $modAtencion =      [];
         $tipoCliente =      [];
         $tipoCanal =        [];
-        $tipoAtencion =     [];
+        $tipAtencion =     [];
         $CenAtencionn =     [];
         $TipoClienteT =     [];
         $TipoServicio =     [];
@@ -325,7 +325,8 @@ class Dashboard extends Generic
 
             if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh'|| $dbC == 'img') {
                 $data = DB::select("SELECT DISTINCT(catencion)
-                                FROM $this->_dbSelected.adata_mut_" . $dbC . "_start ");
+                                FROM $this->_dbSelected.adata_mut_" . $dbC . "_start
+                                WHERE catencion != '' ");
 
                 $this->_fieldSelectInQuery = 'catencion';
 
@@ -337,17 +338,17 @@ class Dashboard extends Generic
             if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
                 $data = DB::select("SELECT DISTINCT(gerenciamedica)
                                     FROM $this->_dbSelected.adata_mut_" . $dbC . "_start
-                                    WHERE gerenciamedica != '' and gerenciamedica != 1 and gerenciamedica != 0");
+                                    WHERE gerenciamedica != '' and gerenciamedica != '1' and gerenciamedica != '0'");
                                     
                 $this->_fieldSelectInQuery = 'gerenciamedica';
-
+                //print_r($data);
                 $Gerencia = ['filter' => 'GerenciaMedica', 'datas' => $this->contentfilter($data, 'gerenciamedica')];
             }
 
             if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
                 $data = DB::select("SELECT DISTINCT(aatencion)
                                     FROM $this->_dbSelected.adata_mut_" . $dbC . "_start
-                                    WHERE aatencion != 0 AND aatencion != 9 AND aatencion != ''");
+                                    WHERE aatencion != '0' AND aatencion != '9' AND aatencion != ''");
                                     
                 $this->_fieldSelectInQuery = 'aatencion';
 
@@ -357,13 +358,13 @@ class Dashboard extends Generic
             if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
                 $data = DB::select("SELECT DISTINCT(zonal)
                                     FROM $this->_dbSelected.adata_mut_" . $dbC . "_start
-                                    WHERE zonal != 0 AND zonal != ''");
+                                    WHERE zonal != '0' AND zonal != ''");
                                     
                 $this->_fieldSelectInQuery = 'zonal';
 
                 $ZonaHos = ['filter' => 'Zona', 'datas' => $this->contentfilter($data, 'zonal')];
 
-                return ['filters' => [(object)$ZonaHos, (object)$Gerencia, (object)$tipAtencion, (object)$AreaAten, (object)$CenAtencionn], 'status' => Response::HTTP_OK];
+                return ['filters' => [ (object)$tipAtencion, (object)$CenAtencionn, (object)$Gerencia,  (object)$AreaAten,  (object)$ZonaHos], 'status' => Response::HTTP_OK];
             }
 
             // $response = ['filters' => [(object)$TipoClienteT, (object)$TipoServicio, (object)$CondServicio, (object)$Sentido, (object)$Zona, (object)$Reserva, (object)$CanalT, (object)$Convenio], 'status' => Response::HTTP_OK];
