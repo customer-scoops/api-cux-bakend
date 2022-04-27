@@ -325,7 +325,7 @@ class Dashboard extends Generic
             if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh'|| $dbC == 'img') {
                 $data = DB::select("SELECT DISTINCT(catencion)
                                 FROM $this->_dbSelected.adata_mut_" . $dbC . "_start
-                                WHERE catencion != '' ");
+                                WHERE catencion != '' and catencion != '0' ");
 
                 $this->_fieldSelectInQuery = 'catencion';
 
