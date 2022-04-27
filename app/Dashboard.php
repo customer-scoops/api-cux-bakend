@@ -712,13 +712,6 @@ class Dashboard extends Generic
         $indicators = new Suite($this->_jwt);
         $data = [];
         $surveys = $indicators->getSurvey($request, $jwt);
-        $surveys = ["datas" => 
-        [        
-                  [ "name" => "Conductores",
-                    "base" => "tracond",
-                    "customer" => "TRA001"]],
-                    "status" => 200
-                ];
         $otherGraph = [];
        
         if ($surveys['status'] == 200) {
