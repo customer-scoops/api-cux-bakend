@@ -458,7 +458,7 @@ class Dashboard extends Generic
             'endDate'   => date('Y-m-d'),
         ]);
         $survey = $request->get('survey');
-
+        //print_r($survey);
         $value = \Cache::get('word'.$survey.$request->get('startDate').$request->get('endDate'));
         //$value = \Cache::pull('word'.$survey.$request->get('startDate').$request->get('endDate'));
         if($value)
@@ -466,7 +466,7 @@ class Dashboard extends Generic
 
         $dataTextMining = $this->textMining($request);
 
-        if($survey != 'travia'){
+        if($survey != 'travia' && $survey != 'tracond'){
         foreach ($dataTextMining['datas']->values as $value){
             foreach($value as $key => $detail){
                 foreach($detail as $key1 => $index){
@@ -713,7 +713,7 @@ class Dashboard extends Generic
         $data = [];
         $surveys = $indicators->getSurvey($request, $jwt);
         $otherGraph = [];
-       
+    
         if ($surveys['status'] == 200) {
             if($surveys['datas'][0]['customer'] == 'MUT001'){
                 array_push($surveys['datas'], $this->consolidateMutual());
