@@ -3489,10 +3489,10 @@ class Dashboard extends Generic
                         'xLegend' => $suite->getInformationDriver($survey . '_' . $r),
                         'values' =>
                         [
-                            "promoters"     => (int)ROUND($value->$pro),
-                            "neutrals"      => (int)100 - (ROUND($value->$pro) + ROUND($value->$det)),
-                            "detractors"    => (int)ROUND($value->$det),
-                            "csat"          => (int)ROUND($csat)
+                            "promoters"     => round($value->$pro),
+                            "neutrals"      => 100 - (ROUND($value->$pro) + ROUND($value->$det)),
+                            "detractors"    => ROUND($value->$det),
+                            "csat"          => (int)($csat)
                         ]
                     ];
                 }
