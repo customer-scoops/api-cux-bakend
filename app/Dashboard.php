@@ -626,7 +626,6 @@ class Dashboard extends Generic
                                 INNER JOIN $this->_dbSelected." . $db2 . "_start as B ON (A.token = B.token) 
                                 WHERE B.fechacarga BETWEEN '$dateIni' AND '$dateEnd' AND $fieldInBd IN (0,1,2,3,4,5,6) AND obs_nps != '' $datafilters) AS A");
         }
-        //$data = DB::select("SELECT COUNT(*) as ticketCreated, COUNT(if(B.estado_close = 4, B.id, NULL)) as ticketClosed, COUNT(if(B.estado_close = 2, B.id, NULL)) as ticketPending, COUNT(if(B.estado_close = 1 OR B.estado_close = 3, B.id, NULL)) as ticketInProgres FROM $db as A INNER JOIN ".$db."_start as B ON (A.token = B.token) WHERE B.fechacarga BETWEEN '2021-12-01' AND '2021-12-31' AND p1 IN (0,1,2,3,4,5,6)");
         $closedRate = 0;
         //var_dump($data[0]->ticketCreated);
         if ($data[0]->ticketCreated != "0") {
@@ -741,7 +740,7 @@ class Dashboard extends Generic
                         $db = 'adata_tra_via';
                         $datas = $this->npsPreviousPeriod('adata_tra_via',date('Y-m-d'),date('Y-m-01'),'csat','' );
                         $otherGraph =  [[
-                            "name"          => "INS",
+                            "name"          => "ISN",
                             "value"         => Round($datas['insAct']),
                             "percentage"    => round($datas['insAct']-$datas['ins']),
                         ]];
@@ -818,7 +817,6 @@ class Dashboard extends Generic
             return false;
         }
     }
-
 
     private function traking($db,$dateIni,$dateEnd) {
         $dataT = DB::select("SELECT COUNT(*) AS TOTAL 
@@ -1163,7 +1161,7 @@ class Dashboard extends Generic
         }
         if ($data != null && $data[0]->ISN != null){
             return[
-                "name"              => "ins",
+                "name"              => "isn",
                 "value"             => round($data[0]->ISN),
                 "percentage"        => round($data[0]->ISN - $data2[0]->ISN),
             ];
@@ -1172,7 +1170,7 @@ class Dashboard extends Generic
 
         if ($data == null || $data[0]->ISN == null){
             return[
-                "name"              => "ins",
+                "name"              => "isn",
                 "value"             => round(0),
                 "percentage"        => round(0),
             ];
@@ -1698,7 +1696,7 @@ class Dashboard extends Generic
 
             $csatActive =  $csatActive;
             return [
-                "name"          => substr($table, 6, 3) == 'mut'? 'ins':"csat",
+                "name"          => substr($table, 6, 3) == 'mut'? 'isn':"csat",
                 "value"         => 'N/A',
                 "percentage"    => '',
                 "smAvg"         => Round($csatActive-$csatPreviousPeriod),
@@ -1710,7 +1708,7 @@ class Dashboard extends Generic
         if ($data[0]->total != null) {
             $csatActive = $data[0]->csat;
             return [
-                "name"          => substr($table, 6, 3) == 'mut'? 'ins':"csat",
+                "name"          => substr($table, 6, 3) == 'mut'? 'isn':"csat",
                 "value"         => ROUND($data[0]->csat),
                 "percentage"    => ROUND($data[0]->csat) - ROUND($csatPreviousPeriod),
                 //"smAvg"         => 0,
@@ -5429,7 +5427,7 @@ class Dashboard extends Generic
             $ins = $this->NpsIsnTransvip('adata_tra_via', $dateIni, $dateEnd,'nps','csat',$datafilters,'', 'x' );
             $insPreviousPeriod = $this->npsPreviousPeriod('adata_tra_via',$dateEnd, $dateIni,'csat',''); 
             
-            $name = 'INS';
+            $name = 'ISN';
             $val = round($ins['value']);
             $percentage= round($ins['value']-$insPreviousPeriod['ins']);  
         }
@@ -6154,7 +6152,6 @@ class Dashboard extends Generic
         }
 
         if ($this->_dbSelected  == 'customer_colmena'  && substr($request->survey, 0, 3) == 'mut') {
-
             $name = 'Mutual';
             $nameCsat1 = 'Tiempo espera para tu atención';
             $nameCsat2 = 'Amabilidad profesionales';
@@ -6182,7 +6179,7 @@ class Dashboard extends Generic
           
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient,$request->survey, $db);
             $performance        = $this->cardsPerformace($dataNps, $dataIsnP , $dateEnd, $dateIni, substr($request->survey, 0, 3), $datafilters);
-            $npsConsolidado     = $this->cardCsatDriversMutual('INS', $name, $dataIsn , $this->ButFilterWeeks, 12, 4);
+            $npsConsolidado     = $this->cardCsatDriversMutual('ISN', $name, $dataIsn , $this->ButFilterWeeks, 12, 4);
             $npsBan             = null;
             $npsVid             = null;
             $csatJourney        = substr($request->survey, 3, 3) == 'con'? null : $this->CSATJourney($graphCSATDrivers);
