@@ -11,6 +11,8 @@ use DB;
 use App\Suite;
 use App\Generic;
 use Carbon\Carbon;
+use Mockery\Undefined;
+
 class Dashboard extends Generic
 {
     private $_activeSurvey = 'banrel';
@@ -1252,7 +1254,7 @@ class Dashboard extends Generic
                 "promotors"     => 0,
                 "neutrals"      => 0,
                 "detractors"    => 0,
-                "percentage"    => $npsActive - $npsPreviousPeriod['nps'],
+                "percentage"    => substr($table, 6, 3) == 'jet' ? $npsActive - $npsPreviousPeriod : $npsActive - $npsPreviousPeriod['nps'],
                 "smAvg"         => $this->AVGLast6MonthNPS($table, $table2, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter)
             ];
         }
@@ -1699,8 +1701,8 @@ class Dashboard extends Generic
             return [
                 "name"          => substr($table, 6, 3) == 'mut'? 'isn':"csat",
                 "value"         => 'N/A',
-                "percentage"    => '',
-                "smAvg"         => Round($csatActive-$csatPreviousPeriod),
+                "percentage"    => (string)Round($csatActive-$csatPreviousPeriod),
+                "smAvg"         => '',
                 //"smAvg"         => 0,
 
             ];
@@ -2367,8 +2369,8 @@ class Dashboard extends Generic
                 $generalDataCbi = [                 
                     "name"          => "cbi", //Ver después como hacemos
                     "value"         => 'N/A',
-                    "percentage"    => 0,                 
-                    "smAvg"       => '',
+                    "percentage"    => ROUND(- $cbiPreviousPeriod[0]->CBI),                 
+                    "smAvg"         => $cbiSmAvg,
                 ];
             }
             $generalDataCbi['graph'] = $this->graphCbi($db, date('m'), date('Y'), 'cbi', date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")),  $datafilters, 'one');
@@ -5541,11 +5543,12 @@ class Dashboard extends Generic
         if ($this->_dbSelected == 'customer_jetsmart') { 
             $width = 12;
             if($ces == true){
+        
                 $resp = [
                             [
-                                "name"    => $dataCbi['name'],
-                                "value"   => $dataCbi['value'],
-                                "m2m"     => (int)round($dataCbi['percentage']),
+                                "name"    => $dataCbi != '' ? $dataCbi['name'] : 'CBI',
+                                "value"   => $dataCbi != '' ? $dataCbi['value'] : 'N/A',
+                                "m2m"     => $dataCbi != '' ? (int)round($dataCbi['percentage']) : 'N/A',
                             ],
                             [
                                 "name"    => $dataNps['name'],
@@ -5558,8 +5561,8 @@ class Dashboard extends Generic
                                 "m2m"     => (int)round($dataCsat['percentage']),
                             ],
                             [
-                                "name"    => $dataCes['name'],
-                                "value"   => $dataCes['value'],
+                                "name"    => 'CES',
+                                "value"   => $dataCes,
                                 "m2m"     => (int)round($dataCes['percentage']),
                             ]
                         ];
