@@ -328,7 +328,7 @@ class Dashboard extends Generic
                 //print_r($request->get('Zona'));
                 if ($datafilters != null && strpos($datafilters,'zonal') != false)
                 {
-                    $cond = ' AND zonal = ' . $request->get('Zona'); 
+                    $cond = " AND zonal = '". $request->get('Zona')."'"; 
                 }
                 $data = DB::select("SELECT DISTINCT(catencion)
                                 FROM $this->_dbSelected.adata_mut_" . $dbC . "_start
