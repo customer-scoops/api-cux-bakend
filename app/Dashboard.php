@@ -2573,6 +2573,10 @@ class Dashboard extends Generic
             $group = "week";
         }
 
+        $activeP2 ='';
+        if(substr($table, 10, 3) == 'con')
+            $activeP2 = " AND etapaencuesta = 'P2' ";
+
         if ($group == null) {
             $where = " date_survey BETWEEN '$dateEnd' AND '$dateIni' ";
             $group = " a.mes, a.annio ";
@@ -2591,7 +2595,7 @@ class Dashboard extends Generic
                             from $this->_dbSelected.$table as a
                             left join $this->_dbSelected." . $table . "_start as b
                             on a.token = b.token
-                            where $where $datafilters
+                            where $where $activeP2 $datafilters
                             GROUP by $group
                             ORDER by a.date_survey ASC");      
    
@@ -3240,6 +3244,11 @@ class Dashboard extends Generic
         if (substr($datafilters, 30, 3) == 'NOW') {
             $datafilters = '';
         }
+
+        $activeP2 ='';
+        if(substr($db, 10, 3) == 'con')
+            $activeP2 = " AND etapaencuesta = 'P2' ";
+
         if ($datafilters)
             $datafilters = " AND $datafilters";
 
@@ -3262,7 +3271,7 @@ class Dashboard extends Generic
                             FROM $this->_dbSelected.$db as A
                             LEFT JOIN $this->_dbSelected." . $db . "_start as b
                             on A.token = b.token 
-                            WHERE date_survey BETWEEN '$dateEnd' AND  '$dateIni' $datafilters
+                            WHERE date_survey BETWEEN '$dateEnd' AND  '$dateIni'  $activeP2 $datafilters
                             group by A.mes, A.annio
                             ORDER BY date_survey");
         
@@ -3354,7 +3363,7 @@ class Dashboard extends Generic
         $fieldBd2 = $this->getFielInDbCsat($survey);
 
         $activeP2 ='';
-        if(substr($db, 6, 3))
+        if(substr($db, 10, 3) == 'con')
             $activeP2 = " AND etapaencuesta = 'P2' ";
 
         $query = "";
@@ -6317,7 +6326,7 @@ class Dashboard extends Generic
             $closedLoop         = substr($request->survey, 0, 3) == 'via' ? $this->globales($db, date('m'), date('Y'), 'tiposervicio', 'Vehículo', 'cbi', 'ins', 4, $datafilters): null;
             $detailGender       = substr($request->survey, 0, 3) == 'via' ? $this->globales($db, date('m'), date('Y'), 'sucursal', 'Sucursal', 'cbi', 'ins', 4, $datafilters) : null;
             $detailGeneration   = substr($request->survey, 0, 3) == 'via' ? $this->ranking($db, 'convenio', 'Convenio', $endDateFilterMonth, $startDateFilterMonth, $filterClient,$datafilters, 6, 5) : null;
-            $detailsProcedencia = $this->graphINS($tiempoVehiculo, $coordAnden, $tiempoAeropuerto, $tiempoLlegadaAnden);
+            $detailsProcedencia = substr($request->survey, 0, 3) == 'via' ? $this->graphINS($tiempoVehiculo, $coordAnden, $tiempoAeropuerto, $tiempoLlegadaAnden) : null;
             $box14              = $this->graphCsatTransvip($drivers, $request->survey);
             $box15              = substr($request->survey, 0, 3) == 'via' ? $this->traking($db, $startDateFilterMonth, $endDateFilterMonth) : null;
             $box16              = null;
