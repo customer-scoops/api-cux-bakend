@@ -1282,7 +1282,7 @@ class Dashboard extends Generic
                 "value"             => round($npsActive),
                 "percentageGraph"   => true,
                 "promotors"         => round($data[0]->promotor),
-                "neutrals"          => 100 - (round($data[0]->detractor) + round($data[0]->promotor)),
+                "neutrals"          => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - (round($data[0]->detractor) + round($data[0]->promotor)),
                 "detractors"        => round($data[0]->detractor),
                 "percentage"        => substr($table, 6, 3) == 'mut'? 0 : $npsActive - round($npsPreviousPeriod),
                 "smAvg"             => substr($table, 6, 3) == 'mut'? '0' :$this->AVGLast6MonthNPS($table, $table2, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter),
@@ -1405,7 +1405,7 @@ class Dashboard extends Generic
                             'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('m-d', strtotime($mondayWeek . "- $count week")) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                             'values' => [
                                 "promoters"     => round($value->promotor),
-                                "neutrals"      => 100 - (round($value->promotor) + round($value->detractor)),
+                                "neutrals"      => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - (round($data[0]->detractor) + round($data[0]->promotor)),//100 - (round($value->promotor) + round($value->detractor)),
                                 "detractors"    => round($value->detractor),
                                 "nps"           => round($value->NPS)
                             ],
@@ -1428,7 +1428,7 @@ class Dashboard extends Generic
                             'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('m-d', strtotime($mondayWeek . "- $count week")) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                             'values' => [
                                 "promoters"     => round($value->promotor),
-                                "neutrals"      => 100 - (round($value->promotor) + round($value->detractor)),
+                                "neutrals"      => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - (round($data[0]->detractor) + round($data[0]->promotor)),//100 - (round($value->promotor) + round($value->detractor)),
                                 "detractors"    => round($value->detractor),
                                 "nps"           => round($value->NPS)
                             ],
@@ -1836,7 +1836,7 @@ class Dashboard extends Generic
                             'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cinsa + $value->Cneut + $value->Csati) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cinsa + $value->Cneut + $value->Csati) . ')',
                             'values' => [
                                 "promoters"     => round($value->promotor),
-                                "neutrals"      => 100 - (round($value->promotor) + round($value->detractor)),
+                                "neutrals"      => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - (round($data[0]->detractor) + round($data[0]->promotor)),//100 - (round($value->promotor) + round($value->detractor)),
                                 "detractors"    => round($value->detractor),
                                 "csat"          => (string)ROUND($value->csat),
                             ],
@@ -2008,7 +2008,7 @@ class Dashboard extends Generic
                         'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->dificil + $value->facil + $value->neutral) . ')' : 'Semana ' . $value->week . ' (' . ($value->dificil + $value->facil + $value->neutral) . ')',
                         'values' => [
                             "promoters"  => round($value->facil),
-                            "neutrals"   => 100 - (round($value->facil) + round($value->dificil)),
+                            "neutrals"   => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - (round($data[0]->detractor) + round($data[0]->promotor)),//100 - (round($value->facil) + round($value->dificil)),
                             "detractors" => round($value->dificil),
                             'ces' => (string)ROUND($value->ces)
                         ],
@@ -2729,7 +2729,7 @@ class Dashboard extends Generic
                 'xLegend'   => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                 'values'    => [
                     "promoters"     => Round($value->promotor),
-                    "neutrals"      => 100 - (Round($value->promotor) + Round($value->detractor)),
+                    "neutrals"      => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - (round($data[0]->detractor) + round($data[0]->promotor)),//100 - (Round($value->promotor) + Round($value->detractor)),
                     "detractors"    => Round($value->detractor),
                     "nps"           => Round($value->NPS)
                 ],
@@ -3463,7 +3463,7 @@ class Dashboard extends Generic
                             'values' =>
                             [
                                 "promoters"     => round($value->$pro),
-                                "neutrals"      => (int)round(100 - (round($value->$det) + round($value->$pro))),
+                                "neutrals"      => ((round($value->$pro) == 0) && (round($value->$det) == 0)) ? round(round($value->$neu)) : round(100 - (round($value->$det) + round($value->$pro))),//(int)round(100 - (round($value->$det) + round($value->$pro))),
                                 "detractors"    => round($value->$det),
                                 "csat"          => round($csat)
                             ]
@@ -3574,7 +3574,7 @@ class Dashboard extends Generic
                         'values' =>
                         [
                             "promoters"     => round($value->$pro),
-                            "neutrals"      => 100 - (ROUND($value->$pro) + ROUND($value->$det)),
+                            "neutrals"      => ((round($value->$pro) == 0) && (round($value->$det) == 0)) ? round(round($value->$neu)) : round(100 - (round($value->$det) + round($value->$pro))),//100 - (ROUND($value->$pro) + ROUND($value->$det)),
                             "detractors"    => ROUND($value->$det),
                             "csat"          => (int)($csat)
                         ]
