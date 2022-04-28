@@ -161,7 +161,7 @@ class Dashboard extends Generic
         }
     }
 
-    public function filters($request, $jwt)
+    public function filters($request, $jwt, $datafilters = null)
     {
         $survey = $request->get('survey');
         $content        =   '';
@@ -193,7 +193,6 @@ class Dashboard extends Generic
 
         //BANMEDICA
         if ($this->_dbSelected  == 'customer_banmedica') {
-
             //REGION
             $data = DB::select("SELECT DISTINCT(region) 
                                 FROM $this->_dbSelected.".$db."_start
@@ -325,9 +324,15 @@ class Dashboard extends Generic
             }
 
             if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh'|| $dbC == 'img') {
+                $cond = '';
+                //print_r($request->get('Zona'));
+                if ($datafilters != null && strpos($datafilters,'zonal') != false)
+                {
+                    $cond = " AND zonal = '". $request->get('Zona')."'"; 
+                }
                 $data = DB::select("SELECT DISTINCT(catencion)
                                 FROM $this->_dbSelected.adata_mut_" . $dbC . "_start
-                                WHERE catencion != '' and catencion != '0' ");
+                                WHERE catencion != '' and catencion != '0' $cond");
 
                 $this->_fieldSelectInQuery = 'catencion';
 
@@ -1254,7 +1259,7 @@ class Dashboard extends Generic
                 "promotors"     => 0,
                 "neutrals"      => 0,
                 "detractors"    => 0,
-                "percentage"    => substr($table, 6, 3) == 'jet' ? $npsActive - $npsPreviousPeriod : $npsActive - $npsPreviousPeriod['nps'],
+                "percentage"    => substr($table, 6, 3) != 'tra' ? $npsActive - $npsPreviousPeriod : $npsActive - $npsPreviousPeriod['nps'],
                 "smAvg"         => $this->AVGLast6MonthNPS($table, $table2, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter)
             ];
         }
@@ -2259,7 +2264,6 @@ class Dashboard extends Generic
                                     'activeDot' => false,
                                     'customDot' => true,
                                 ],
-
                                 [
                                     'type' => "line",
                                     'key' => "driver",
@@ -2268,7 +2272,6 @@ class Dashboard extends Generic
                                     'activeDot' => false,
                                     'customDot' => true,
                                 ],
-
                                 [
                                     'type' => "line",
                                     'key' => "dif",
@@ -5449,7 +5452,7 @@ class Dashboard extends Generic
         if(substr($request->survey,0,3) == 'mut'){
             $where .= $this->structfilter($request, 'macroseg',         'Macrosegmento',     $where);
             $where .= $this->structfilter($request, 'tatencion',        'ModalidadAtencion', $where);
-            $where .= $this->structfilter($request, 'tipcliente',       'TipoCliente',       $where);
+            $where .= $this->structfilter($request, 'tipcliente',       'Tipo Cliente',       $where);
             $where .= $this->structfilter($request, 'canal',            'Canal',             $where);
             $where .= $this->structfilter($request, 'tatencion',        'TipoAtencion',      $where);
             $where .= $this->structfilter($request, 'catencion',        'CentroAtencion',    $where);
@@ -6262,7 +6265,7 @@ class Dashboard extends Generic
                 $Procedencia = $this->graphProcedencia($db, $endDateFilterMonth, $startDateFilterMonth, $filterClient);
             }
 
-            if ($db == 'adata_mut_img' || $db == 'adata_mut_amb') {
+            if ($db == 'adata_mut_reh' || $db == 'adata_mut_amb' || $db == 'adata_mut_urg') {
                 $rankingSuc = $this->ranking($db, 'catencion', 'CentroAtencion', $endDateFilterMonth, $startDateFilterMonth, 'one',$datafilters, 6);
             } 
           
@@ -6368,7 +6371,7 @@ class Dashboard extends Generic
             $npsBan             = null;
         }
 
-        $filters = $this->filters($request, $jwt);
+        $filters = $this->filters($request, $jwt, $datafilters);
         $data = [
             'client' => $this->_nameClient,
             'clients' => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients : '',
