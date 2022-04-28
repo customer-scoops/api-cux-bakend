@@ -6373,7 +6373,7 @@ class Dashboard extends Generic
             $npsBan             = null;
         }
 
-        $filters = $this->filters($request, $jwt);
+        $filters = $this->filters($request, $jwt, $datafilters);
         $data = [
             'client' => $this->_nameClient,
             'clients' => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients : '',
