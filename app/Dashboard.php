@@ -326,7 +326,7 @@ class Dashboard extends Generic
 
             if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh'|| $dbC == 'img') {
                 $cond = '';
-                if ($datafilters != null)
+                if ($datafilters != null && strpos($datafilters,'zonal') != false)
                 {
                     $cond = ' AND ' . $datafilters; 
                 }
