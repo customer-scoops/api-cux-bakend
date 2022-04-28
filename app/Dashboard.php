@@ -287,7 +287,7 @@ class Dashboard extends Generic
 
                 $this->_fieldSelectInQuery = 'tatencion';
 
-                $modAtencion = ['filter' => 'ModalidadAtencion', 'datas' => $this->contentfilter($data, 'tatencion')];
+                $modAtencion = ['filter' => 'Modalidad_Atencion', 'datas' => $this->contentfilter($data, 'tatencion')];
 
                 return ['filters' => [(object)$modAtencion], 'status' => Response::HTTP_OK];
             }
@@ -299,7 +299,7 @@ class Dashboard extends Generic
 
                 $this->_fieldSelectInQuery = 'tipcliente';
 
-                $tipoCliente = ['filter' => 'TipoCliente', 'datas' => $this->contentfilter($data, 'tipcliente')];
+                $tipoCliente = ['filter' => 'Tipo_Cliente', 'datas' => $this->contentfilter($data, 'tipcliente')];
             }
 
             if ($dbC == 'ges') {
@@ -320,7 +320,7 @@ class Dashboard extends Generic
 
                 $this->_fieldSelectInQuery = 'tatencion';
 
-                $tipAtencion = ['filter' => 'TipoAtencion', 'datas' => $this->contentfilter($data, 'tatencion')];
+                $tipAtencion = ['filter' => 'Tipo_Atencion', 'datas' => $this->contentfilter($data, 'tatencion')];
             }
 
             if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh'|| $dbC == 'img') {
@@ -336,7 +336,7 @@ class Dashboard extends Generic
 
                 $this->_fieldSelectInQuery = 'catencion';
 
-                $CenAtencionn = ['filter' => 'CentroAtencion', 'datas' => $this->contentfilter($data, 'catencion')];
+                $CenAtencionn = ['filter' => 'Centro_Atencion', 'datas' => $this->contentfilter($data, 'catencion')];
 
             }
 
@@ -347,7 +347,7 @@ class Dashboard extends Generic
                                     
                 $this->_fieldSelectInQuery = 'gerenciamedica';
                 //print_r($data);
-                $Gerencia = ['filter' => 'GerenciaMedica', 'datas' => $this->contentfilter($data, 'gerenciamedica')];
+                $Gerencia = ['filter' => 'Gerencia_Medica', 'datas' => $this->contentfilter($data, 'gerenciamedica')];
             }
 
             if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
@@ -357,7 +357,7 @@ class Dashboard extends Generic
                                     
                 $this->_fieldSelectInQuery = 'aatencion';
 
-                $AreaAten = ['filter' => 'AreaAtencion', 'datas' => $this->contentfilter($data, 'aatencion')];
+                $AreaAten = ['filter' => 'Area_Atencion', 'datas' => $this->contentfilter($data, 'aatencion')];
             }
 
             if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
@@ -5451,13 +5451,13 @@ class Dashboard extends Generic
         //MUTUAL
         if(substr($request->survey,0,3) == 'mut'){
             $where .= $this->structfilter($request, 'macroseg',         'Macrosegmento',     $where);
-            $where .= $this->structfilter($request, 'tatencion',        'ModalidadAtencion', $where);
-            $where .= $this->structfilter($request, 'tipcliente',       'Tipo Cliente',      $where);
+            $where .= $this->structfilter($request, 'tatencion',        'Modalidad_Atencion', $where);
+            $where .= $this->structfilter($request, 'tipcliente',       'Tipo_Cliente',       $where);
             $where .= $this->structfilter($request, 'canal',            'Canal',             $where);
-            $where .= $this->structfilter($request, 'tatencion',        'TipoAtencion',      $where);
-            $where .= $this->structfilter($request, 'catencion',        'CentroAtencion',    $where);
-            $where .= $this->structfilter($request, 'aatencion',        'AreaAtencion',      $where);
-            $where .= $this->structfilter($request, 'gerenciamedica',   'GerenciaMedica',    $where);
+            $where .= $this->structfilter($request, 'tatencion',        'Tipo_Atencion',      $where);
+            $where .= $this->structfilter($request, 'catencion',        'Centro_Atencion',    $where);
+            $where .= $this->structfilter($request, 'aatencion',        'Area_Atencion',      $where);
+            $where .= $this->structfilter($request, 'gerenciamedica',   'Gerencia_Medica',    $where);
             $where .= $this->structfilter($request, 'zonal',             'Zona',             $where);
                 
             return $where;
