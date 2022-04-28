@@ -328,7 +328,7 @@ class Dashboard extends Generic
                 $cond = '';
                 if ($datafilters != null)
                 {
-                    $cond = ' AND zona = ' . $datafilters; 
+                    $cond = ' AND ' . $datafilters; 
                 }
                 $data = DB::select("SELECT DISTINCT(catencion)
                                 FROM $this->_dbSelected.adata_mut_" . $dbC . "_start
