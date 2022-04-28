@@ -2257,7 +2257,6 @@ class Dashboard extends Generic
                                     'activeDot' => false,
                                     'customDot' => true,
                                 ],
-
                                 [
                                     'type' => "line",
                                     'key' => "driver",
@@ -2266,7 +2265,6 @@ class Dashboard extends Generic
                                     'activeDot' => false,
                                     'customDot' => true,
                                 ],
-
                                 [
                                     'type' => "line",
                                     'key' => "dif",
@@ -5447,7 +5445,7 @@ class Dashboard extends Generic
         if(substr($request->survey,0,3) == 'mut'){
             $where .= $this->structfilter($request, 'macroseg',         'Macrosegmento',     $where);
             $where .= $this->structfilter($request, 'tatencion',        'ModalidadAtencion', $where);
-            $where .= $this->structfilter($request, 'tipcliente',       'TipoCliente',       $where);
+            $where .= $this->structfilter($request, 'tipcliente',       'Tipo Cliente',       $where);
             $where .= $this->structfilter($request, 'canal',            'Canal',             $where);
             $where .= $this->structfilter($request, 'tatencion',        'TipoAtencion',      $where);
             $where .= $this->structfilter($request, 'catencion',        'CentroAtencion',    $where);
@@ -6259,7 +6257,7 @@ class Dashboard extends Generic
                 $Procedencia = $this->graphProcedencia($db, $endDateFilterMonth, $startDateFilterMonth, $filterClient);
             }
 
-            if ($db == 'adata_mut_img' || $db == 'adata_mut_amb') {
+            if ($db == 'adata_mut_reh' || $db == 'adata_mut_amb' || $db == 'adata_mut_urg') {
                 $rankingSuc = $this->ranking($db, 'catencion', 'CentroAtencion', $endDateFilterMonth, $startDateFilterMonth, 'one',$datafilters, 6);
             } 
           

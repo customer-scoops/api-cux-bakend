@@ -478,7 +478,7 @@ class Suite
             "bansuc_csat3" => "Empatía del ejecutivo",
             "bansuc_csat4" => "Orientación entregada ejecutivo",
             "bansuc_csat5" => "Respuesta/solución consulta",
-            "bansuc_csat6" => "CLaridad información y documentación",
+            "bansuc_csat6" => "Claridad información y documentación",
             "bansuc_csat7" => "Rapidez resolución trámite/dudas",
             "bansuc_csat8" => "Resolución exitosa trámite/duda",
             
