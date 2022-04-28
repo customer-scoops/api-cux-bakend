@@ -94,7 +94,7 @@ class Suite
             $resp = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1)->get();
             //dd(\DB::getQueryLog());
             if($codCustomer == 'TRA001')
-                $resp = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1)->where('codsurvey','TRA_VIA')->get();
+                $resp = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1)->where('codsurvey','TRA_VIA')->orWhere('codsurvey','TRA_COND')->get();
             //$resp = DB::table('survey')->get();
         }catch (\Throwable $e) {
             return $data = [
@@ -478,7 +478,7 @@ class Suite
             "bansuc_csat3" => "Empatía del ejecutivo",
             "bansuc_csat4" => "Orientación entregada ejecutivo",
             "bansuc_csat5" => "Respuesta/solución consulta",
-            "bansuc_csat6" => "CLaridad información y documentación",
+            "bansuc_csat6" => "Claridad información y documentación",
             "bansuc_csat7" => "Rapidez resolución trámite/dudas",
             "bansuc_csat8" => "Resolución exitosa trámite/duda",
             
@@ -574,6 +574,14 @@ class Suite
             "travia_csat9" => "Ruta y tiempo de traslado",
             "travia_csat10" => "Atención del Conductor",
             "travia_csat11" => "Conducción",
+
+            "tracond_csat1" => "Proceso de inscripción, registro y activación",
+            "tracond_csat2" => "Orientación inicial",
+            "tracond_csat3" => "Aplicación Conductores",
+            "tracond_csat4" => "Medidas de identificación y verificación de pasajeros",
+            "tracond_csat5" => "Central de operaciones - Tráfico",
+            "tracond_csat6" => "Soporte",
+            "tracond_csat7" => "Pago de producción mensual",
 
             //JETSMART
             "jetvia_csat1"  => "Proceso de compra online/web realizado",
