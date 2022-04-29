@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 
 use App\Traits\ApiResponser;
 use App\Suite;
+use App\SuiteBanmedica;
 
 class SuiteController extends Controller
 {
@@ -39,6 +40,12 @@ class SuiteController extends Controller
     public function saveRegister(Request $request)
     {
         $data = $this->_suite->saveUpdate($request, $request->dataJwt);
+        return $this->generic($data['datas'], $data['status']);
+    }
+    public function updateRegisterBanmedica(Request $request)
+    {
+        $suiteBan = new SuiteBanmedica($request->dataJwt);
+        $data = $suiteBan->saveUpdate($request, $request->dataJwt);
         return $this->generic($data['datas'], $data['status']);
     }
     //
