@@ -389,6 +389,11 @@ class Suite
             return  $this->_low;
         }
     }
+
+    protected function sendedEmail($nombre,$mail,$hash,$encuesta){
+        $this->sendedmail($nombre,$mail,$hash,$encuesta);
+    }
+
     private function sendedmail($nombre,$mail,$hash,$encuesta){
         $curl = curl_init();
         curl_setopt_array($curl, array(
