@@ -29,6 +29,11 @@ class Suite
         //$this->nameDbSelected($this->_jwt[env('AUTH0_AUD')]->client);
         //$this->minMaxIndicatorNps($this->_jwt[env('AUTH0_AUD')]->client);
     }
+
+    public function getDBSelected(){
+        return $this->_dbSelected;
+    }
+
     public function saveUpdate($request, $jwt)
     {
         $rules = [
