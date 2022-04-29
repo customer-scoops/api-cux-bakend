@@ -25,9 +25,15 @@ class Suite
     {
         $this->_jwt = $_jwt;
         $this->setDetailsClient($this->_jwt[env('AUTH0_AUD')]->client);
+        //echo $this->_jwt[env('AUTH0_AUD')]->client;
         //$this->nameDbSelected($this->_jwt[env('AUTH0_AUD')]->client);
         //$this->minMaxIndicatorNps($this->_jwt[env('AUTH0_AUD')]->client);
     }
+
+    public function getDBSelected(){
+        return $this->_dbSelected;
+    }
+
     public function saveUpdate($request, $jwt)
     {
         $rules = [
@@ -92,6 +98,7 @@ class Suite
             
             //$codCustomer = ($request->get('company') !== null) ? $request->get('company'): $jwt[env('AUTH0_AUD')]->client;
             $resp = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1)->get();
+            //echo $resp;exit;  
             //dd(\DB::getQueryLog());
             if($codCustomer == 'TRA001')
                 $resp = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1)->where('codsurvey','TRA_VIA')->orWhere('codsurvey','TRA_COND')->get();
@@ -116,6 +123,7 @@ class Suite
             'datas'     => isset($surveys) ? $surveys: 'NO ENCONTRAMOS INFORMACION',
             'status'    => Response::HTTP_OK
         ];
+        //print_r($data);exit;
         return $data;
     }
     public function indicatorPrincipal($request, $jwt)
@@ -196,6 +204,7 @@ class Suite
         return [
             'datas'  => [
                 'client'            => $this->_nameClient,
+                'survey'            => $survey,
                 'startCalendar'     => $this->_dateStartClient,
                 'clients'           => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
                 'ticketCreated'     => (object)['high' =>$high,'medium' =>$medium, 'low' =>$low] ,
@@ -311,6 +320,7 @@ class Suite
                 }
                 $data[] = [
                     "ticket" => $value->ticket,
+                    "survey" => $survey,
                     "client" => array(
                         'name' => $value->nom,
                         'rut'  => $value->rut
@@ -328,6 +338,8 @@ class Suite
                     "tableName" =>$value->tableName,
                     "visita"    => $value->visita,
                     "estapaEncuesta"=> $value->etapaencuesta,
+                    "subStatus1" => $value->field_1,
+                    "subStatus2" => $value->field_2,
                     "comentarios" => array(
                         'date'      => $value->fechacarga, 
                         'content'   => $value->contenido,
@@ -377,6 +389,11 @@ class Suite
             return  $this->_low;
         }
     }
+
+    protected function sendedEmail($nombre,$mail,$hash,$encuesta){
+        $this->sendedmail($nombre,$mail,$hash,$encuesta);
+    }
+
     private function sendedmail($nombre,$mail,$hash,$encuesta){
         $curl = curl_init();
         curl_setopt_array($curl, array(
