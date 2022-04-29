@@ -662,6 +662,10 @@ class Dashboard extends Generic
     {
         $db2 = $this->primaryTable($db);
 
+        $activeP2 ='';
+        if(substr($db, 10, 3) == 'con')
+            $activeP2 = " AND etapaencuesta = 'P2' ";
+
         if ($filter == 'all') {
             $data = DB::select("SELECT SUM(TOTAL) AS TOTAL 
                                 FROM (SELECT COUNT(*) AS TOTAL 
@@ -690,7 +694,7 @@ class Dashboard extends Generic
          
         $data2 = DB::select("SELECT COUNT(*) AS RESP 
                             FROM $this->_dbSelected.$db 
-                            WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' and nps!= 99");
+                            WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' and nps!= 99 $activeP2");
         };
 
         $EmailRESP = $data2[0]->RESP;
