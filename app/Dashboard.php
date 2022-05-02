@@ -1696,16 +1696,14 @@ class Dashboard extends Generic
                                 FROM $this->_dbSelected.$table2 as a
                                 INNER JOIN $this->_dbSelected.".$table2."_start as b  ON a.token  =  b.token 
                                 WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni'  $datafilters) AS A ");
-
-
         }
 
         $csatPreviousPeriod = $this->csatPreviousPeriod($table,$dateIni, $dateEnd, $indicador, $filter,  $datafilters);
 
         $csatActive = 0;
-
-        if (($data == null) || $data[0]->total === null) {
-
+        //print_r($data);
+        if (($data == null) || $data[0]->total == null || $data[0]->csat == null) {
+          
             $csatActive =  $csatActive;
             return [
                 "name"          => substr($table, 6, 3) == 'mut'? 'isn':"csat",
@@ -1713,18 +1711,17 @@ class Dashboard extends Generic
                 "percentage"    => (string)Round($csatActive-$csatPreviousPeriod),
                 "smAvg"         => '',
                 //"smAvg"         => 0,
-
             ];
         }
 
         if ($data[0]->total != null) {
+           
             $csatActive = $data[0]->csat;
             return [
                 "name"          => substr($table, 6, 3) == 'mut'? 'isn':"csat",
                 "value"         => ROUND($data[0]->csat),
                 "percentage"    => ROUND($data[0]->csat) - ROUND($csatPreviousPeriod),
                 //"smAvg"         => 0,
-
             ];
         }
     }
