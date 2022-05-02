@@ -5506,6 +5506,7 @@ class Dashboard extends Generic
     {
         $width = 6;
         $resp = [];
+
         if ($datafilters)
             $datafilters = " AND $datafilters";
 
@@ -5556,7 +5557,7 @@ class Dashboard extends Generic
         if ($this->_dbSelected == 'customer_jetsmart') { 
             $width = 12;
             if(substr($survey, 3, 3) == 'com'){
-        
+               
                 $resp = [
                             [
                                 "name"    => $dataCbi != '' ? $dataCbi['name'] : 'CBI',
@@ -5574,8 +5575,8 @@ class Dashboard extends Generic
                                 "m2m"     => (int)round($dataCsat['percentage']),
                             ],
                             [
-                                "name"    => 'CES',
-                                "value"   => $dataCes,
+                                "name"    => $dataCes['name'],
+                                "value"   => $dataCes['value'],
                                 "m2m"     => (int)round($dataCes['percentage']),
                             ]
                         ];
