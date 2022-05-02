@@ -1615,7 +1615,7 @@ class Dashboard extends Generic
                 $data = DB::select("SELECT ((COUNT(CASE WHEN $indicador  BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN $indicador END)) -
                                     (COUNT(CASE WHEN $indicador  BETWEEN $this->_minCsat AND $this->_maxCsat THEN $indicador  END)))*100/count(CASE WHEN $indicador  != 99 THEN csat END) as CSAT
                                     FROM $this->_dbSelected.$table
-                                    WHERE mes = $mes AND annio = $annio");
+                                    WHERE mes = $mes AND annio = $annio AND etapaencuesta = 'P2'");
             }
 
             if (substr($table, 6, 3) != 'mut') {
