@@ -5506,11 +5506,6 @@ class Dashboard extends Generic
     {
         $width = 6;
         $resp = [];
-        
-    //      echo '  dataCbi  ';
-    //      print_r($dataCbi);
-    //      echo '    ';
-    //    exit;
 
         if ($datafilters)
             $datafilters = " AND $datafilters";
@@ -6364,10 +6359,9 @@ class Dashboard extends Generic
             $dataCbi            = $this->cbiResp($db, '', $dateIni, $dateEndIndicatorPrincipal);
             $graphCSATDrivers   = $this->GraphCSATDrivers($db, '', trim($request->survey), $csatInDb, $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters, $group);
             $dataisn            = $this->graphCbi($db, date('m'), date('Y'), 'cbi', $dateIni, $dateEnd, $datafilters, 'two');
-            //print_r($dataCbi); exit;
+
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient,$request->survey, $db);
-            $performance        = $this->cardsPerformace($dataNps, $dataCsat, $dateEnd, $dateIni, $request->survey, 0, 3, $datafilters,  $dataCes, $dataCbi);
-                                       //cardsPerformace($dataNps, $dataCsat,$dateEnd, $dateIni, $survey,                 $datafilters,  $dataCes = null, $dataCbi = null, $ces = null)
+            $performance        = $this->cardsPerformace($dataNps, $dataCsat, $dateEnd, $dateIni, $request->survey, $datafilters,  $dataCes, $dataCbi);
             //$performance        = $this->graphCbiResp($dataCbi);
             $npsConsolidado     = $this->graphsStruct($dataisn, 12, 'cbi');
             $npsVid             = $this->cardNpsBanmedica($this->_nameClient, $dataNPSGraph); //NPS
