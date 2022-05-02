@@ -5506,7 +5506,6 @@ class Dashboard extends Generic
     {
         $width = 6;
         $resp = [];
-
         if ($datafilters)
             $datafilters = " AND $datafilters";
 
