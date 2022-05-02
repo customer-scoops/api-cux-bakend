@@ -663,7 +663,7 @@ class Dashboard extends Generic
         $db2 = $this->primaryTable($db);
 
         $activeP2 ='';
-        if(substr($db, 10, 3) == 'con')
+        if(substr($db, 10, 3) == 'con' || substr($db, 10, 3) == 'via')
             $activeP2 = " AND etapaencuesta = 'P2' ";
 
         if ($filter == 'all') {
@@ -691,7 +691,7 @@ class Dashboard extends Generic
        
         $data = DB::select("SELECT COUNT(*) AS TOTAL FROM $this->_dbSelected.".$db."_start WHERE mailsended = 1 AND fechacarga BETWEEN '$dateIni' AND '$dateEnd'" );
         $EmailSend = $data[0]->TOTAL;
-         
+
         $data2 = DB::select("SELECT COUNT(*) AS RESP 
                             FROM $this->_dbSelected.$db 
                             WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' and nps!= 99 $activeP2");
@@ -5502,12 +5502,15 @@ class Dashboard extends Generic
         return $where;
     }
 
-    private function cardsPerformace($dataNps, $dataCsat,$dateEnd, $dateIni, $survey, $datafilters,$dataCes = null, $dataCbi = null, $ces = null)
+    private function cardsPerformace($dataNps, $dataCsat,$dateEnd, $dateIni, $survey, $datafilters, $dataCes = null, $dataCbi = null)
     {
         $width = 6;
         $resp = [];
-        //print_r($dataCes);
-       // print_r($dataCsat);
+        
+    //      echo '  dataCbi  ';
+    //      print_r($dataCbi);
+    //      echo '    ';
+    //    exit;
 
         if ($datafilters)
             $datafilters = " AND $datafilters";
@@ -5558,7 +5561,7 @@ class Dashboard extends Generic
         }
         if ($this->_dbSelected == 'customer_jetsmart') { 
             $width = 12;
-            if($ces == true){
+            if(substr($survey, 3, 3) == 'com'){
         
                 $resp = [
                             [
@@ -5583,12 +5586,15 @@ class Dashboard extends Generic
                             ]
                         ];
             }
-            if($ces == false){
+            if(substr($survey, 3, 3) == 'via'){
                 $resp = [
                             [
-                                "name"    => $dataCbi['name'],
-                                "value"   => $dataCbi['value'],
-                                "m2m"     => (int)round($dataCbi['percentage']),
+                                // "name"    => $dataCbi['name'],
+                                // "value"   => $dataCbi['value'],
+                                // "m2m"     => (int)round($dataCbi['percentage']),
+                                "name"    => $dataCbi != '' ? $dataCbi['name'] : 'CBI',
+                                "value"   => $dataCbi != '' ? $dataCbi['value'] : 'N/A',
+                                "m2m"     => $dataCbi != '' ? (int)round($dataCbi['percentage']) : 'N/A',
                             ],
                             [
                                 "name"    => $dataNps['name'],
@@ -6358,9 +6364,10 @@ class Dashboard extends Generic
             $dataCbi            = $this->cbiResp($db, '', $dateIni, $dateEndIndicatorPrincipal);
             $graphCSATDrivers   = $this->GraphCSATDrivers($db, '', trim($request->survey), $csatInDb, $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters, $group);
             $dataisn            = $this->graphCbi($db, date('m'), date('Y'), 'cbi', $dateIni, $dateEnd, $datafilters, 'two');
-            
+            //print_r($dataCbi); exit;
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient,$request->survey, $db);
-            $performance        = $this->cardsPerformace($dataNps, $dataCsat, $dateEnd, $dateIni, $request->survey, 0, 3, $datafilters,  $dataCes, $dataCbi,$ces);
+            $performance        = $this->cardsPerformace($dataNps, $dataCsat, $dateEnd, $dateIni, $request->survey, 0, 3, $datafilters,  $dataCes, $dataCbi);
+                                       //cardsPerformace($dataNps, $dataCsat,$dateEnd, $dateIni, $survey,                 $datafilters,  $dataCes = null, $dataCbi = null, $ces = null)
             //$performance        = $this->graphCbiResp($dataCbi);
             $npsConsolidado     = $this->graphsStruct($dataisn, 12, 'cbi');
             $npsVid             = $this->cardNpsBanmedica($this->_nameClient, $dataNPSGraph); //NPS
