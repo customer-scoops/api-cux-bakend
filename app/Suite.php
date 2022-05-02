@@ -323,7 +323,9 @@ class Suite
                     "survey" => $survey,
                     "client" => array(
                         'name' => $value->nom,
-                        'rut'  => $value->rut
+                        'rut'  => $value->rut,
+                        'phone' => (isset($value->phone)) ?  $value->phone : '',
+                        'celu' => (isset($value->celu)) ?  $value->celu : '',
                     ),
                     "ltv"       => 'N/A',
                     "canal"     => $value->canal,
