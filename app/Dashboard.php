@@ -176,7 +176,7 @@ class Dashboard extends Generic
         $modAtencion =      [];
         $tipoCliente =      [];
         $tipoCanal =        [];
-        $tipAtencion =     [];
+        $tipAtencion =      [];
         $CenAtencionn =     [];
         $TipoClienteT =     [];
         $TipoServicio =     [];
@@ -729,7 +729,7 @@ class Dashboard extends Generic
             if($surveys['datas'][0]['customer'] == 'MUT001'){
                 array_push($surveys['datas'], $this->consolidateMutual());
             }
-
+            
             foreach ($surveys['datas'] as $key => $value) {
                 if ($value['base'] != 'mutred'){
                     $db = 'adata_'.substr($value['base'],0,3).'_'.substr($value['base'],3,6);
@@ -763,7 +763,7 @@ class Dashboard extends Generic
                         if (substr($value['base'],3,3) == 'com') 
                             $otherGraph = [$this->infoCsat($db,date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->_initialFilter), $this->ces($db,date('Y-m-d'),date('Y-m-01'), $cesInDb)];
                         
-                        if (substr($value['base'],3,3) == 'via')
+                        if (substr($value['base'],3,3) == 'via' || substr($value['base'],3,3) == 'vue')
                             $otherGraph = [$this->infoCsat($db,date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->_initialFilter)];
                     }
 
@@ -821,6 +821,7 @@ class Dashboard extends Generic
             //JetSmart
             "jetvia" => "10",
             "jetcom" => "6",
+            "jetvue" => "6",
         ];
         if (array_key_exists($survey, $datas)) {
             return $datas[$survey];
@@ -1088,7 +1089,12 @@ class Dashboard extends Generic
                                 WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' 
                                 group by annio, mes) as a");
 
-        return (int)($data[0]->total / $data[0]->meses);
+        if($data[0]->meses != 0)
+            return (int)($data[0]->total / $data[0]->meses);
+        
+        if($data[0]->meses == 0)
+            return 'N/A';
+
     }
 
     private function AVGLast6MonthNPS($table,$table2,$dateIni,$dateEnd,$indicador, $filter){
@@ -1119,7 +1125,12 @@ class Dashboard extends Generic
                                 WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' 
                                 group by annio, mes) as a");
         }
-        return (string)(round($data[0]->total / $data[0]->meses));
+
+        if($data[0]->meses != 0)
+            return (string)(round($data[0]->total / $data[0]->meses));
+       
+        if($data[0]->meses == 0)
+            return 'N/A';
     }
 
     private function primaryTable($table)
@@ -5578,7 +5589,7 @@ class Dashboard extends Generic
                             ]
                         ];
             }
-            if(substr($survey, 3, 3) == 'via'){
+            if(substr($survey, 3, 3) == 'via' || substr($survey, 3, 3) == 'vue'){
                 $resp = [
                             [
                                 // "name"    => $dataCbi['name'],
