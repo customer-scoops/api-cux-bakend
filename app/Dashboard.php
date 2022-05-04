@@ -1307,10 +1307,10 @@ class Dashboard extends Generic
     }
 
     //OKK
-    protected function infoNps($table,  $dateIni, $dateEnd, $indicador, $filter)
+    protected function infoNps($table,  $dateIni, $dateEnd, $indicador, $filter, $dataFilters = NULL)
     {
      
-        $generalDataNps             = $this->resumenNps($table,  $dateIni, $dateEnd, $indicador, $filter);
+        $generalDataNps             = $this->resumenNps($table,  $dateIni, $dateEnd, $indicador, $filter, $dataFilters);
         $generalDataNps['graph']    = $this->graphNps($table,  $indicador, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $filter, 'one');
 
         return $generalDataNps;

@@ -13,8 +13,6 @@ class DashboardMutual extends Dashboard
         parent::__construct($jwt);
     }
 
-    
-
     public function generalInfo($request, $jwt)
     {
         $surveys = $this->getDataSurvey($request, $jwt);
@@ -25,14 +23,13 @@ class DashboardMutual extends Dashboard
             if($surveys['datas'][0]['customer'] == 'MUT001'){
                 array_push($surveys['datas'], $this->consolidateMutual());
             }
-
+            
             foreach ($surveys['datas'] as $key => $value) {
                 if ($value['base'] != 'mutred'){
                     $db = 'adata_'.substr($value['base'],0,3).'_'.substr($value['base'],3,6);
                     $db2 = $this->primaryTable($db);
                     $npsInDb = 'nps';
                     $csatInDb = 'csat';
-                    $cesInDb = 'ces';
                     $infoNps =[$this->infoNps($db, date('Y-m-d'),date('Y-m-01'),$npsInDb,$this->getInitialFilter())]; 
                     $otherGraph = [$this->infoCsat($db, date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->getInitialFilter())];
                     
