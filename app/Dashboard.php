@@ -62,7 +62,7 @@ class Dashboard extends Generic
 
     /* Función para saber el dia */
 
-    private function getFirstMond()
+    protected function getFirstMond()
     {
         $day = date("N");
         $resta = 0;
