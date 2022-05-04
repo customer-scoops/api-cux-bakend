@@ -718,13 +718,17 @@ class Dashboard extends Generic
             ],
         ];
     }
-
-    public function generalInfo($request, $jwt){
+    protected function getDataSurvey($request, $jwt){
         $indicators = new Suite($this->_jwt);
+        return $indicators->getSurvey($request, $jwt);
+    }
+
+    public function generalInfo($request, $jwt)
+    {
+        $surveys = $this->getDataSurvey($request, $jwt);
         $data = [];
-        $surveys = $indicators->getSurvey($request, $jwt);
         $otherGraph = [];
-    
+     //dd($surveys);
         if ($surveys['status'] == 200) {
             if($surveys['datas'][0]['customer'] == 'MUT001'){
                 array_push($surveys['datas'], $this->consolidateMutual());
@@ -740,9 +744,6 @@ class Dashboard extends Generic
                     $infoNps =[$this->infoNps($db, date('Y-m-d'),date('Y-m-01'),$npsInDb,$this->_initialFilter)]; 
                     $otherGraph = [$this->infoCsat($db, date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->_initialFilter)];
                     
-                    if(substr($value['base'],0,3) == 'mut'){
-                        $otherGraph = [$this->infoCsat($db,date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->_initialFilter)];
-                    } 
                     if (substr($value['base'],0,3) == 'tra'){
                         if(substr($value['base'],3,3) == 'con')
                             $db = 'adata_tra_cond';
@@ -783,7 +784,7 @@ class Dashboard extends Generic
             'datas'     => $data,
             'status'    => Response::HTTP_OK
         ];
-        }
+    }
     
 
     public function getEndCsat($survey){
@@ -1091,8 +1092,9 @@ class Dashboard extends Generic
         return (int)($data[0]->total / $data[0]->meses);
     }
 
-    private function AVGLast6MonthNPS($table,$table2,$dateIni,$dateEnd,$indicador, $filter){
+    private function AVGLast6MonthNPS($table,$dateIni,$dateEnd,$indicador, $filter){
         if($filter == 'all'){              
+            $table2 = $this->primaryTable($table);
 
             $data = DB::select("SELECT sum(NPSS) as total, COUNT(distinct mes) as meses from (SELECT round(SUM(NPS)) AS NPSS, mes FROM 
             (SELECT ROUND(((COUNT(CASE WHEN $indicador  BETWEEN 9 AND 10 THEN 1 END) -
@@ -1122,7 +1124,7 @@ class Dashboard extends Generic
         return (string)(round($data[0]->total / $data[0]->meses));
     }
 
-    private function primaryTable($table)
+    protected function primaryTable($table)
     {
         $db = explode('_', $table);
         $indicatordb = ($db[1] == 'vid') ? 'ban' : 'vid';
@@ -1190,16 +1192,13 @@ class Dashboard extends Generic
    
     } 
 
-    //OKK
-    private function resumenNps($table,  $dateEnd, $dateIni, $indicador, $filter, $datafilters = null)
-    {
-        $activeP2 ='';
+    protected function activeP2($table):string{
         if(substr($table, 6, 3) == 'jet')
-            $activeP2 = " AND etapaencuesta = 'P2' ";
+            return " AND etapaencuesta = 'P2' ";
+        return '';
+    }
 
-        $table2 = '';
-        if ($datafilters)
-            $datafilters = " AND $datafilters";
+    protected function dbResumenNps($table,$indicador,$dateIni,$dateEnd, $datafilters, $filter){
 
         if ($filter == 'all') {
             $table2 = $this->primaryTable($table);
@@ -1247,10 +1246,21 @@ class Dashboard extends Generic
                                 FROM $this->_dbSelected.$table as a
                                 LEFT JOIN $this->_dbSelected." . $table . "_start as b
                                 on a.token = b.token
-                                WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' $datafilters $activeP2
+                                WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' $datafilters ".$this->activeP2($table)."
                                 GROUP BY a.mes, a.annio
                                 ORDER BY date_survey ASC");
         }
+
+        return $data;
+    }
+    //OKK
+    private function resumenNps($table,  $dateEnd, $dateIni, $indicador, $filter, $datafilters = null)
+    {
+
+        if ($datafilters)
+            $datafilters = " AND $datafilters";
+
+        $data = $this->dbResumenNps($table,$indicador,$dateIni,$dateEnd, $datafilters, $filter);
 
         if (($data == null) || $data[0]->total == null || $data[0]->total == 0) {
             $npsActive = (isset($data[0]->NPS)) ? $data[0]->NPS : 0;
@@ -1264,7 +1274,7 @@ class Dashboard extends Generic
                 "neutrals"      => 0,
                 "detractors"    => 0,
                 "percentage"    => substr($table, 6, 3) != 'tra' ? $npsActive - $npsPreviousPeriod : $npsActive - $npsPreviousPeriod['nps'],
-                "smAvg"         => $this->AVGLast6MonthNPS($table, $table2, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter)
+                "smAvg"         => $this->AVGLast6MonthNPS($table, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter)
             ];
         }
 
@@ -1280,7 +1290,6 @@ class Dashboard extends Generic
                 $npsPreviousPeriod = $npsPreviousPeriod['nps'];
             }
        
-
             return [
                 "name"              => "nps",
                 "value"             => round($npsActive),
@@ -1288,8 +1297,8 @@ class Dashboard extends Generic
                 "promotors"         => round($data[0]->promotor),
                 "neutrals"          => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - (round($data[0]->detractor) + round($data[0]->promotor)),
                 "detractors"        => round($data[0]->detractor),
-                "percentage"        => substr($table, 6, 3) == 'mut'? 0 : $npsActive - round($npsPreviousPeriod),
-                "smAvg"             => substr($table, 6, 3) == 'mut'? '0' :$this->AVGLast6MonthNPS($table, $table2, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter),
+                "percentage"        => substr($table, 6, 3) == 'mut'? '0' : $npsActive - round($npsPreviousPeriod),
+                "smAvg"             => substr($table, 6, 3) == 'mut'? '0' :$this->AVGLast6MonthNPS($table, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter),
                 'NPSPReV'           => $npsPreviousPeriod,
                 // 'mes'               => $mes,
                 // 'annio'             => $annio,
@@ -1298,7 +1307,7 @@ class Dashboard extends Generic
     }
 
     //OKK
-    private function infoNps($table,  $dateIni, $dateEnd, $indicador, $filter)
+    protected function infoNps($table,  $dateIni, $dateEnd, $indicador, $filter)
     {
      
         $generalDataNps             = $this->resumenNps($table,  $dateIni, $dateEnd, $indicador, $filter);
@@ -1409,7 +1418,7 @@ class Dashboard extends Generic
                             'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('m-d', strtotime($mondayWeek . "- $count week")) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                             'values' => [
                                 "promoters"     => round($value->promotor),
-                                "neutrals"      => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - (round($data[0]->detractor) + round($data[0]->promotor)),//100 - (round($value->promotor) + round($value->detractor)),
+                                "neutrals"      => ((round($value->promotor) == 0) && (round($value->detractor) == 0)) ? round($value->neutral) : 100 - (round($value->detractor) + round($value->promotor)),//100 - (round($value->promotor) + round($value->detractor)),
                                 "detractors"    => round($value->detractor),
                                 "nps"           => round($value->NPS)
                             ],
@@ -1432,7 +1441,7 @@ class Dashboard extends Generic
                             'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('m-d', strtotime($mondayWeek . "- $count week")) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                             'values' => [
                                 "promoters"     => round($value->promotor),
-                                "neutrals"      => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - (round($data[0]->detractor) + round($data[0]->promotor)),//100 - (round($value->promotor) + round($value->detractor)),
+                                "neutrals"      => ((round($value->promotor) == 0) && (round($value->detractor) == 0)) ? round($value->neutral) : 100 - (round($value->detractor) + round($value->promotor)),//100 - (round($value->promotor) + round($value->detractor)),
                                 "detractors"    => round($value->detractor),
                                 "nps"           => round($value->NPS)
                             ],
@@ -1726,7 +1735,7 @@ class Dashboard extends Generic
         }
     }
 
-    private function infoCsat($table, $dateIni, $dateEnd, $indicador)
+    protected function infoCsat($table, $dateIni, $dateEnd, $indicador)
     {
         $generalDataCsat            = $this->resumenCsat($table, $dateIni, $dateEnd, $indicador, $this->_initialFilter);
         $generalDataCsat['graph']   = $this->graphCsat($table,  $indicador, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $this->_initialFilter, 'one');
@@ -1837,7 +1846,7 @@ class Dashboard extends Generic
                             'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cinsa + $value->Cneut + $value->Csati) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cinsa + $value->Cneut + $value->Csati) . ')',
                             'values' => [
                                 "promoters"     => round($value->promotor),
-                                "neutrals"      => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - (round($data[0]->detractor) + round($data[0]->promotor)),//100 - (round($value->promotor) + round($value->detractor)),
+                                "neutrals"      => ((round($value->promotor) == 0) && (round($value->detractor) == 0)) ? round($value->neutral) : 100 - (round($value->detractor) + round($value->promotor)),//100 - (round($value->promotor) + round($value->detractor)),
                                 "detractors"    => round($value->detractor),
                                 "csat"          => (string)ROUND($value->csat),
                             ],
@@ -2021,8 +2030,6 @@ class Dashboard extends Generic
                     ];
                 }
             }
-
-
         }
 
         if (empty($data)) {         
@@ -2356,7 +2363,6 @@ class Dashboard extends Generic
                                     group by a.mes, a.annio");
 
             $cbiPreviousPeriod = $this->cbiPreviousPeriod($db, $dateIni, $dateEnd, 'cbi', $datafilters);
-           
 
             if($data && $data[0]->CBI != NULL){
                 foreach ($data as $key => $value) { 
@@ -2381,7 +2387,6 @@ class Dashboard extends Generic
             //print_r($generalDataCbi);
             return $generalDataCbi;
         }
-        
     }
 
 
@@ -2734,7 +2739,7 @@ class Dashboard extends Generic
                 'xLegend'   => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                 'values'    => [
                     "promoters"     => Round($value->promotor),
-                    "neutrals"      => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - (round($data[0]->detractor) + round($data[0]->promotor)),//100 - (Round($value->promotor) + Round($value->detractor)),
+                    "neutrals"      => ((round($value->promotor) == 0) && (round($value->detractor) == 0)) ? round($value->neutral) : 100 - (round($value->detractor) + round($value->promotor)),//100 - (Round($value->promotor) + Round($value->detractor)),
                     "detractors"    => Round($value->detractor),
                     "nps"           => Round($value->NPS)
                 ],
@@ -3354,7 +3359,7 @@ class Dashboard extends Generic
     }
 
 
-    private function GraphCSATDrivers($db, $db2, $survey, $indicatorCSAT,  $dateEnd, $dateIni, $filter, $struct = 'two', $datafilters = null)
+    protected function GraphCSATDrivers($db, $db2, $survey, $indicatorCSAT,  $dateEnd, $dateIni, $filter, $struct = 'two', $datafilters = null)
     {
         $graphCSAT = [];
 
@@ -5924,7 +5929,7 @@ class Dashboard extends Generic
     }
 
 
-    private function consolidateMutual(){
+    protected function consolidateMutual(){
         return [
             'name'      => 'CONSOLIDADO',
             'base'      => 'mutcon',
@@ -6562,5 +6567,9 @@ class Dashboard extends Generic
            $this->_minMaxCes           = 4;
            $this->_maxMaxCes           = 5;
         }
+    }
+
+    public function getInitialFilter(){
+        return $this->_initialFilter;
     }
 }
