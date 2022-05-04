@@ -59,7 +59,7 @@ class Dashboard extends Generic
     private $_valueMinAnomaliasText = -20;
     private $_valueMaxAnomaliasText = 30;
     private $_valueAnomaliasPorcentajeText = 30;
-
+    private $_valueZona;
     /* Función para saber el dia */
 
     protected function getFirstMond()
@@ -728,7 +728,6 @@ class Dashboard extends Generic
         $surveys = $this->getDataSurvey($request, $jwt);
         $data = [];
         $otherGraph = [];
-     //dd($surveys);
         if ($surveys['status'] == 200) {
             if($surveys['datas'][0]['customer'] == 'MUT001'){
                 array_push($surveys['datas'], $this->consolidateMutual());
@@ -1198,7 +1197,7 @@ class Dashboard extends Generic
         return '';
     }
 
-    protected function dbResumenNps($table,$indicador,$dateIni,$dateEnd, $datafilters, $filter){
+    public function dbResumenNps($table,$indicador,$dateIni,$dateEnd, $datafilters, $filter){
 
         if ($filter == 'all') {
             $table2 = $this->primaryTable($table);
@@ -6484,7 +6483,7 @@ class Dashboard extends Generic
             $this->_maxMaxCsat          = 7;
             $this->_obsNps              = 'obs_csat';
             $this->_imageClient         = 'https://customerscoops.com/assets/companies-images/mutual_logo.png';
-            $this->_nameClient          = 'Mutual';
+            //$this->_nameClient          = 'Mutual';
             $this->ButFilterWeeks       = [["text" => "Anual", "key" => "filterWeeks", "value" => ""], ["text" => "Semanal", "key" => "filterWeeks", "value" => "10"]];
             $this->_minCes              = 1;
             $this->_maxCes              = 4;
@@ -6571,5 +6570,13 @@ class Dashboard extends Generic
 
     public function getInitialFilter(){
         return $this->_initialFilter;
+    }
+
+    public function getValueParams($params){
+        return $this->$params;
+    }
+    public function setNameClient($value)
+    {
+        $this->_nameClient = $value;
     }
 }

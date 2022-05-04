@@ -23,7 +23,7 @@ class DashboardController extends Controller
     }
     public function index(Request $request){
         if(TRIM($request->dataJwt[env('AUTH0_AUD')]->client) == 'MUT001'){
-            $dashboarMut = new DashboardMutual($request->dataJwt);
+            $dashboarMut = new DashboardMutual($request->dataJwt, $request);
             $data = $dashboarMut->generalInfo($request, $request->dataJwt);
         }
         if(TRIM($request->dataJwt[env('AUTH0_AUD')]->client) != 'MUT001'){

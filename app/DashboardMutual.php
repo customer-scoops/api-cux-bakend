@@ -3,14 +3,16 @@
 use Validator;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-
+use DB;
 
 class DashboardMutual extends Dashboard
 {
-    
-    public function __construct($jwt)
+    private $_filterZona = '';
+
+    public function __construct($jwt, $request)
     {
         parent::__construct($jwt);
+        $this->setFilterZona($jwt, $request);
     }
 
     public function generalInfo($request, $jwt)
@@ -18,7 +20,6 @@ class DashboardMutual extends Dashboard
         $surveys = $this->getDataSurvey($request, $jwt);
         $data = [];
         $otherGraph = [];
-     //dd($surveys);
         if ($surveys['status'] == 200) {
             if($surveys['datas'][0]['customer'] == 'MUT001'){
                 array_push($surveys['datas'], $this->consolidateMutual());
@@ -26,15 +27,13 @@ class DashboardMutual extends Dashboard
 
             foreach ($surveys['datas'] as $key => $value) {
                 if ($value['base'] != 'mutred'){
-                    $db = 'adata_'.substr($value['base'],0,3).'_'.substr($value['base'],3,6);
-                    $db2 = $this->primaryTable($db);
-                    $npsInDb = 'nps';
-                    $csatInDb = 'csat';
-                    $infoNps =[$this->infoNps($db, date('Y-m-d'),date('Y-m-01'),$npsInDb,$this->getInitialFilter())]; 
-                    $otherGraph = [$this->infoCsat($db, date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->getInitialFilter())];
+                    $db         = 'adata_'.substr($value['base'],0,3).'_'.substr($value['base'],3,6);
+                    $db2        = $this->primaryTable($db);
+                    $infoNps    = [$this->infoNpsMutual($db, date('Y-m-d'),date('Y-m-01'),'nps',null,$this->getInitialFilter(), $this->surveyFilterZona($value['base'], $jwt, $request))]; 
+                    $otherGraph = [$this->infoCsat($db, date('Y-m-d'),date('Y-m-01'), 'csat',$this->getInitialFilter())];
                     
                     if(substr($value['base'],0,3) == 'mut'){
-                        $otherGraph = [$this->infoCsat($db,date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->getInitialFilter())];
+                        $otherGraph = [$this->infoCsat($db,date('Y-m-d'),date('Y-m-01'), 'csat',$this->getInitialFilter())];
                     } 
                   
                     $data[] = [
@@ -43,7 +42,7 @@ class DashboardMutual extends Dashboard
                         "identifier"    => $value['base'],
                         "principalIndicator" => $infoNps,
 
-                        "journeyMap"    => $this->GraphCSATDrivers($db,$db2,$value['base'],$csatInDb,date('Y-m-d'),date('Y-m-01'),$this->getInitialFilter(),'one'),
+                        "journeyMap"    => $this->GraphCSATDrivers($db,$db2,$value['base'],'csat',date('Y-m-d'),date('Y-m-01'),$this->getInitialFilter(),'one'),
                         "otherGraphs"   => $otherGraph
                     ];
                 }
@@ -55,41 +54,44 @@ class DashboardMutual extends Dashboard
         ];
     }
 
-    protected function infoNpsMutual($table,  $dateIni, $dateEnd, $indicador, $filter)
+    protected function infoNpsMutual($table,  $dateIni, $dateEnd, $indicador, $filter, $dataFilter,$zona)
     {
      
-        $generalDataNps             = $this->resumenNps($table,  $dateIni, $dateEnd, $indicador, $filter);
-        $generalDataNps['graph']    = $this->graphNps($table,  $indicador, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $filter, 'one');
+        $generalDataNps             = $this->resumenNps($table,  $dateIni, $dateEnd, $indicador, $filter, '', $zona);
+        $generalDataNps['graph']    = $this->graphNps($table,  $indicador, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $filter, 'one', $zona);
 
         return $generalDataNps;
     }
 
-    protected function dbResumenNps($table,$indicador,$dateIni,$dateEnd, $datafilters, $filter){
-       
-            $data = DB::select("SELECT count(*) as total, 
-                                ((count(if($indicador <= $this->_maxNps, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador !=99 THEN 1 END)) as detractor, 
-                                ((count(if($indicador = $this->_minMaxNps or  $indicador = $this->_maxMaxNps , $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)) as promotor,
-                                ((count(if($indicador =  $this->_maxMediumNps OR $indicador = $this->_minMediumNps, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)) as neutral,
-                                AVG($indicador) as promedio,
-                                ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
-                                COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) / 
-                                (COUNT(CASE WHEN $indicador != 99 THEN $indicador END)) * 100),1) AS NPS,  $this->_fieldSelectInQuery
-                                FROM $this->_dbSelected.$table as a
-                                LEFT JOIN $this->_dbSelected." . $table . "_start as b
-                                on a.token = b.token
-                                WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' $datafilters ".$this->activeP2($table)."
-                                GROUP BY a.mes, a.annio
-                                ORDER BY date_survey ASC");
+    private function dbResumenNps1 ($table,$indicador,$dateIni,$dateEnd, $datafilters, $filter, $zona)
+    {
+        $query = "SELECT count(*) as total, 
+        ((count(if(nps <= ".$this->getValueParams('_maxNps').", nps, NULL))*100)/COUNT(CASE WHEN nps !=99 THEN 1 END)) as detractor, 
+        ((count(if(nps = ".$this->getValueParams('_minMaxNps')." or  nps = ".$this->getValueParams('_maxMaxNps')." , nps, NULL))*100)/COUNT(CASE WHEN nps != 99 THEN 1 END)) as promotor,
+        ((count(if(nps =  ".$this->getValueParams('_maxMediumNps')." OR nps = ".$this->getValueParams('_minMediumNps').", nps, NULL))*100)/COUNT(CASE WHEN nps != 99 THEN 1 END)) as neutral,
+        AVG(nps) as promedio,
+        ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) - 
+        COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) / 
+        (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1) AS NPS,  ".$this->getValueParams('_fieldSelectInQuery')."
+        FROM ".$this->getValueParams('_dbSelected').".$table as a
+        LEFT JOIN ".$this->getValueParams('_dbSelected')."." . $table . "_start as b
+        on a.token = b.token
+        WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' ".$this->activeP2 ($table)." $zona
+        GROUP BY a.mes, a.annio
+        ORDER BY date_survey ASC";
+        $data = DB::select($query);
+
+
         return $data;
     }
     //OKK
-    private function resumenNps($table,  $dateEnd, $dateIni, $indicador, $filter, $datafilters = null)
+    private function resumenNps($table,  $dateEnd, $dateIni, $indicador, $filter, $datafilters, $zona)
     {
 
         if ($datafilters)
             $datafilters = " AND $datafilters";
-
-        $data = $this->dbResumenNps($table,$indicador,$dateIni,$dateEnd, $datafilters, $filter);
+        
+        $data = $this->dbResumenNps1($table,$indicador,$dateIni,$dateEnd, '', $filter, $zona);
 
         if (($data == null) || $data[0]->total == null || $data[0]->total == 0) {
             $npsActive = (isset($data[0]->NPS)) ? $data[0]->NPS : 0;
@@ -129,8 +131,6 @@ class DashboardMutual extends Dashboard
                 "percentage"        => substr($table, 6, 3) == 'mut'? '0' : $npsActive - round($npsPreviousPeriod),
                 "smAvg"             => substr($table, 6, 3) == 'mut'? '0' :$this->AVGLast6MonthNPS($table, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter),
                 'NPSPReV'           => $npsPreviousPeriod,
-                // 'mes'               => $mes,
-                // 'annio'             => $annio,
             ];
         }
     }
@@ -143,9 +143,6 @@ class DashboardMutual extends Dashboard
         if(substr($table, 6, 3) == 'mut'){
             return $graphNPS;
         }
-        if(substr($table, 6, 3) == 'jet' || substr($table, 6, 3) == 'mut' )
-            $activeP2 = " AND etapaencuesta = 'P2' ";
-        
         $table2 = $this->primaryTable($table);
         $group2 = "mes, annio";
         
@@ -310,5 +307,61 @@ class DashboardMutual extends Dashboard
 
 
     }
+
+    private function surveyFilterZona($survey, $jwt, $request){
+        $filter = ['mutamb','mutreh','muturg','mutimg','muthos'];
+        if(array_search( $survey,$filter, true)){
+            return " AND zonal = '". $this->setFilterZona($jwt, $request);
+        }
+    }
+
+    private function setFilterZona($jwt, $request){
+        // if (isset($jwt[env('AUTH0_AUD')]->surveysActive)) {
+        //     foreach ($jwt[env('AUTH0_AUD')]->surveysActive as $key => $value) {
+        //         $surv[] = $value; 
+        //     }
+        //     $db->whereIn('codDbase',$surv);
+        //     unset($surv);
+        // }
+        // array_search($this->surveyFilterZona());
+
+        if(isset($jwt[env('AUTH0_AUD')]->zona))
+            $this->_filterZona = " AND zonal = '". $jwt[env('AUTH0_AUD')]->zona."'";
+
+        if($request->get('zonal') !== null)
+            $this->_filterZona = " AND zonal = '". trim($request->get('zonal'))."'";
+    } 
+
+
+    // private function setParams(){
+
+    //     $this->_dbSelected          = 'customer_colmena';
+    //     $this->_initialFilter       = 'one';
+    //     $this->_fieldSelectInQuery  = 'sexo';
+    //     $this->_fieldSex            = 'sexo';
+    //     $this->_fieldSuc            = '';
+    //     $this->_minNps              = 1;
+    //     $this->_maxNps              = 4;
+    //     $this->_minMediumNps        = 5;
+    //     $this->_maxMediumNps        = 5;
+    //     $this->_minMaxNps           = 6;
+    //     $this->_maxMaxNps           = 7;
+    //     $this->_minCsat             = 1;
+    //     $this->_maxCsat             = 4;
+    //     $this->_minMediumCsat       = 5;
+    //     $this->_maxMediumCsat       = 5;
+    //     $this->_minMaxCsat          = 6;
+    //     $this->_maxMaxCsat          = 7;
+    //     $this->_obsNps              = 'obs_csat';
+    //     $this->_imageClient         = 'https://customerscoops.com/assets/companies-images/mutual_logo.png';
+    //     $this->_nameClient          = 'Mutual';
+    //     $this->ButFilterWeeks       = [["text" => "Anual", "key" => "filterWeeks", "value" => ""], ["text" => "Semanal", "key" => "filterWeeks", "value" => "10"]];
+    //     $this->_minCes              = 1;
+    //     $this->_maxCes              = 4;
+    //     $this->_minMediumCes        = 5;
+    //     $this->_minMaxCes           = 6;
+    //     $this->_maxMaxCes           = 7;
+    
+    // }
 
 }
