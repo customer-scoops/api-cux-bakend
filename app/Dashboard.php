@@ -1083,6 +1083,8 @@ class Dashboard extends Generic
                                 FROM $this->_dbSelected.$table
                                 WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' 
                                 group by annio, mes) as a");
+        if ($data[0]->meses == null || $data[0]->meses == 0)
+            return 'N/A';
 
         return (int)($data[0]->total / $data[0]->meses);
     }
@@ -1115,6 +1117,10 @@ class Dashboard extends Generic
                                 WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' 
                                 group by annio, mes) as a");
         }
+        
+        if ($data[0]->meses == null || $data[0]->meses == 0)
+            return 'N/A';
+
         return (string)(round($data[0]->total / $data[0]->meses));
     }
 
@@ -6320,7 +6326,7 @@ class Dashboard extends Generic
             $npsConsolidado     = $this->graphNpsIsn($dataisn, $this->ButFilterWeeks);
             $npsVid             = $this->wordCloud($request); //null;
             $csatJourney        = $this->CSATJourney($graphCSATDrivers);
-            $csatDrivers        = $this->graphCLTransvip($dataCL);
+            $csatDrivers        = substr($request->survey, 0, 3) == 'con' ? $this->CSATDrivers($graphCSATDrivers) : $this->graphCLTransvip($dataCL);
             $cx                 = $this->graphCbiResp($datasCbiResp);
             $wordCloud          = substr($request->survey, 0, 3) == 'via' ? $this->globales($db, date('m'), date('Y'), 'sentido', 'Sentido', 'cbi', 'ins', 4, $datafilters) : null;
             $closedLoop         = substr($request->survey, 0, 3) == 'via' ? $this->globales($db, date('m'), date('Y'), 'tiposervicio', 'Vehículo', 'cbi', 'ins', 4, $datafilters): null;
