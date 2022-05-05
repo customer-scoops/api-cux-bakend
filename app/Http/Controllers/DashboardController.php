@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponser;
 use App\Dashboard;
+use App\DashboardMutual;
 use Illuminate\Http\Response;
 
 class DashboardController extends Controller
@@ -21,8 +22,13 @@ class DashboardController extends Controller
         $this->_dashboard = new Dashboard($request->dataJwt);
     }
     public function index(Request $request){
-        $data = $this->_dashboard->generalInfo($request, $request->dataJwt);
-        //print_r($data);
+        if(TRIM($request->dataJwt[env('AUTH0_AUD')]->client) == 'MUT001'){
+            $dashboarMut = new DashboardMutual($request->dataJwt);
+            $data = $dashboarMut->generalInfo($request, $request->dataJwt);
+        }
+        if(TRIM($request->dataJwt[env('AUTH0_AUD')]->client) != 'MUT001'){
+         $data = $this->_dashboard->generalInfo($request, $request->dataJwt);
+        }
         return $this->generic($data['datas'], $data['status']);
     }
     public function indexBackCards(Request $request)
