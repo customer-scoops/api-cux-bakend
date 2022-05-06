@@ -835,6 +835,7 @@ class Dashboard extends Generic
             //JetSmart
             "jetvia" => "10",
             "jetcom" => "6",
+            "jetvue" => "6",
         ];
         if (array_key_exists($survey, $datas)) {
             return $datas[$survey];
