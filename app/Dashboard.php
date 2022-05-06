@@ -680,6 +680,10 @@ class Dashboard extends Generic
     {
         $db2 = $this->primaryTable($db);
 
+        $activeP2 ='';
+        if(substr($db, 10, 3) == 'con' || substr($db, 10, 3) == 'via')
+            $activeP2 = " AND etapaencuesta = 'P2' ";
+
         if ($filter == 'all') {
             $data = DB::select("SELECT SUM(TOTAL) AS TOTAL 
                                 FROM (SELECT COUNT(*) AS TOTAL 
@@ -705,10 +709,10 @@ class Dashboard extends Generic
        
         $data = DB::select("SELECT COUNT(*) AS TOTAL FROM $this->_dbSelected.".$db."_start WHERE mailsended = 1 AND fechacarga BETWEEN '$dateIni' AND '$dateEnd'" );
         $EmailSend = $data[0]->TOTAL;
-         
+
         $data2 = DB::select("SELECT COUNT(*) AS RESP 
                             FROM $this->_dbSelected.$db 
-                            WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' and nps!= 99");
+                            WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' and nps!= 99 $activeP2");
         };
 
         $EmailRESP = $data2[0]->RESP;
@@ -1717,16 +1721,14 @@ class Dashboard extends Generic
                                 FROM $this->_dbSelected.$table2 as a
                                 INNER JOIN $this->_dbSelected.".$table2."_start as b  ON a.token  =  b.token 
                                 WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni'  $datafilters) AS A ");
-
-
         }
 
         $csatPreviousPeriod = $this->csatPreviousPeriod($table,$dateIni, $dateEnd, $indicador, $filter,  $datafilters);
 
         $csatActive = 0;
-
-        if (($data == null) || $data[0]->total === null) {
-
+        //print_r($data);
+        if (($data == null) || $data[0]->total == null || $data[0]->csat == null) {
+          
             $csatActive =  $csatActive;
             return [
                 "name"          => substr($table, 6, 3) == 'mut'? 'isn':"csat",
@@ -1734,18 +1736,17 @@ class Dashboard extends Generic
                 "percentage"    => (string)Round($csatActive-$csatPreviousPeriod),
                 "smAvg"         => '',
                 //"smAvg"         => 0,
-
             ];
         }
 
         if ($data[0]->total != null) {
+           
             $csatActive = $data[0]->csat;
             return [
                 "name"          => substr($table, 6, 3) == 'mut'? 'isn':"csat",
                 "value"         => ROUND($data[0]->csat),
                 "percentage"    => ROUND($data[0]->csat) - ROUND($csatPreviousPeriod),
                 //"smAvg"         => 0,
-
             ];
         }
     }
@@ -2033,7 +2034,7 @@ class Dashboard extends Generic
                         'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->dificil + $value->facil + $value->neutral) . ')' : 'Semana ' . $value->week . ' (' . ($value->dificil + $value->facil + $value->neutral) . ')',
                         'values' => [
                             "promoters"  => round($value->facil),
-                            "neutrals"   => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - (round($data[0]->detractor) + round($data[0]->promotor)),//100 - (round($value->facil) + round($value->dificil)),
+                            "neutrals"   => ((round($value->facil) == 0) && (round($value->dificil) == 0)) ? round($value->neutral) : 100 - (round($value->facil) + round($value->dificil)),//100 - (round($value->facil) + round($value->dificil)),
                             "detractors" => round($value->dificil),
                             'ces' => (string)ROUND($value->ces)
                         ],
@@ -5588,12 +5589,10 @@ class Dashboard extends Generic
         return $where;
     }
 
-    private function cardsPerformace($dataNps, $dataCsat,$dateEnd, $dateIni, $survey, $datafilters,$dataCes = null, $dataCbi = null, $ces = null)
+    private function cardsPerformace($dataNps, $dataCsat,$dateEnd, $dateIni, $survey, $datafilters, $dataCes = null, $dataCbi = null)
     {
         $width = 6;
         $resp = [];
-        //print_r($dataCes);
-       // print_r($dataCsat);
 
         if ($datafilters)
             $datafilters = " $datafilters";
@@ -5645,8 +5644,8 @@ class Dashboard extends Generic
         if ($this->_dbSelected == 'customer_jetsmart') { 
             $width = 12;
             if(substr($survey, 3, 3) == 'com'){
-        
-                $resp = [
+
+              $resp = [
                             [
                                 "name"    => $dataCbi != '' ? $dataCbi['name'] : 'CBI',
                                 "value"   => $dataCbi != '' ? $dataCbi['value'] : 'N/A',
@@ -5663,19 +5662,23 @@ class Dashboard extends Generic
                                 "m2m"     => (int)round($dataCsat['percentage']),
                             ],
                             [
-                                "name"    => 'CES',
-                                "value"   => $dataCes,
+                                "name"    => $dataCes['name'],
+                                "value"   => $dataCes['value'],
                                 "m2m"     => (int)round($dataCes['percentage']),
                             ]
                         ];
             }
 
             if(substr($survey, 3, 3) == 'via' || substr($survey, 3, 3) == 'vue'){
+
                 $resp = [
                             [
-                                "name"    => $dataCbi['name'],
-                                "value"   => $dataCbi['value'],
-                                "m2m"     => (int)round($dataCbi['percentage']),
+                                // "name"    => $dataCbi['name'],
+                                // "value"   => $dataCbi['value'],
+                                // "m2m"     => (int)round($dataCbi['percentage']),
+                                "name"    => $dataCbi != '' ? $dataCbi['name'] : 'CBI',
+                                "value"   => $dataCbi != '' ? $dataCbi['value'] : 'N/A',
+                                "m2m"     => $dataCbi != '' ? (int)round($dataCbi['percentage']) : 'N/A',
                             ],
                             [
                                 "name"    => $dataNps['name'],
@@ -6450,7 +6453,7 @@ class Dashboard extends Generic
             $dataCbi            = $this->cbiResp($db, '', $dateIni, $dateEndIndicatorPrincipal);
             $graphCSATDrivers   = $this->GraphCSATDrivers($db, '', trim($request->survey), $csatInDb, $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters, $group);
             $dataisn            = $this->graphCbi($db, date('m'), date('Y'), 'cbi', $dateIni, $dateEnd, $datafilters, 'two');
-            
+
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient,$request->survey, $db);
             $performance        = $this->cardsPerformace($dataNps, $dataCsat, $dateEnd, $dateIni, $request->survey, $datafilters,  $dataCes, $dataCbi,$ces);
             //$performance      = $this->graphCbiResp($dataCbi);
