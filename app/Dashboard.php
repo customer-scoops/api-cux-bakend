@@ -5669,6 +5669,7 @@ class Dashboard extends Generic
                             ]
                         ];
             }
+
             if(substr($survey, 3, 3) == 'via' || substr($survey, 3, 3) == 'vue'){
                 $resp = [
                             [
@@ -6451,7 +6452,7 @@ class Dashboard extends Generic
             $dataisn            = $this->graphCbi($db, date('m'), date('Y'), 'cbi', $dateIni, $dateEnd, $datafilters, 'two');
             
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient,$request->survey, $db);
-            $performance        = $this->cardsPerformace($dataNps, $dataCsat, $dateEnd, $dateIni, $request->survey, 0, 3, $datafilters,  $dataCes, $dataCbi,$ces);
+            $performance        = $this->cardsPerformace($dataNps, $dataCsat, $dateEnd, $dateIni, $request->survey, $datafilters,  $dataCes, $dataCbi,$ces);
             //$performance      = $this->graphCbiResp($dataCbi);
             $npsConsolidado     = $this->graphsStruct($dataisn, 12, 'cbi');
             $npsVid             = $this->cardNpsBanmedica($this->_nameClient, $dataNPSGraph); //NPS
