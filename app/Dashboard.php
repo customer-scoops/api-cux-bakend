@@ -781,7 +781,7 @@ class Dashboard extends Generic
                         if (substr($value['base'],3,3) == 'com') 
                             $otherGraph = [$this->infoCsat($db,date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->_initialFilter), $this->ces($db,date('Y-m-d'),date('Y-m-01'), $cesInDb)];
                         
-                        if (substr($value['base'],3,3) == 'via')
+                        if (substr($value['base'],3,3) == 'via' || substr($value['base'],3,3) == 'vue')
                             $otherGraph = [$this->infoCsat($db,date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->_initialFilter)];
                     }
 
@@ -2326,21 +2326,6 @@ class Dashboard extends Generic
         if ($datafilters)
             $datafilters = " AND $datafilters";
 
-        
-        // $data = DB::select("SELECT count(case when cbi != 99 then 1 end) as total,
-        //                     count(case when cbi = 1 then 1 end)*100/count(case when cbi != 99 then 1 end) as cbi1,
-        //                     count(case when cbi = 2 then 1 end)*100/count(case when cbi != 99 then 1 end) as cbi2,
-        //                     count(case when cbi = 3 then 1 end)*100/count(case when cbi != 99 then 1 end) as cbi3,
-        //                     count(case when cbi = 4 then 1 end)*100/count(case when cbi != 99 then 1 end) as cbi4,
-        //                     count(case when cbi = 5 then 1 end)*100/count(case when cbi != 99 then 1 end) as cbi5,
-        //                     count(case when cbi = 6 then 1 end)*100/count(case when cbi != 99 then 1 end) as cbi6, 
-        //                     a.mes, a.annio, date_survey 
-        //                     from $this->_dbSelected.$db as a
-        //                     left join $this->_dbSelected." . $db . "_start as b 
-        //                     on a.token = b.token 
-        //                     WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters
-        //                     group by  a.mes, a.annio
-        //                     order by a.annio, a.mes");
         $query = "SELECT cbi as nombre, count(case when cbi != 99 and cbi != '' then 1 end) as total,
         (count(case when cbi != 99 then 1 end)*100/(SUM(count(case when cbi != 99 then 1 end)) over()) ) as porcent, 
         (SUM(count(case when cbi != 99 then 1 end)) over()) as sumtot
@@ -2352,49 +2337,41 @@ class Dashboard extends Generic
         order by total DESC";
 
         $data = DB::select($query);
-        
-        // dd($data);
-        // exit;
 
         foreach ($data as $key => $value) {
-            //dd($value);
+        
            $values[] = [[
             'regiones'  => $value->nombre,
-            'period6'   => $value->porcent,
-            'period7'   => $value->total,
+            'period6'   => $value->total,
+            'period7'   => ROUND($value->porcent),
            ]];
         }
 
-        //  dd($values);
-        //  exit;
-
-            return [
-                "height" => 3,
-                "width" =>  4,
-                "type" =>  "table-period",
-                "props" =>  [
-                    "icon" => "arrow-right",
-                    "text" => "Continuar Como Preoveedor",
-                    "data" => [
-                        "columns" =>[
-                                [
-                                'regiones'  => "Nombres",
-                                'period6'   => "CBI(%)",
-                                'period7'   => "Cant. Resp.",
-                                
-                                ]
-                        ],
-                        "values"  =>  [
-                            $values
-                        ],
-                        "colors" => [
-                            'regiones' => "#17C784",
-                            "YTD" => "#17C784"
-                        ]
+        return [
+            "height" => 3,
+            "width" =>  4,
+            "type" =>  "table-period",
+            "props" =>  [
+                "icon" => "arrow-right",
+                "text" => "Continuar Como Preoveedor",
+                "data" => [
+                    "columns" =>[
+                            [
+                            'regiones'  => "Nombres",
+                            'period6'   => "Cant. Resp.",
+                            'period7'   => "CBI(%)",
+                            
+                            ]
                     ],
-    
-                ]
-            ];
+                    "values"  =>  $values,
+                    "colors" => [
+                        'regiones' => "#17C784",
+                        "YTD" => "#17C784"
+                    ]
+                ],
+
+            ]
+        ];
         
     }
 
@@ -5667,8 +5644,8 @@ class Dashboard extends Generic
         if ($this->_dbSelected == 'customer_jetsmart') { 
             $width = 12;
             if(substr($survey, 3, 3) == 'com'){
-               
-                $resp = [
+
+              $resp = [
                             [
                                 "name"    => $dataCbi != '' ? $dataCbi['name'] : 'CBI',
                                 "value"   => $dataCbi != '' ? $dataCbi['value'] : 'N/A',
@@ -5691,7 +5668,9 @@ class Dashboard extends Generic
                             ]
                         ];
             }
-            if(substr($survey, 3, 3) == 'via'){
+
+            if(substr($survey, 3, 3) == 'via' || substr($survey, 3, 3) == 'vue'){
+
                 $resp = [
                             [
                                 // "name"    => $dataCbi['name'],
@@ -6476,8 +6455,8 @@ class Dashboard extends Generic
             $dataisn            = $this->graphCbi($db, date('m'), date('Y'), 'cbi', $dateIni, $dateEnd, $datafilters, 'two');
 
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient,$request->survey, $db);
-            $performance        = $this->cardsPerformace($dataNps, $dataCsat, $dateEnd, $dateIni, $request->survey, $datafilters,  $dataCes, $dataCbi);
-            //$performance        = $this->graphCbiResp($dataCbi);
+            $performance        = $this->cardsPerformace($dataNps, $dataCsat, $dateEnd, $dateIni, $request->survey, $datafilters,  $dataCes, $dataCbi,$ces);
+            //$performance      = $this->graphCbiResp($dataCbi);
             $npsConsolidado     = $this->graphsStruct($dataisn, 12, 'cbi');
             $npsVid             = $this->cardNpsBanmedica($this->_nameClient, $dataNPSGraph); //NPS
             $csatJourney        = $this->cardNpsBanmedica($this->_nameClient , $dataCsatGraph, 'CSAT');//Csat
