@@ -1245,7 +1245,7 @@ class Dashboard extends Generic
                                 FROM $this->_dbSelected.$table as a
                                 LEFT JOIN $this->_dbSelected." . $table . "_start as b
                                 on a.token = b.token
-                                WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' $datafilters ".$this->activeP2($table)."
+                                WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' $datafilters ".$this->activeP2($table)." 
                                 GROUP BY a.mes, a.annio
                                 ORDER BY date_survey ASC");
         }

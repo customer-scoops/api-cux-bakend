@@ -7,29 +7,33 @@ use DB;
 
 class DashboardMutual extends Dashboard
 {
-    private $_filterZona = '';
-
+    private $filterZona = '';
+    private $filterCentro = '';
+ 
     public function __construct($jwt, $request)
     {
         parent::__construct($jwt);
-        $this->setFilterZona($jwt, $request);
+        //$this->setFilterZona($jwt, $request);
     }
 
     public function generalInfo($request, $jwt)
     {
-        $surveys = $this->getDataSurvey($request, $jwt);
+        $surveys = parent::getDataSurvey($request, $jwt);
         $data = [];
         $otherGraph = [];
         if ($surveys['status'] == 200) {
-            if($surveys['datas'][0]['customer'] == 'MUT001'){
-                array_push($surveys['datas'], $this->consolidateMutual());
-            }
+            // if($surveys['datas'][0]['customer'] == 'MUT001'){
+            //     array_push($surveys['datas'], $this->consolidateMutual());
+            // }
 
             foreach ($surveys['datas'] as $key => $value) {
                 if ($value['base'] != 'mutred'){
+                    $this->surveyFilterZona($value['base'], $jwt, $request);
+                     $this->surveyFilterCentro($value['base'], $jwt, $request);
+                    
                     $db         = 'adata_'.substr($value['base'],0,3).'_'.substr($value['base'],3,6);
                     $db2        = $this->primaryTable($db);
-                    $infoNps    = [$this->infoNpsMutual($db, date('Y-m-d'),date('Y-m-01'),'nps',null,$this->getInitialFilter(), $this->surveyFilterZona($value['base'], $jwt, $request))]; 
+                    $infoNps    = [$this->infoNpsMutual($db, date('Y-m-d'),date('Y-m-01'),'nps',null,$this->getInitialFilter(), '')]; 
                     $otherGraph = [$this->infoCsat($db, date('Y-m-d'),date('Y-m-01'), 'csat',$this->getInitialFilter())];
                     
                     if(substr($value['base'],0,3) == 'mut'){
@@ -56,7 +60,6 @@ class DashboardMutual extends Dashboard
 
     protected function infoNpsMutual($table,  $dateIni, $dateEnd, $indicador, $filter, $dataFilter,$zona)
     {
-     
         $generalDataNps             = $this->resumenNps($table,  $dateIni, $dateEnd, $indicador, $filter, '', $zona);
         $generalDataNps['graph']    = $this->graphNps($table,  $indicador, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $filter, 'one', $zona);
 
@@ -65,7 +68,7 @@ class DashboardMutual extends Dashboard
 
     private function dbResumenNps1 ($table,$indicador,$dateIni,$dateEnd, $datafilters, $filter, $zona)
     {
-        $query = "SELECT count(*) as total, 
+        echo $query = "SELECT count(*) as total, 
         ((count(if(nps <= ".$this->getValueParams('_maxNps').", nps, NULL))*100)/COUNT(CASE WHEN nps !=99 THEN 1 END)) as detractor, 
         ((count(if(nps = ".$this->getValueParams('_minMaxNps')." or  nps = ".$this->getValueParams('_maxMaxNps')." , nps, NULL))*100)/COUNT(CASE WHEN nps != 99 THEN 1 END)) as promotor,
         ((count(if(nps =  ".$this->getValueParams('_maxMediumNps')." OR nps = ".$this->getValueParams('_minMediumNps').", nps, NULL))*100)/COUNT(CASE WHEN nps != 99 THEN 1 END)) as neutral,
@@ -76,11 +79,11 @@ class DashboardMutual extends Dashboard
         FROM ".$this->getValueParams('_dbSelected').".$table as a
         LEFT JOIN ".$this->getValueParams('_dbSelected')."." . $table . "_start as b
         on a.token = b.token
-        WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' ".$this->activeP2 ($table)." $zona
+        WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2' ". $this->filterZona." ". $this->filterCentro."
         GROUP BY a.mes, a.annio
         ORDER BY date_survey ASC";
-        $data = DB::select($query);
 
+        $data = DB::select($query);
 
         return $data;
     }
@@ -160,8 +163,6 @@ class DashboardMutual extends Dashboard
         if ($datafilters)
             $datafilters = " AND $datafilters";
 
-        
-        
         if ($filter != 'all') {
             $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('$this->_minMaxNps')." AND ".$this->getValueParams('$this->_maxMaxNps')." THEN 1 END) - 
                                 COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) / 
@@ -176,7 +177,7 @@ class DashboardMutual extends Dashboard
                                 a.mes, a.annio, WEEK(date_survey) AS week,".$this->getValueParams('_fieldSelectInQuery')."  
                                 FROM ".$this->getValueParams('_dbSelected').".$table as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected').".".$table."_start as b ON a.token = b.token 
-                                WHERE  $where $activeP2 $datafilters 
+                                WHERE  $where $activeP2 $datafilters ".$this->filterZona." ". $this->filterCentro."
                                 GROUP BY $group2
                                 ORDER BY date_survey ASC");
         }
@@ -307,27 +308,54 @@ class DashboardMutual extends Dashboard
     }
 
     private function surveyFilterZona($survey, $jwt, $request){
+        $this->filterZona = '';
+        //echo $survey;
         $filter = ['mutamb','mutreh','muturg','mutimg','muthos'];
-        if(array_search( $survey,$filter, true)){
-            return " AND zonal = '". $this->setFilterZona($jwt, $request);
+        if(in_array( $survey,$filter)){
+   
+            $this->filterZona= " AND zonal = '". $this->setFilterZona($jwt, $request)."'" ;
         }
     }
 
     private function setFilterZona($jwt, $request){
-        // if (isset($jwt[env('AUTH0_AUD')]->surveysActive)) {
-        //     foreach ($jwt[env('AUTH0_AUD')]->surveysActive as $key => $value) {
-        //         $surv[] = $value; 
-        //     }
-        //     $db->whereIn('codDbase',$surv);
-        //     unset($surv);
-        // }
-        // array_search($this->surveyFilterZona());
+        if($request->get('zonal') !== null)
+            return trim($request->get('zonal'));
 
         if(isset($jwt[env('AUTH0_AUD')]->zona))
-            $this->_filterZona = " AND zonal = '". $jwt[env('AUTH0_AUD')]->zona."'";
-
-        if($request->get('zonal') !== null)
-            $this->_filterZona = " AND zonal = '". trim($request->get('zonal'))."'";
+            return $jwt[env('AUTH0_AUD')]->zona;
     } 
 
+    
+
+    private function surveyFilterCentro($survey, $jwt, $request){
+        $this->filterCentro = '';
+        //echo $survey;
+        $filter = ['mutamb','mutreh','muturg','mutimg','muthos'];
+        if(in_array( $survey,$filter)){
+   
+            $this->filterCentro= " AND catencion in ('".$this->setFilterCentro($jwt, $request)."') ";
+        }
+    }
+
+    private function setFilterCentro($jwt, $request){
+        $long = sizeof($jwt[env('AUTH0_AUD')]->centros);
+        $centros = '';
+        if($request->get('catencion') !== null)
+            return trim($request->get('catencion'));
+
+        
+        if(isset($jwt[env('AUTH0_AUD')]->centros)){
+            if($long == 1){ 
+                return $jwt[env('AUTH0_AUD')]->centros;
+            }
+            if($long > 1){
+                $centros = $jwt[env('AUTH0_AUD')]->centros[0];
+                for($i=1; $i<$long; $i++){
+                    $centros = $centros."' ,'".$jwt[env('AUTH0_AUD')]->centros[$i];
+                }
+                return $centros;
+            }
+        }
+        
+    } 
 }
