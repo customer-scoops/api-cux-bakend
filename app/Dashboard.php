@@ -850,10 +850,10 @@ class Dashboard extends Generic
     }
 
     private function traking($db,$dateIni,$dateEnd) {
-
-        $dateSurvey = 'date_survey';
-        if(substr($db, 6, 3) == 'tra' && substr($db, 10, 3) == 'via')
-            $dateSurvey = 'fechaservicio';
+        // echo $db;exit;
+        // $dateSurvey = 'date_survey';
+        // if(substr($db, 6, 3) == 'tra' && substr($db, 10, 3) == 'via')
+        //     $dateSurvey = 'fechaservicio';
 
         $dataT = DB::select("SELECT COUNT(*) AS TOTAL 
                             FROM $this->_dbSelected.".$db."_start 
@@ -862,7 +862,7 @@ class Dashboard extends Generic
                     
         $data = DB::select("SELECT COUNT(*) AS RESP 
                             FROM $this->_dbSelected.$db 
-                            WHERE " . $dateSurvey . " BETWEEN '$dateIni' AND '$dateEnd' and nps!= 99");
+                            WHERE date_survey  BETWEEN '$dateIni' AND '$dateEnd' and nps!= 99");
 
         $reenv = DB::select("SELECT SUM(enviados) as reenv
                             FROM $this->_dbSelected.datasengrid_transvip
@@ -2004,38 +2004,39 @@ class Dashboard extends Generic
         $datafilters = " AND $datafilters";
         $graphCBI = [];
         $activeP2 ='';
+
         if(substr($table, 6, 3) == 'jet')
             $activeP2 = " AND etapaencuesta = 'P2' ";
 
-    $data = DB::select("SELECT COUNT(if( $indicador between 4 and 5, $indicador, NULL))/COUNT(CASE WHEN $indicador != 99 THEN $indicador END)*100 AS cbi,
-                        COUNT(CASE WHEN $indicador != 99 THEN $indicador END) as total,
-                        a.mes, a.annio, date_survey, $this->_fieldSelectInQuery 
-                        FROM $this->_dbSelected.$table as a
-                        INNER JOIN $this->_dbSelected." . $table . "_start as b on a.token = b. token 
-                        WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $activeP2 $datafilters
-                        GROUP BY a.mes
-                        ORDER BY date_survey asc");
-      
-    if (!empty($data)) {
-        foreach ($data as $key => $value) {
-         
-            if ($struct != 'one') {
-                $graphCBI[] = [
-                    //'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
-                    'xLegend'  => (string)$value->mes . '-' . $value->annio . ' (' . $value->total . ')',
-                    'values'   => [
-                        'cbi' => (string)ROUND($value->cbi)
-                    ]
-                ];
-            }
-            if ($struct == 'one') {
-                $graphCBI[] = [
-                    "value" => (string)ROUND($value->cbi)
-                ];
+        $data = DB::select("SELECT COUNT(if( $indicador between 4 and 5, $indicador, NULL))/COUNT(CASE WHEN $indicador != 99 THEN $indicador END)*100 AS cbi,
+                            COUNT(CASE WHEN $indicador != 99 THEN $indicador END) as total,
+                            a.mes, a.annio, date_survey, $this->_fieldSelectInQuery 
+                            FROM $this->_dbSelected.$table as a
+                            INNER JOIN $this->_dbSelected." . $table . "_start as b on a.token = b. token 
+                            WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $activeP2 $datafilters
+                            GROUP BY a.mes
+                            ORDER BY date_survey asc");
+        
+        if (!empty($data)) {
+            foreach ($data as $key => $value) {
+            
+                if ($struct != 'one') {
+                    $graphCBI[] = [
+                        //'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
+                        'xLegend'  => (string)$value->mes . '-' . $value->annio . ' (' . $value->total . ')',
+                        'values'   => [
+                            'cbi' => (string)ROUND($value->cbi)
+                        ]
+                    ];
+                }
+                if ($struct == 'one') {
+                    $graphCBI[] = [
+                        "value" => (string)ROUND($value->cbi)
+                    ];
+                }
             }
         }
-    }
-    return $graphCBI;
+        return $graphCBI;
     }
 
     //Función para valores de los gráficos de CES
@@ -2394,8 +2395,8 @@ class Dashboard extends Generic
         
            $values[] = [[
             'regiones'  => $value->nombre,
-            'period6'   => $value->total,
-            'period7'   => ROUND($value->porcent),
+            'period1'   => $value->total,
+            'period2'   => ROUND($value->porcent),
            ]];
         }
 
@@ -2410,8 +2411,8 @@ class Dashboard extends Generic
                     "columns" =>[
                             [
                             'regiones'  => "Nombres",
-                            'period6'   => "Cant. Resp.",
-                            'period7'   => "CBI(%)",
+                            'period1'   => "Cant. Resp.",
+                            'period2'   => "CBI(%)",
                             
                             ]
                     ],
@@ -2442,12 +2443,12 @@ class Dashboard extends Generic
 
         $dateSurvey = 'date_survey';
         $groupBy = ' GROUP BY a.mes, a.annio ';
-        $orderBy = ' order by  b.annio, b.mes';
+        $orderBy = ' order by b.annio, b.mes';
         if(substr($db, 6, 3) == 'tra' && substr($db, 10, 3) == 'via')
         {
             $dateSurvey = 'fechaservicio';
             $groupBy = '';
-            $orderBy = ' fechaservicio ';
+            $orderBy = ' order by fechaservicio ';
         } 
  
         $data = DB::select("SELECT count(case when cbi between 4 and 5 then 1 end)*100/count(case when cbi != 99 then 1 end) as cbi,
@@ -6509,7 +6510,7 @@ class Dashboard extends Generic
             $detailGeneration   = substr($request->survey, 3, 3) == 'via' ? $this->ranking($db, 'convenio', 'Convenio', $endDateFilterMonth, $startDateFilterMonth, $filterClient,$datafilters, 6, 5) : null;
             $detailsProcedencia = substr($request->survey, 3, 3) == 'via' ? $this->graphINS($tiempoVehiculo, $coordAnden, $tiempoAeropuerto, $tiempoLlegadaAnden) : null;
             $box14              = substr($request->survey, 3, 3) == 'con' ? $this->CSATDrivers($graphCSATDrivers) : $this->graphCsatTransvip($drivers, $request->survey);
-            $box15              = substr($request->survey, 3, 3) == 'via' ? $this->traking($db, $startDateFilterMonth, $endDateFilterMonth) : null;
+            $box15              = null; //substr($request->survey, 3, 3) == 'via' ? $this->traking($db, $startDateFilterMonth, $endDateFilterMonth) : null;
             $box16              = substr($request->survey, 3, 3) == 'con' ? $proveedor : null;
             $box17              = null;
             $box18              = null;
