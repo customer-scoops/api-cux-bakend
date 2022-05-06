@@ -601,6 +601,13 @@ class Suite
             "jetcom_csat4"  => "Selección de asientos",
             "jetcom_csat5"  => "Proceso de pago",
             "jetcom_csat6"  => "Información en email de confirmación de compra",
+
+            "jetvue_csat1"  => "csat_1",
+            "jetvue_csat2"  => "csat_2",
+            "jetvue_csat3"  => "csat_3",
+            "jetvue_csat4"  => "csat_4",
+            "jetvue_csat5"  => "csat_5",
+            "jetvue_csat6"  => "csat_6",
         
         ];
         
