@@ -6388,7 +6388,7 @@ class Dashboard extends Generic
 
         $filters = $this->filters($request, $jwt, $datafilters);
         $data = [
-            'client' => $this->_nameClient,
+            'client' => ($name !== 'Mutual')? $this->_nameClient : $this->setNameClient('_nameClient'),
             'clients' => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients : '',
 
             'filters' => $filters['filters'],

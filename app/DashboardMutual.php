@@ -37,7 +37,7 @@ class DashboardMutual extends Dashboard
                     } 
                   
                     $data[] = [
-                        'client'        => $this->_nameClient, 'clients'  => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
+                        'client'        => $this->setNameClient('_nameClient'), 'clients'  => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
                         "title"         => ucwords(strtolower($value['name'])),
                         "identifier"    => $value['base'],
                         "principalIndicator" => $infoNps,
@@ -163,19 +163,19 @@ class DashboardMutual extends Dashboard
         
         
         if ($filter != 'all') {
-            $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
-                                COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) / 
-                                (COUNT($indicador) - COUNT(CASE WHEN $indicador=99 THEN 1 END)) * 100),1) AS NPS, 
-                                count(if($indicador <= $this->_maxNps , $indicador, NULL)) as Cdet,
-					            count(if($indicador = $this->_minMaxNps or $indicador =$this->_maxMaxNps, $indicador, NULL)) as Cpro,
-					            count(if($indicador=$this->_maxMediumNps OR $indicador=$this->_minMediumNps, $indicador, NULL)) as Cneu,              
+            $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('$this->_minMaxNps')." AND ".$this->getValueParams('$this->_maxMaxNps')." THEN 1 END) - 
+                                COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) / 
+                                COUNT(CASE WHEN nps!=99 THEN 1 END) * 100),1) AS NPS, 
+                                count(if(nps <= ".$this->getValueParams('_maxNps')." , nps, NULL)) as Cdet,
+					            count(if(nps = ".$this->getValueParams('_minMaxNps')." or nps =".$this->getValueParams('_maxMaxNps').", nps, NULL)) as Cpro,
+					            count(if(nps=".$this->getValueParams('_maxMediumNps')." OR nps=".$this->getValueParams('_minMediumNps').", nps, NULL)) as Cneu,              
                                 count(*) as total, 
-                                ((count(if($indicador <= $this->_maxNps, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as detractor, 
-                                ((count(if($indicador = $this->_minMaxNps OR $indicador =$this->_maxMaxNps, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as promotor, 
-                                ((count(if($indicador=$this->_maxMediumNps OR $indicador=$this->_minMediumNps, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as neutral,              
-                                a.mes, a.annio, WEEK(date_survey) AS week,$this->_fieldSelectInQuery  
-                                FROM $this->_dbSelected.$table as a
-                                INNER JOIN $this->_dbSelected." . $table . "_start as b ON a.token = b.token 
+                                ((count(if(nps <= ".$this->getValueParams('_maxNps').", nps, NULL))*100)/count(CASE WHEN nps != 99 THEN nps END)) as detractor, 
+                                ((count(if(nps = ".$this->getValueParams('_minMaxNps')." OR nps =".$this->getValueParams('_maxMaxNps').", nps, NULL))*100)/count(CASE WHEN nps != 99 THEN nps END)) as promotor, 
+                                ((count(if(nps=".$this->getValueParams('_maxMediumNps')." OR nps=".$this->getValueParams('_minMediumNps').", nps, NULL))*100)/count(CASE WHEN nps != 99 THEN nps END)) as neutral,              
+                                a.mes, a.annio, WEEK(date_survey) AS week,".$this->getValueParams('_fieldSelectInQuery')."  
+                                FROM ".$this->getValueParams('_dbSelected').".$table as a
+                                INNER JOIN ".$this->getValueParams('_dbSelected').".".$table."_start as b ON a.token = b.token 
                                 WHERE  $where $activeP2 $datafilters 
                                 GROUP BY $group2
                                 ORDER BY date_survey ASC");
@@ -262,10 +262,10 @@ class DashboardMutual extends Dashboard
     private function AVGLast6MonthNPS($table,$dateIni,$dateEnd,$indicador, $filter){
   
         if ($filter != 'all') {
-            $data = DB::select("SELECT sum(NPS) as total, COUNT(distinct mes) as meses from (SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
-                                COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
-                                (COUNT($indicador) - COUNT(CASE WHEN $indicador=99 THEN 1 END)) * 100),1) AS NPS, mes, annio
-                                FROM $this->_dbSelected.$table
+            $data = DB::select("SELECT sum(NPS) as total, COUNT(distinct mes) as meses from (SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
+                                COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) /
+                                 COUNT(CASE WHEN nps != 99 THEN 1 END) * 100),1) AS NPS, mes, annio
+                                FROM ".$this->getValueParams('_dbSelected').".$table
                                 WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' 
                                 group by annio, mes) as a");
         }
@@ -294,18 +294,16 @@ class DashboardMutual extends Dashboard
        
         $table2 = $this->primaryTable($table);
 
-        if ($this->_dbSelected == 'customer_colmena' && substr($table, 6, 3) == 'mut' || substr($table, 0, 3) == 'MUT' ) {
-            $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
-                                COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
-                                (COUNT(CASE WHEN $indicador != 99 THEN $indicador END)) * 100),1) AS NPS
-                                FROM $this->_dbSelected.$table as a
-                                left join $this->_dbSelected." . $table . "_start as b
+        if ($this->getValueParams('_dbSelected') == 'customer_colmena' && substr($table, 6, 3) == 'mut' || substr($table, 0, 3) == 'MUT' ) {
+            $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
+                                COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) /
+                                (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1) AS NPS
+                                FROM ".$this->getValueParams('_dbSelected').".$table as a
+                                left join ".$this->getValueParams('_dbSelected').".".$table."_start as b
                                 on a.token = b.token
                                 WHERE a.mes = $mes and a.annio = $annio $datafilters");
             return $data[0]->NPS;
         }
-
-
     }
 
     private function surveyFilterZona($survey, $jwt, $request){
@@ -331,37 +329,5 @@ class DashboardMutual extends Dashboard
         if($request->get('zonal') !== null)
             $this->_filterZona = " AND zonal = '". trim($request->get('zonal'))."'";
     } 
-
-
-    // private function setParams(){
-
-    //     $this->_dbSelected          = 'customer_colmena';
-    //     $this->_initialFilter       = 'one';
-    //     $this->_fieldSelectInQuery  = 'sexo';
-    //     $this->_fieldSex            = 'sexo';
-    //     $this->_fieldSuc            = '';
-    //     $this->_minNps              = 1;
-    //     $this->_maxNps              = 4;
-    //     $this->_minMediumNps        = 5;
-    //     $this->_maxMediumNps        = 5;
-    //     $this->_minMaxNps           = 6;
-    //     $this->_maxMaxNps           = 7;
-    //     $this->_minCsat             = 1;
-    //     $this->_maxCsat             = 4;
-    //     $this->_minMediumCsat       = 5;
-    //     $this->_maxMediumCsat       = 5;
-    //     $this->_minMaxCsat          = 6;
-    //     $this->_maxMaxCsat          = 7;
-    //     $this->_obsNps              = 'obs_csat';
-    //     $this->_imageClient         = 'https://customerscoops.com/assets/companies-images/mutual_logo.png';
-    //     $this->_nameClient          = 'Mutual';
-    //     $this->ButFilterWeeks       = [["text" => "Anual", "key" => "filterWeeks", "value" => ""], ["text" => "Semanal", "key" => "filterWeeks", "value" => "10"]];
-    //     $this->_minCes              = 1;
-    //     $this->_maxCes              = 4;
-    //     $this->_minMediumCes        = 5;
-    //     $this->_minMaxCes           = 6;
-    //     $this->_maxMaxCes           = 7;
-    
-    // }
 
 }
