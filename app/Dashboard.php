@@ -6486,6 +6486,7 @@ class Dashboard extends Generic
             $proveedor= null;
             if($db == 'adata_tra_cond'){
                 $proveedor = $this->rankingProveedor($db, $datafilters, $dateIni, $dateEnd, 'cbi', "Continuar Como Preoveedor");
+                $frecCon = $this->rankingProveedor($db, $datafilters, $dateIni, $dateEnd, 'opc', "Frecuencia de conexión");
             }
 
             $name = 'Transvip';
@@ -6516,7 +6517,7 @@ class Dashboard extends Generic
             $box14              = substr($request->survey, 3, 3) == 'con' ? $this->CSATDrivers($graphCSATDrivers) : $this->graphCsatTransvip($drivers, $request->survey);
             $box15              = substr($request->survey, 3, 3) == 'via' ? $this->traking($db, $startDateFilterMonth, $endDateFilterMonth) : null;
             $box16              = substr($request->survey, 3, 3) == 'con' ? $proveedor : null;
-            $box17              = null;
+            $box17              = substr($request->survey, 3, 3) == 'con' ? $frecCon : null;
             $box18              = null;
             $box19              = null;
             $box20              = null;
