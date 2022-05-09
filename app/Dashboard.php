@@ -1378,7 +1378,7 @@ class Dashboard extends Generic
         if ($group !== null) {
             $where = $datafilters;
             $datafilters = '';
-            $group2 = "week ";
+            $group2 = " GROUP BY week ";
         }
 
         if ($group === null) {
@@ -1443,11 +1443,11 @@ class Dashboard extends Generic
                                 FROM $this->_dbSelected.$table2 as a
                                 LEFT JOIN $this->_dbSelected." . $table2 . "_start as b ON a.token = b.token 
                                 WHERE $where $datafilters
-                                GROUP BY $group) AS A GROUP BY $group2 ORDER BY date_survey ASC");
+                                GROUP BY $group) AS A " . $group2 . "ORDER BY date_survey ASC");
             //}
         }
 
-        if ($group2 == 'week') 
+        if ($group2 == " GROUP BY week ") 
         { 
             $mondayWeek = $this->getFirstMond();
         }
