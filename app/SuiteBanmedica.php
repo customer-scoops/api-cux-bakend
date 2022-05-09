@@ -27,8 +27,8 @@ class SuiteBanmedica extends Suite
            //"data.field1" => 'required|string',
            //"data.field2" => 'required|string',
            //"data.field3" => 'required|string',
-           //"dateSchedule" => 'required|date_format:Y-m-d',
-           //"timeSchedule" => 'required|date_format:H:i:s'
+           "dateSchedule" => 'required|date_format:Y-m-d',
+           "timeSchedule" => 'required|date_format:H:i:s'
        ];
 
        //print_r($request);
@@ -49,8 +49,8 @@ class SuiteBanmedica extends Suite
                     'estado_close' => $request->status, 
                     'det_close' => $request->detail, 
                     'fec_close'=>date('Y-m-d'),
-                    //'fecha_programa_llamada'=> $request->dateSchedule,
-                    //'hora_programa_llamada'=> $request->timeSchedule,
+                    'fecha_programa_llamada'=> $request->dateSchedule,
+                    'hora_programa_llamada'=> $request->timeSchedule,
                     'field_1'=>$request->subStatus1,
                     'field_2'=>$request->subStatus2,
                     //'field_1'=>$request->data["field1"],
@@ -61,7 +61,7 @@ class SuiteBanmedica extends Suite
                 
            if($resp===1){
                $namev = DB::table($this->getDBSelected().'.'.'adata_'.substr($request->survey,0,3).'_'.substr($request->survey,3,6).'_start')->where('id', $request->ticket)->first();
-               $this->sendedEmail($namev->nom, $namev->mail, $namev->token, $request->survey); // Cuando se pruebe hay que comentar esto para que no le mande le mail al cliente.
+               //$this->sendedEmail($namev->nom, $namev->mail, $namev->token, $request->survey); // Cuando se pruebe hay que comentar esto para que no le mande le mail al cliente.
            }
            return[
                'datas'  => 'complet',

@@ -279,6 +279,13 @@ class Suite
                 $dbQuery->where('date', '<', $endDate);
             }
 
+            //Filtro por dia a contactar
+            if($request->get('dateSchedule') !== null) {
+                $dateSchedule = $request->get('dateSchedule');
+                // TODO validar endDate
+                $dbQuery->where('dateSchedule', '=', $dateSchedule);
+            }
+
             // Ordenamos
             if($request->get('orders') !== null) {
                 $orders = (json_decode($request->get('orders')));
@@ -326,6 +333,8 @@ class Suite
                         'rut'  => $value->rut,
                         'phone' => (isset($value->phone)) ?  $value->phone : '',
                         'celu' => (isset($value->celu)) ?  $value->celu : '',
+                        'dateSchedule' =>  (isset($value->dateSchedule)) ?  $value->dateSchedule : '',
+                        'timeSchedule' =>(isset($value->timeSchedule)) ?  $value->timeSchedule : ''
                     ),
                     "ltv"       => 'N/A',
                     "canal"     => $value->canal,
