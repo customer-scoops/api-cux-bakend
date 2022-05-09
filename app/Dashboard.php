@@ -2370,7 +2370,7 @@ class Dashboard extends Generic
 
     // Funciones para Transvip
 
-    private function rankingProveedor($db, $datafilters, $dateIni, $dateEnd, $indicador, $text)
+    private function rankingTransvip($db, $datafilters, $dateIni, $dateEnd, $indicador, $text, $height, $width)
     {
         if (substr($datafilters, 30, 3) == 'NOW') {
             $datafilters = '';
@@ -2383,9 +2383,12 @@ class Dashboard extends Generic
         from $this->_dbSelected.$db as a
         left join $this->_dbSelected." . $db . "_start as b 
         on a.token = b.token 
-        WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters AND $indicador != 99 AND $indicador != ''
+        WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters AND $indicador != 99 AND $indicador != '' 
+        AND etapaencuesta = 'P2'
         group by  $indicador
         order by total DESC";
+
+       // echo $query;exit;
 
         $data = DB::select($query);
 
@@ -2397,36 +2400,51 @@ class Dashboard extends Generic
 
         foreach ($data as $key => $value) {
         
-           $values[] = [[
-            'regiones'  => $value->nombre,
-            'period1'   => $value->total,
-            'period2'   => ROUND($value->total * 100 / $totalAcum),
-           ]];
+        $values[] = [
+            'text'  => utf8_decode($value->nombre),
+            'cant'   => $value->total,
+            'porcentaje'   => ROUND($value->total * 100 / $totalAcum) . " %",
+           ];
         }
 
+        $standarStruct = [
+            [
+                "text" => "Nombres",
+                "key" => "text",
+                "cellColor" => "#17C784",
+                "textAlign" => "left"
+            ],
+            [
+                "text" => "Cant. Resp.",
+                "key" => "cant",
+                "cellColor" => "#17C784",
+                "textAlign" => "center"
+            ],
+            [
+                "text" => "Porcentaje",
+                "key" => "porcentaje",
+                "cellColor" => "#17C784",
+                "textAlign" => "center"
+            ]
+        ];
+
         return [
-            "height" => 3,
-            "width" =>  4,
-            "type" =>  "table-period",
+            "height" =>  $height,
+            "width" =>  $width,
+            "type" =>  "tables",
             "props" =>  [
                 "icon" => "arrow-right",
                 "text" => $text,
-                "data" => [
-                    "columns" =>[
-                            [
-                            'regiones'  => "Nombres",
-                            'period1'   => "Cant. Resp.",
-                            'period2'   => "%",
-                            
-                            ]
+                "tables" => [
+                    [
+                        "columns" => [
+                            $standarStruct[0],
+                            $standarStruct[1],
+                            $standarStruct[2]
+                        ],
+                        "values" => $values,
                     ],
-                    "values"  =>  $values,
-                    "colors" => [
-                        'regiones' => "#17C784",
-                        "YTD" => "#17C784"
-                    ]
-                ],
-
+                ]
             ]
         ];
         
@@ -6485,8 +6503,11 @@ class Dashboard extends Generic
         if ($this->_dbSelected  == 'customer_colmena'  && substr($request->survey, 0, 3) == 'tra') {
             $proveedor= null;
             if($db == 'adata_tra_cond'){
-                $proveedor = $this->rankingProveedor($db, $datafilters, $dateIni, $dateEnd, 'cbi', "Continuar Como Preoveedor");
-                $frecCon = $this->rankingProveedor($db, $datafilters, $dateIni, $dateEnd, 'opc', "Frecuencia de conexión");
+                $proveedor = $this->rankingTransvip($db, $datafilters, $dateIni, $dateEnd, 'cbi', "Continuar Como Preoveedor", 3, 4);
+                $frecCon = $this->rankingTransvip($db, $datafilters, $dateIni, $dateEnd, 'opc', "Frecuencia de conexión", 3, 4);
+                $contactoEmpresas = $this->rankingTransvip($db, $datafilters, $dateIni, $dateEnd, 'sino1', "Contacto otras empresas", 3, 4);
+                $atrImport = $this->rankingTransvip($db, $datafilters, $dateIni, $dateEnd, 'mult1', "Atributos más importantes", 3, 4);
+                $canalPref = $this->rankingTransvip($db, $datafilters, $dateIni, $dateEnd, 'opc2', "Canal Preferido", 3, 4);
             }
 
             $name = 'Transvip';
@@ -6518,9 +6539,9 @@ class Dashboard extends Generic
             $box15              = substr($request->survey, 3, 3) == 'via' ? $this->traking($db, $startDateFilterMonth, $endDateFilterMonth) : null;
             $box16              = substr($request->survey, 3, 3) == 'con' ? $proveedor : null;
             $box17              = substr($request->survey, 3, 3) == 'con' ? $frecCon : null;
-            $box18              = null;
-            $box19              = null;
-            $box20              = null;
+            $box18              = substr($request->survey, 3, 3) == 'con' ? $contactoEmpresas : null;
+            $box19              = substr($request->survey, 3, 3) == 'con' ? $atrImport : null;
+            $box20              = substr($request->survey, 3, 3) == 'con' ? $canalPref : null;
             $box21              = null;
             $npsBan             = $this->cxIntelligence($request);
         }
