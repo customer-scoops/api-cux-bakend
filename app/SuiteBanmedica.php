@@ -28,8 +28,8 @@ class SuiteBanmedica extends Suite
            //"data.field1" => 'required|string',
            //"data.field2" => 'required|string',
            //"data.field3" => 'required|string',
-           "dateSchedule" => 'required|date_format:Y-m-d',
-           "timeSchedule" => 'required|date_format:H:i:s'
+           "dateSchedule" => 'date_format:Y-m-d',
+           "timeSchedule" => 'date_format:H:i:s'
        ];
 
        //print_r($request);
