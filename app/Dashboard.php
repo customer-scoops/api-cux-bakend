@@ -1378,7 +1378,7 @@ class Dashboard extends Generic
         if ($group !== null) {
             $where = $datafilters;
             $datafilters = '';
-            $group2 = " GROUP BY week ";
+            $group2 = "week ";
         }
 
         if ($group === null) {
@@ -3408,7 +3408,7 @@ class Dashboard extends Generic
         }
 
         $dateSurvey = 'date_survey';
-        $groupBy = ' GROUP BY a.mes, a.annio ';
+        $groupBy = ' GROUP BY A.mes, A.annio ';
         if(substr($db, 6, 3) == 'tra' && substr($db, 10, 3) == 'via')
         {
             $dateSurvey = 'fechaservicio';
@@ -6514,7 +6514,7 @@ class Dashboard extends Generic
             $detailGeneration   = substr($request->survey, 3, 3) == 'via' ? $this->ranking($db, 'convenio', 'Convenio', $endDateFilterMonth, $startDateFilterMonth, $filterClient,$datafilters, 6, 5) : null;
             $detailsProcedencia = substr($request->survey, 3, 3) == 'via' ? $this->graphINS($tiempoVehiculo, $coordAnden, $tiempoAeropuerto, $tiempoLlegadaAnden) : null;
             $box14              = substr($request->survey, 3, 3) == 'con' ? $this->CSATDrivers($graphCSATDrivers) : $this->graphCsatTransvip($drivers, $request->survey);
-            $box15              = null; //substr($request->survey, 3, 3) == 'via' ? $this->traking($db, $startDateFilterMonth, $endDateFilterMonth) : null;
+            $box15              = substr($request->survey, 3, 3) == 'via' ? $this->traking($db, $startDateFilterMonth, $endDateFilterMonth) : null;
             $box16              = substr($request->survey, 3, 3) == 'con' ? $proveedor : null;
             $box17              = null;
             $box18              = null;
