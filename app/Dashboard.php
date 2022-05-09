@@ -168,27 +168,27 @@ class Dashboard extends Generic
         $regiones       =   [];
         $genero         =   [];
         $tramo          =   [];
-        $nicho =            [];
-        $sucursal =         [];
-        $web =              [];
-        $Gerencia =         [];
-        $macrosegmento =    [];
-        $modAtencion =      [];
-        $tipoCliente =      [];
-        $tipoCanal =        [];
-        $tipAtencion =     [];
-        $CenAtencionn =     [];
-        $TipoClienteT =     [];
-        $TipoServicio =     [];
-        $AreaAten      =    [];
-        $CondServicio =     [];
-        $Zona =             [];
-        $Sentido =          [];
-        $ZonaHos =          [];
-        $Reserva =          [];
-        $CanalT =           [];
-        $Convenio =         [];
-        $contrato =         [];
+        $nicho          =   [];
+        $sucursal       =   [];
+        $web            =   [];
+        $Gerencia       =   [];
+        $macrosegmento  =   [];
+        $modAtencion    =   [];
+        $tipoCliente    =   [];
+        $tipoCanal      =   [];
+        $tipAtencion    =   [];
+        $CenAtencionn   =   [];
+        $TipoClienteT   =   [];
+        $TipoServicio   =   [];
+        $AreaAten       =   [];
+        $CondServicio   =   [];
+        $Zona           =   [];
+        $Sentido        =   [];
+        $ZonaHos        =   [];
+        $Reserva        =   [];
+        $CanalT         =   [];
+        $Convenio       =   [];
+        $contrato       =   [];
         $db = 'adata_' . substr($survey, 0, 3) . '_' . substr($survey, 3, 6);
         $dbC = substr($survey, 3, 6);
 
@@ -850,6 +850,11 @@ class Dashboard extends Generic
     }
 
     private function traking($db,$dateIni,$dateEnd) {
+        // echo $db;exit;
+        // $dateSurvey = 'date_survey';
+        // if(substr($db, 6, 3) == 'tra' && substr($db, 10, 3) == 'via')
+        //     $dateSurvey = 'fechaservicio';
+
         $dataT = DB::select("SELECT COUNT(*) AS TOTAL 
                             FROM $this->_dbSelected.".$db."_start 
                             WHERE mailsended = 1 AND fechacarga BETWEEN '$dateIni' AND '$dateEnd'" );
@@ -857,7 +862,7 @@ class Dashboard extends Generic
                     
         $data = DB::select("SELECT COUNT(*) AS RESP 
                             FROM $this->_dbSelected.$db 
-                            WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' and nps!= 99");
+                            WHERE date_survey  BETWEEN '$dateIni' AND '$dateEnd' and nps!= 99");
 
         $reenv = DB::select("SELECT SUM(enviados) as reenv
                             FROM $this->_dbSelected.datasengrid_transvip
@@ -980,7 +985,14 @@ class Dashboard extends Generic
        
         $table2 = $this->primaryTable($table);
 
+        
         if ($this->_dbSelected == 'customer_colmena' && substr($table, 6, 3) == 'tra') {
+
+            $dateSurvey = 'date_survey';
+            if(substr($table, 10, 3) == 'via')
+                $dateSurvey = 'fechaservicio';
+            
+            $datafilters = str_replace(" AND " . $dateSurvey . " between date_sub(NOW(), interval 9 week) and NOW()", '', $datafilters);
             if (substr($datafilters, 30, 3) == 'NOW') {
                 $datafilters = '';
             }
@@ -994,7 +1006,7 @@ class Dashboard extends Generic
                                 FROM $this->_dbSelected.$table as a
                                 left join $this->_dbSelected." . $table . "_start as b
                                 on a.token = b.token
-                                WHERE a.mes = $mes and a.annio = $annio $datafilters");
+                                WHERE a.mes = $mes and a.annio = $annio AND etapaencuesta = 'P2' $datafilters");
 
 
 
@@ -1002,11 +1014,11 @@ class Dashboard extends Generic
                                 ROUND(((COUNT(CASE WHEN a.csat BETWEEN 6 AND 7 THEN 1 END) - COUNT(CASE WHEN a.csat BETWEEN 1 AND 4 THEN 1 END)) / (COUNT(CASE WHEN a.csat!=99 THEN 1 END)) * 100),1) AS INS,
                                 ROUND(((COUNT(CASE WHEN nps BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - COUNT(CASE WHEN nps BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
                                 (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1) AS NPS,
-                                a.mes, a.annio, date_survey, WEEK(date_survey) AS week
+                                a.mes, a.annio, " . $dateSurvey . ", WEEK(" . $dateSurvey . ") AS week
                                 from $this->_dbSelected.$table as a
                                 left join $this->_dbSelected." . $table . "_start as b
                                 on a.token = b.token
-                                WHERE a.mes = $monthActualEnd and a.annio = $annio $datafilters
+                                WHERE a.mes = $monthActualEnd and a.annio = $annio $datafilters AND etapaencuesta = 'P2'
                                 GROUP by a.mes, a.annio
                                 ORDER by a.date_survey ASC");
           
@@ -1031,7 +1043,7 @@ class Dashboard extends Generic
                                 FROM $this->_dbSelected.$table as a
                                 left join $this->_dbSelected." . $table . "_start as b
                                 on a.token = b.token
-                                WHERE a.mes = $mes and a.annio = $annio $datafilters");
+                                WHERE a.mes = $mes and a.annio = $annio $datafilters AND etapaencuesta = 'P2'");
             return $data[0]->NPS;
         }
         if ($this->_dbSelected == 'customer_demo') {
@@ -1218,9 +1230,17 @@ class Dashboard extends Generic
     //OKK
     private function resumenNps($table,  $dateEnd, $dateIni, $indicador, $filter, $datafilters = null)
     {
-        $activeP2 ='';
-        if(substr($table, 6, 3) == 'jet')
-            $activeP2 = " AND etapaencuesta = 'P2' ";
+        $activeP2 = " AND etapaencuesta = 'P2' ";
+        if(substr($table, 6, 3) == 'ban' || substr($table, 6, 3) == 'vid')
+            $activeP2 ='';
+
+        $dateSurvey = 'date_survey';
+        $groupBy = ' GROUP BY a.mes, a.annio ';
+        if(substr($table, 6, 3) == 'tra' && substr($table, 10, 3) == 'via')
+        {
+            $dateSurvey = 'fechaservicio';
+            $groupBy = '';
+        }    
 
         $table2 = '';
         if ($datafilters)
@@ -1272,9 +1292,9 @@ class Dashboard extends Generic
                                 FROM $this->_dbSelected.$table as a
                                 LEFT JOIN $this->_dbSelected." . $table . "_start as b
                                 on a.token = b.token
-                                WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' $datafilters $activeP2
-                                GROUP BY a.mes, a.annio
-                                ORDER BY date_survey ASC");
+                                WHERE " . $dateSurvey . " BETWEEN '$dateIni' AND '$dateEnd' $datafilters $activeP2
+                                " . $groupBy . "
+                                ORDER BY " . $dateSurvey . " ASC");
         }
 
         if (($data == null) || $data[0]->total == null || $data[0]->total == 0) {
@@ -1335,26 +1355,34 @@ class Dashboard extends Generic
     //OKK
     private function graphNps($table, $indicador, $dateIni, $dateEnd, $filter, $struct = 'two', $datafilters = null, $group = null)
     {
-        $activeP2 ='';
         $graphNPS  = [];
 
         if(substr($table, 6, 3) == 'mut'){
             return $graphNPS;
         }
-        if(substr($table, 6, 3) == 'jet' || substr($table, 6, 3) == 'mut' )
-            $activeP2 = " AND etapaencuesta = 'P2' ";
+
+        $activeP2 = " AND etapaencuesta = 'P2' ";
+        if(substr($table, 6, 3) == 'ban' || substr($table, 6, 3) == 'vid')
+            $activeP2 ='';
+
+        $dateSurvey = 'date_survey';
+        $group2 = " GROUP BY mes, annio ";
+        if(substr($table, 6, 3) == 'tra' && substr($table, 10, 3) == 'via')
+        {
+            $dateSurvey = 'fechaservicio';
+            $group2 = '';
+        }  
         
         $table2 = $this->primaryTable($table);
-        $group2 = "mes, annio";
         
         if ($group !== null) {
             $where = $datafilters;
             $datafilters = '';
-            $group2 = "week";
+            $group2 = " GROUP BY week ";
         }
 
         if ($group === null) {
-            $where = " date_survey BETWEEN '$dateEnd' AND '$dateIni' ";
+            $where = " " . $dateSurvey . " BETWEEN '$dateEnd' AND '$dateIni' ";
             $group = " a.mes, a.annio ";
         }
 
@@ -1374,12 +1402,12 @@ class Dashboard extends Generic
                                 ((count(if($indicador <= $this->_maxNps, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as detractor, 
                                 ((count(if($indicador = $this->_minMaxNps OR $indicador =$this->_maxMaxNps, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as promotor, 
                                 ((count(if($indicador=$this->_maxMediumNps OR $indicador=$this->_minMediumNps, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as neutral,              
-                                a.mes, a.annio, WEEK(date_survey) AS week,$this->_fieldSelectInQuery  
+                                a.mes, a.annio, WEEK(" . $dateSurvey . ") AS week,$this->_fieldSelectInQuery  
                                 FROM $this->_dbSelected.$table as a
                                 INNER JOIN $this->_dbSelected.".$table."_start as b ON a.token = b.token 
                                 WHERE  $where $activeP2 $datafilters 
-                                GROUP BY $group2
-                                ORDER BY date_survey ASC");
+                                " . $group2 . "
+                                ORDER BY " . $dateSurvey . " ASC");
         }
 
         if ($filter == 'all') {
@@ -1676,9 +1704,17 @@ class Dashboard extends Generic
         if ($datafilters)
         $datafilters = " AND $datafilters";
 
-        $activeP2 ='';
-        if(substr($table, 6, 3) == 'jet')
-            $activeP2 = " AND etapaencuesta = 'P2' ";
+        $activeP2 = " AND etapaencuesta = 'P2' ";
+        if(substr($table, 6, 3) == 'ban' || substr($table, 6, 3) == 'vid')
+            $activeP2 ='';
+        
+        $dateSurvey = 'date_survey';
+        $groupBy = ' GROUP BY a.mes, a.annio ';
+        if(substr($table, 6, 3) == 'tra' && substr($table, 10, 3) == 'via')
+        {
+            $dateSurvey = 'fechaservicio';
+            $groupBy = '';
+        };
 
         if ($filter != 'all') {
             if (substr($table, 6, 3) != 'mut') {
@@ -1687,8 +1723,8 @@ class Dashboard extends Generic
                                     $this->_fieldSelectInQuery
                                     FROM $this->_dbSelected.$table as a
                                     INNER JOIN $this->_dbSelected." . $table . "_start as b  ON a.token  =  b.token 
-                                    WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni'  $activeP2 $datafilters
-                                    GROUP BY a.mes, a.annio");
+                                    WHERE " . $dateSurvey . " BETWEEN '$dateEnd' AND '$dateIni'  $activeP2 $datafilters
+                                    " . $groupBy);
 
 
             }
@@ -1761,9 +1797,9 @@ class Dashboard extends Generic
 
     private function graphCsat($table,  $indicador, $dateIni, $dateEnd, $filter, $struct = 'two', $datafilters = null, $group = null)
     { 
-        $activeP2 ='';
-        if(substr($table, 6, 3) == 'jet')
-            $activeP2 = " AND etapaencuesta = 'P2' ";
+        $activeP2 = " AND etapaencuesta = 'P2' ";
+        if(substr($table, 6, 3) == 'ban' || substr($table, 6, 3) == 'vid')
+            $activeP2 ='';
 
         if ($group !== null) {
             $where = $datafilters;
@@ -1777,6 +1813,14 @@ class Dashboard extends Generic
         }
         if ($datafilters)
             $datafilters = " AND $datafilters";
+
+        $dateSurvey = 'date_survey';
+        $groupBy = ' GROUP BY a.mes ';
+        if(substr($table, 6, 3) == 'tra' && substr($table, 10, 3) == 'via')
+        {
+            $dateSurvey = 'fechaservicio';
+            $groupBy = '';
+        }  
 
         $graphCSAT = array();
         if ($filter != 'all') {
@@ -1792,9 +1836,9 @@ class Dashboard extends Generic
                                     a.mes, a.annio, date_survey, $this->_fieldSelectInQuery 
                                     FROM $this->_dbSelected.$table as a
                                     INNER JOIN $this->_dbSelected." . $table . "_start as b on a.token = b. token 
-                                    WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $activeP2 $datafilters
-                                    GROUP BY a.mes
-                                    ORDER BY date_survey asc");
+                                    WHERE " . $dateSurvey . " BETWEEN '$dateEnd' AND '$dateIni' $activeP2 $datafilters
+                                    " . $groupBy . "
+                                    ORDER BY " . $dateSurvey . " asc");
 
             }
 
@@ -1900,20 +1944,28 @@ class Dashboard extends Generic
 
         if(substr($survey,3,3) == 'con')
             $db = 'adata_tra_cond';
+        
+        $dateSurvey = 'date_survey';
+        $groupBy = ' GROUP BY b.mes, b.annio ';
+        $orderBy = ' order by  b.annio, b.mes';
         if(substr($survey,3,3) == 'via')
+        {
             $db = 'adata_tra_via';
-
+            $dateSurvey = 'fechaservicio';
+            $groupBy = '';
+            $orderBy = '';
+        }
+        
         if ($datafilters)
             $datafilters = " AND $datafilters";
 
         $data = DB::select("SELECT count(case when estado_close = 0 then 1 end) as created,
-                            count(case when estado_close = 1 then 1 end) as close, date_survey, b.mes, b.annio
+                            count(case when estado_close = 1 then 1 end) as close, " . $dateSurvey . ", b.mes, b.annio
                             from customer_colmena.".$db."_start as a
                             left join customer_colmena." .$db." as b
                             on a.token = b.token
-                            where date_survey BETWEEN '$dateIni' AND'$dateEnd' and etapaencuesta = 'P2' $datafilters
-                            GROUP by  b.mes, b.annio
-                            order by  b.annio, b.mes");
+                            where " . $dateSurvey . " BETWEEN '$dateIni' AND'$dateEnd' and etapaencuesta = 'P2' $datafilters
+                            " . $groupBy . " " . $orderBy . "");
 
         if($data)
         {
@@ -1952,38 +2004,39 @@ class Dashboard extends Generic
         $datafilters = " AND $datafilters";
         $graphCBI = [];
         $activeP2 ='';
+
         if(substr($table, 6, 3) == 'jet')
             $activeP2 = " AND etapaencuesta = 'P2' ";
 
-    $data = DB::select("SELECT COUNT(if( $indicador between 4 and 5, $indicador, NULL))/COUNT(CASE WHEN $indicador != 99 THEN $indicador END)*100 AS cbi,
-                        COUNT(CASE WHEN $indicador != 99 THEN $indicador END) as total,
-                        a.mes, a.annio, date_survey, $this->_fieldSelectInQuery 
-                        FROM $this->_dbSelected.$table as a
-                        INNER JOIN $this->_dbSelected." . $table . "_start as b on a.token = b. token 
-                        WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $activeP2 $datafilters
-                        GROUP BY a.mes
-                        ORDER BY date_survey asc");
-      
-    if (!empty($data)) {
-        foreach ($data as $key => $value) {
-         
-            if ($struct != 'one') {
-                $graphCBI[] = [
-                    //'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
-                    'xLegend'  => (string)$value->mes . '-' . $value->annio . ' (' . $value->total . ')',
-                    'values'   => [
-                        'cbi' => (string)ROUND($value->cbi)
-                    ]
-                ];
-            }
-            if ($struct == 'one') {
-                $graphCBI[] = [
-                    "value" => (string)ROUND($value->cbi)
-                ];
+        $data = DB::select("SELECT COUNT(if( $indicador between 4 and 5, $indicador, NULL))/COUNT(CASE WHEN $indicador != 99 THEN $indicador END)*100 AS cbi,
+                            COUNT(CASE WHEN $indicador != 99 THEN $indicador END) as total,
+                            a.mes, a.annio, date_survey, $this->_fieldSelectInQuery 
+                            FROM $this->_dbSelected.$table as a
+                            INNER JOIN $this->_dbSelected." . $table . "_start as b on a.token = b. token 
+                            WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $activeP2 $datafilters
+                            GROUP BY a.mes
+                            ORDER BY date_survey asc");
+        
+        if (!empty($data)) {
+            foreach ($data as $key => $value) {
+            
+                if ($struct != 'one') {
+                    $graphCBI[] = [
+                        //'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
+                        'xLegend'  => (string)$value->mes . '-' . $value->annio . ' (' . $value->total . ')',
+                        'values'   => [
+                            'cbi' => (string)ROUND($value->cbi)
+                        ]
+                    ];
+                }
+                if ($struct == 'one') {
+                    $graphCBI[] = [
+                        "value" => (string)ROUND($value->cbi)
+                    ];
+                }
             }
         }
-    }
-    return $graphCBI;
+        return $graphCBI;
     }
 
     //Función para valores de los gráficos de CES
@@ -2326,9 +2379,7 @@ class Dashboard extends Generic
         if ($datafilters)
             $datafilters = " AND $datafilters";
 
-        $query = "SELECT cbi as nombre, count(case when cbi != 99 and cbi != '' then 1 end) as total,
-        (count(case when cbi != 99 then 1 end)*100/(SUM(count(case when cbi != 99 then 1 end)) over()) ) as porcent, 
-        (SUM(count(case when cbi != 99 then 1 end)) over()) as sumtot
+        $query = "SELECT cbi as nombre, count(case when cbi != 99 and cbi != '' then 1 end) as total
         from $this->_dbSelected.$db as a
         left join $this->_dbSelected." . $db . "_start as b 
         on a.token = b.token 
@@ -2338,12 +2389,18 @@ class Dashboard extends Generic
 
         $data = DB::select($query);
 
+        $totalAcum = 0;
+
+        foreach ($data as $key => $value) {
+            $totalAcum = $totalAcum + $value->total;
+        }
+
         foreach ($data as $key => $value) {
         
            $values[] = [[
             'regiones'  => $value->nombre,
-            'period6'   => $value->total,
-            'period7'   => ROUND($value->porcent),
+            'period1'   => $value->total,
+            'period2'   => ROUND($value->total * 100 / $totalAcum),
            ]];
         }
 
@@ -2358,8 +2415,8 @@ class Dashboard extends Generic
                     "columns" =>[
                             [
                             'regiones'  => "Nombres",
-                            'period6'   => "Cant. Resp.",
-                            'period7'   => "CBI(%)",
+                            'period1'   => "Cant. Resp.",
+                            'period2'   => "CBI(%)",
                             
                             ]
                     ],
@@ -2387,15 +2444,24 @@ class Dashboard extends Generic
 
         if ($datafilters)
             $datafilters = " AND $datafilters";
-       
+
+        $dateSurvey = 'date_survey';
+        $groupBy = ' GROUP BY a.mes, a.annio ';
+        $orderBy = ' order by b.annio, b.mes';
+        if(substr($db, 6, 3) == 'tra' && substr($db, 10, 3) == 'via')
+        {
+            $dateSurvey = 'fechaservicio';
+            $groupBy = '';
+            $orderBy = ' order by fechaservicio ';
+        } 
+ 
         $data = DB::select("SELECT count(case when cbi between 4 and 5 then 1 end)*100/count(case when cbi != 99 then 1 end) as cbi,
-                            count(case when cbi != 99 then 1 end) as Total, a.mes, a.annio, date_survey 
+                            count(case when cbi != 99 then 1 end) as Total, a.mes, a.annio, " . $dateSurvey . " 
                             from $this->_dbSelected.$db as a
                             left join $this->_dbSelected." . $db . "_start as b 
                             on a.token = b.token 
-                            WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters
-                            group by  a.mes, a.annio
-                            order by a.annio, a.mes");
+                            WHERE " . $dateSurvey . " BETWEEN '$dateEnd' AND '$dateIni' $datafilters
+                             " . $groupBy . " " . $orderBy . "");
                         
         if(substr($db,6,3) == 'tra'){
             if($data)
@@ -2657,19 +2723,25 @@ class Dashboard extends Generic
     }
     private function NpsIsnTransvip($table,$dateIni, $dateEnd,$indicadorNPS, $indicadorINS,$datafilters, $group, $perf = null){
         
+        $dateSurvey = 'date_survey';
+        if(substr($table, 6, 3) == 'tra' && substr($table, 10, 3) == 'via')
+            $dateSurvey = 'fechaservicio';
+
         if($group != null){
             $where = $datafilters;
             $datafilters = '';
-            $group = "week";
+            $group = " GROUP by week";
         }
 
-        $activeP2 ='';
-        if(substr($table, 10, 3) == 'con')
-            $activeP2 = " AND etapaencuesta = 'P2' ";
+        $activeP2 = " AND etapaencuesta = 'P2' ";
+        if(substr($table, 6, 3) == 'ban' || substr($table, 6, 3) == 'vid')
+            $activeP2 ='';
 
         if ($group == null) {
-            $where = " date_survey BETWEEN '$dateEnd' AND '$dateIni' ";
-            $group = " a.mes, a.annio ";
+            $where = " " . $dateSurvey . " BETWEEN '$dateEnd' AND '$dateIni' ";
+            $group = " GROUP by a.mes, a.annio ";
+            if(substr($table, 6, 3) == 'tra' && substr($table, 10, 3) == 'via')
+                $group = '';
             if (substr($datafilters, 30, 3) == 'NOW') {
                 $datafilters = '';
             }
@@ -2681,15 +2753,15 @@ class Dashboard extends Generic
         $data = DB::select("SELECT COUNT(CASE WHEN a.$indicadorNPS!=99 THEN 1 END) as Total, 
                             ROUND(((COUNT(CASE WHEN a.$indicadorNPS BETWEEN 9 AND 10 THEN 1 END) - COUNT(CASE WHEN a.$indicadorNPS BETWEEN 0 AND 6 THEN 1 END)) / (COUNT(CASE WHEN a.$indicadorNPS!=99 THEN 1 END)) * 100),1) AS NPS, 
                             ROUND(((COUNT(CASE WHEN a.$indicadorINS BETWEEN 6 AND 7 THEN 1 END) - COUNT(CASE WHEN a.$indicadorINS BETWEEN 1 AND 4 THEN 1 END)) / (COUNT(CASE WHEN a.$indicadorINS!=99 THEN 1 END)) * 100),1) AS INS,
-                            a.mes, a.annio, date_survey, WEEK(date_survey) AS week
+                            a.mes, a.annio, " . $dateSurvey . ", WEEK(" . $dateSurvey . ") AS week
                             from $this->_dbSelected.$table as a
                             left join $this->_dbSelected." . $table . "_start as b
                             on a.token = b.token
                             where $where $activeP2 $datafilters
-                            GROUP by $group
+                            " . $group . "
                             ORDER by a.date_survey ASC");      
    
-        if ($group == 'week') 
+        if ($group == ' GROUP by week') 
         { 
             $mondayWeek = $this->getFirstMond();
         }
@@ -3335,6 +3407,14 @@ class Dashboard extends Generic
             $datafilters = '';
         }
 
+        $dateSurvey = 'date_survey';
+        $groupBy = ' GROUP BY a.mes, a.annio ';
+        if(substr($db, 6, 3) == 'tra' && substr($db, 10, 3) == 'via')
+        {
+            $dateSurvey = 'fechaservicio';
+            $groupBy = '';
+        } 
+
         $activeP2 ='';
         if(substr($db, 10, 3) == 'con')
             $activeP2 = " AND etapaencuesta = 'P2' ";
@@ -3357,13 +3437,12 @@ class Dashboard extends Generic
             }
         }
 
-        $data = DB::select("SELECT $query,date_survey, A.mes, A.annio
+        $data = DB::select("SELECT $query," . $dateSurvey . ", A.mes, A.annio
                             FROM $this->_dbSelected.$db as A
                             LEFT JOIN $this->_dbSelected." . $db . "_start as b
                             on A.token = b.token 
-                            WHERE date_survey BETWEEN '$dateEnd' AND  '$dateIni'  $activeP2 $datafilters
-                            group by A.mes, A.annio
-                            ORDER BY date_survey");
+                            WHERE " . $dateSurvey . " BETWEEN '$dateEnd' AND  '$dateIni'  $activeP2 $datafilters 
+                            " . $groupBy . " ORDER BY " . $dateSurvey);
         
         if($data)
         {
@@ -3447,14 +3526,18 @@ class Dashboard extends Generic
     {
         $graphCSAT = [];
 
+        $dateSurvey = 'date_survey';
+        if(substr($db, 6, 3) == 'tra' && substr($db, 10, 3) == 'via')
+            $dateSurvey = 'fechaservicio';
+
         $endCsat = $this->getEndCsat($survey);
 
         $fieldBd = $this->getFielInDbCsat($survey);
         $fieldBd2 = $this->getFielInDbCsat($survey);
 
-        $activeP2 ='';
-        if(substr($db, 10, 3) == 'con')
-            $activeP2 = " AND etapaencuesta = 'P2' ";
+        $activeP2 = " AND etapaencuesta = 'P2' ";
+        if(substr($db, 6, 3) == 'ban' || substr($db, 6, 3) == 'vid')
+            $activeP2 ='';
 
         $query = "";
         $query2 = "";
@@ -3534,13 +3617,13 @@ class Dashboard extends Generic
                                 ((count(if(csat$i = $this->_maxMediumCsat  or csat$i = $this->_minMediumCsat,  $fieldBd$i, NULL))*100)/count(case when  $fieldBd$i != 99 THEN  $fieldBd$i END)) as neutral$i ";
                 }
             }
-
-            $data = DB::select("SELECT $query,date_survey
+                        
+            $data = DB::select("SELECT $query," . $dateSurvey . "
                                 FROM $this->_dbSelected.$db as A
                                 LEFT JOIN $this->_dbSelected." . $db . "_start as b
                                 on A.token = b.token 
-                                WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' $activeP2  $datafilters
-                                ORDER BY date_survey");
+                                WHERE " . $dateSurvey . " BETWEEN '$dateIni' AND '$dateEnd' $activeP2  $datafilters
+                                ORDER BY " . $dateSurvey );
                              
         }
 
@@ -4896,6 +4979,10 @@ class Dashboard extends Generic
     private function ranking($db, $indicatordb, $indicator, $endDateFilterMonth, $startDateFilterMonth, $filterClient, $datafilters, $width){
         if ($datafilters)
             $datafilters = " AND $datafilters";
+
+        $dateSurvey = 'date_survey';
+        if(substr($db, 6, 3) == 'tra' && substr($db, 10, 3) == 'via')
+            $dateSurvey = 'fechaservicio';
         
         if (substr($datafilters, 30, 3) == 'NOW') {
             $datafilters = '';
@@ -4912,7 +4999,7 @@ class Dashboard extends Generic
                             FROM $this->_dbSelected." . $db . "_start as a
                             left join $this->_dbSelected.$db as b
                             on a.token = b.token
-                            where date_survey between '$startDateFilterMonth' and '$endDateFilterMonth' and etapaencuesta = 'P2' and $indicatordb != '' $datafilters
+                            where " . $dateSurvey . " between '$startDateFilterMonth' and '$endDateFilterMonth' and etapaencuesta = 'P2' and $indicatordb != '' $datafilters
                             group by  $indicator
                             order by CNPS DESC
                             LIMIT 5 ";
@@ -4923,7 +5010,7 @@ class Dashboard extends Generic
                                 FROM $this->_dbSelected." . $db . "_start as a
                                 left join $this->_dbSelected.$db as b
                                 on a.token = b.token
-                                where date_survey between '$startDateFilterMonth' and '$endDateFilterMonth' and etapaencuesta = 'P2' and $indicatordb != '' $datafilters
+                                where " . $dateSurvey . " between '$startDateFilterMonth' and '$endDateFilterMonth' and etapaencuesta = 'P2' and $indicatordb != '' $datafilters
                                 group by  $indicator
                                 order by CNPS asc
                                 LIMIT 5) as a
@@ -6427,8 +6514,8 @@ class Dashboard extends Generic
             $detailGeneration   = substr($request->survey, 3, 3) == 'via' ? $this->ranking($db, 'convenio', 'Convenio', $endDateFilterMonth, $startDateFilterMonth, $filterClient,$datafilters, 6, 5) : null;
             $detailsProcedencia = substr($request->survey, 3, 3) == 'via' ? $this->graphINS($tiempoVehiculo, $coordAnden, $tiempoAeropuerto, $tiempoLlegadaAnden) : null;
             $box14              = substr($request->survey, 3, 3) == 'con' ? $this->CSATDrivers($graphCSATDrivers) : $this->graphCsatTransvip($drivers, $request->survey);
-            $box15              = substr($request->survey, 3, 3) == 'via' ? $this->traking($db, $startDateFilterMonth, $endDateFilterMonth) : null;
-            $box16              = $proveedor;
+            $box15              = null; //substr($request->survey, 3, 3) == 'via' ? $this->traking($db, $startDateFilterMonth, $endDateFilterMonth) : null;
+            $box16              = substr($request->survey, 3, 3) == 'con' ? $proveedor : null;
             $box17              = null;
             $box18              = null;
             $box19              = null;
