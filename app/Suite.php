@@ -293,17 +293,17 @@ class Suite
                 $dbQuery->where('dateSchedule', '=', $dateSchedule);
             }
 
-            //Filtro por Detract, Neut y Prom
-            if($request->get('typeClient') !== null) {
-                $typeClient = $request->get('typeClient');
-                // TODO validar endDate
-                if($typeClient == 'promotor')
-                    $dbQuery->whereBetween('nps', [9,10]);
-                if($typeClient == 'neutral')
-                    $dbQuery->whereBetween('nps', [7,8]);
-                if($typeClient == 'detractor')
-                    $dbQuery->whereBetween('nps', [0,6]);
-            }
+            // //Filtro por Detract, Neut y Prom
+            // if($request->get('typeClient') !== null) {
+            //     $typeClient = $request->get('typeClient');
+            //     // TODO validar endDate
+            //     if($typeClient == 'promotor')
+            //         $dbQuery->whereBetween('nps', [9,10]);
+            //     if($typeClient == 'neutral')
+            //         $dbQuery->whereBetween('nps', [7,8]);
+            //     if($typeClient == 'detractor')
+            //         $dbQuery->whereBetween('nps', [0,6]);
+            // }
 
             // Ordenamos
             if($request->get('orders') !== null) {
@@ -728,4 +728,13 @@ class Suite
         return $survey;
     }
     //FIN CONFIGURACION DE CLIENTES
+
+    public function setMinNps($value){
+        $this->_startMinNps = $value;
+    }
+    
+    public function setMaxNps($value){
+        $this->_startMaxNps = $value;
+    }
+
 }

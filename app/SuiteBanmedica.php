@@ -9,9 +9,10 @@ use Illuminate\Support\Facades\DB;
 
 class SuiteBanmedica extends Suite
 {
-   public function __construct($jwt)
+   public function __construct($jwt, $request)
    {
        parent::__construct($jwt);
+       $this->setIndicators($request);
    }
 
    public function saveUpdate($request, $jwt)
@@ -73,5 +74,30 @@ class SuiteBanmedica extends Suite
                'status' => Response::HTTP_UNPROCESSABLE_ENTITY
            ];
        }
+   }
+
+   public function setIndicators($request){
+       
+        if($request->get('typeClient') !== null) {
+            $typeClient = $request->get('typeClient');
+            // TODO validar endDate
+            if($typeClient == 'promotor')
+            {
+                $this->setMinNps(9);
+                $this->setMaxNps(10);
+            }
+
+            if($typeClient == 'neutral')
+            {
+                $this->setMinNps(7) ;
+                $this->setMaxNps(8);
+            }
+
+            if($typeClient == 'detractor')
+            {
+                $this->setMinNps(0) ;
+                $this->setMaxNps(6);
+            }
+        }
    }
 }
