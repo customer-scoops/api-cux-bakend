@@ -286,6 +286,25 @@ class Suite
                 $dbQuery->where('dateSchedule', '=', $dateSchedule);
             }
 
+            //Filtro por dia a contactar
+            if($request->get('dateSchedule') !== null) {
+                $dateSchedule = $request->get('dateSchedule');
+                // TODO validar endDate
+                $dbQuery->where('dateSchedule', '=', $dateSchedule);
+            }
+
+            //Filtro por Detract, Neut y Prom
+            if($request->get('typeClient') !== null) {
+                $typeClient = $request->get('typeClient');
+                // TODO validar endDate
+                if($typeClient == 'promotor')
+                    $dbQuery->whereBetween('nps', [9,10]);
+                if($typeClient == 'neutral')
+                    $dbQuery->whereBetween('nps', [7,8]);
+                if($typeClient == 'detractor')
+                    $dbQuery->whereBetween('nps', [0,6]);
+            }
+
             // Ordenamos
             if($request->get('orders') !== null) {
                 $orders = (json_decode($request->get('orders')));
