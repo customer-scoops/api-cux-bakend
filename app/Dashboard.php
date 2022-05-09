@@ -2379,9 +2379,7 @@ class Dashboard extends Generic
         if ($datafilters)
             $datafilters = " AND $datafilters";
 
-        $query = "SELECT cbi as nombre, count(case when cbi != 99 and cbi != '' then 1 end) as total,
-        (count(case when cbi != 99 then 1 end)*100/(SUM(count(case when cbi != 99 then 1 end)) over()) ) as porcent, 
-        (SUM(count(case when cbi != 99 then 1 end)) over()) as sumtot
+        $query = "SELECT cbi as nombre, count(case when cbi != 99 and cbi != '' then 1 end) as total
         from $this->_dbSelected.$db as a
         left join $this->_dbSelected." . $db . "_start as b 
         on a.token = b.token 
@@ -2391,12 +2389,18 @@ class Dashboard extends Generic
 
         $data = DB::select($query);
 
+        $totalAcum = 0;
+
+        foreach ($data as $key => $value) {
+            $totalAcum = $totalAcum + $value->total;
+        }
+
         foreach ($data as $key => $value) {
         
            $values[] = [[
             'regiones'  => $value->nombre,
             'period1'   => $value->total,
-            'period2'   => ROUND($value->porcent),
+            'period2'   => ROUND($value->total * 100 / $totalAcum),
            ]];
         }
 
