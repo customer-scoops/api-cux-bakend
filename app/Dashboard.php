@@ -2370,7 +2370,7 @@ class Dashboard extends Generic
 
     // Funciones para Transvip
 
-    private function rankingProveedor($db, $datafilters, $dateIni, $dateEnd)
+    private function rankingProveedor($db, $datafilters, $dateIni, $dateEnd, $indicador, $text)
     {
         if (substr($datafilters, 30, 3) == 'NOW') {
             $datafilters = '';
@@ -2379,12 +2379,12 @@ class Dashboard extends Generic
         if ($datafilters)
             $datafilters = " AND $datafilters";
 
-        $query = "SELECT cbi as nombre, count(case when cbi != 99 and cbi != '' then 1 end) as total
+        $query = "SELECT $indicador as nombre, count(case when $indicador != 99 and $indicador != '' then 1 end) as total
         from $this->_dbSelected.$db as a
         left join $this->_dbSelected." . $db . "_start as b 
         on a.token = b.token 
-        WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters AND cbi != 99 AND cbi != ''
-        group by  cbi
+        WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters AND $indicador != 99 AND $indicador != ''
+        group by  $indicador
         order by total DESC";
 
         $data = DB::select($query);
@@ -2410,13 +2410,13 @@ class Dashboard extends Generic
             "type" =>  "table-period",
             "props" =>  [
                 "icon" => "arrow-right",
-                "text" => "Continuar Como Preoveedor",
+                "text" => $text,
                 "data" => [
                     "columns" =>[
                             [
                             'regiones'  => "Nombres",
                             'period1'   => "Cant. Resp.",
-                            'period2'   => "CBI(%)",
+                            'period2'   => "%",
                             
                             ]
                     ],
@@ -6485,7 +6485,7 @@ class Dashboard extends Generic
         if ($this->_dbSelected  == 'customer_colmena'  && substr($request->survey, 0, 3) == 'tra') {
             $proveedor= null;
             if($db == 'adata_tra_cond'){
-                $proveedor = $this->rankingProveedor($db, $datafilters, $dateIni, $dateEnd);
+                $proveedor = $this->rankingProveedor($db, $datafilters, $dateIni, $dateEnd, 'cbi', "Continuar Como Preoveedor");
             }
 
             $name = 'Transvip';
