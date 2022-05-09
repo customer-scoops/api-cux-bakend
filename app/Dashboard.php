@@ -2401,7 +2401,7 @@ class Dashboard extends Generic
         foreach ($data as $key => $value) {
         
         $values[] = [
-            'text'  => utf8_decode($value->nombre),
+            'text'  => $value->nombre,
             'cant'   => $value->total,
             'porcentaje'   => ROUND($value->total * 100 / $totalAcum) . " %",
            ];
