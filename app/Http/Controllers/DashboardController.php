@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponser;
 use App\Dashboard;
-use App\DashboardMutual;
 use Illuminate\Http\Response;
 
 class DashboardController extends Controller

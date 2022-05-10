@@ -97,17 +97,8 @@ class Suite
             }
             
             //$codCustomer = ($request->get('company') !== null) ? $request->get('company'): $jwt[env('AUTH0_AUD')]->client;
-            $db = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1);
-
-            if (isset($jwt[env('AUTH0_AUD')]->surveysActive)) {
-                foreach ($jwt[env('AUTH0_AUD')]->surveysActive as $key => $value) {
-                    $surv[] = $value; 
-                }
-                $db->whereIn('codDbase',$surv);
-                unset($surv);
-            }
-            $resp = $db->get();
-            //dd($resp);exit;  
+            $resp = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1)->get();
+            //echo $resp;exit;  
             //dd(\DB::getQueryLog());
             if($codCustomer == 'TRA001')
                 $resp = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1)->where('codsurvey','TRA_VIA')->orWhere('codsurvey','TRA_COND')->get();
@@ -630,12 +621,12 @@ class Suite
             "jetcom_csat5"  => "Proceso de pago",
             "jetcom_csat6"  => "Información en email de confirmación de compra",
 
-            "jetvue_csat1"  => "csat_1",
-            "jetvue_csat2"  => "csat_2",
-            "jetvue_csat3"  => "csat_3",
-            "jetvue_csat4"  => "csat_4",
-            "jetvue_csat5"  => "csat_5",
-            "jetvue_csat6"  => "csat_6",
+            "jetvue_csat1"  => "Uso de sitio Web",
+            "jetvue_csat2"  => "Selección de pasajes",
+            "jetvue_csat3"  => "Selección de equipaje",
+            "jetvue_csat4"  => "Selección de asientos",
+            "jetvue_csat5"  => "Proceso de pago",
+            "jetvue_csat6"  => "Información email",
         
         ];
         
