@@ -578,7 +578,7 @@ class Dashboard extends Generic
         $indicators = new Suite($this->_jwt);
         return $indicators->getSurvey($request, $jwt);
     }
-
+    //Voy a hacer algo raro
     public function generalInfo($request, $jwt)
     {
         $surveys = $this->getDataSurvey($request, $jwt);
