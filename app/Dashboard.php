@@ -590,9 +590,14 @@ class Dashboard extends Generic
             ],
         ];
     }
-
-    public function generalInfo($request, $jwt){
+    protected function getDataSurvey($request, $jwt){
         $indicators = new Suite($this->_jwt);
+        return $indicators->getSurvey($request, $jwt);
+    }
+    //Voy a hacer algo raro
+    public function generalInfo($request, $jwt)
+    {
+        $surveys = $this->getDataSurvey($request, $jwt);
         $data = [];
         $surveys = $indicators->getSurvey($request, $jwt);
         $otherGraph = [];
