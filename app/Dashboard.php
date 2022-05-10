@@ -1392,6 +1392,7 @@ class Dashboard extends Generic
         
         
         if ($filter != 'all') {
+
             $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
                                 COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) / 
                                 (COUNT($indicador) - COUNT(CASE WHEN $indicador=99 THEN 1 END)) * 100),1) AS NPS, 
@@ -1452,7 +1453,7 @@ class Dashboard extends Generic
             $mondayWeek = $this->getFirstMond();
         }
        $count = count($data)-1;
-
+        //dd($data);exit;
         if ($data) {
             if ($data[0]->total === null) {
                 foreach ($data as $key => $value) {
@@ -1462,7 +1463,7 @@ class Dashboard extends Generic
                             'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('m-d', strtotime($mondayWeek . "- $count week")) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                             'values' => [
                                 "promoters"     => round($value->promotor),
-                                "neutrals"      => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - (round($data[0]->detractor) + round($data[0]->promotor)),//100 - (round($value->promotor) + round($value->detractor)),
+                                "neutrals"      => ($value->promotor == 0 && $value->detractor == 0) ? round($value->neutral) : 100 - (round($value->detractor) + round($value->promotor)),//100 - (round($value->promotor) + round($value->detractor)),
                                 "detractors"    => round($value->detractor),
                                 "nps"           => round($value->NPS)
                             ],
@@ -1485,7 +1486,7 @@ class Dashboard extends Generic
                             'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('m-d', strtotime($mondayWeek . "- $count week")) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                             'values' => [
                                 "promoters"     => round($value->promotor),
-                                "neutrals"      => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - (round($data[0]->detractor) + round($data[0]->promotor)),//100 - (round($value->promotor) + round($value->detractor)),
+                                "neutrals"      => ($value->promotor == 0 && $value->detractor == 0) ? round($value->neutral) : 100 - (round($value->detractor) + round($value->promotor)),//100 - (round($value->promotor) + round($value->detractor)),
                                 "detractors"    => round($value->detractor),
                                 "nps"           => round($value->NPS)
                             ],
@@ -1906,7 +1907,7 @@ class Dashboard extends Generic
                             'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cinsa + $value->Cneut + $value->Csati) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cinsa + $value->Cneut + $value->Csati) . ')',
                             'values' => [
                                 "promoters"     => round($value->promotor),
-                                "neutrals"      => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - (round($data[0]->detractor) + round($data[0]->promotor)),//100 - (round($value->promotor) + round($value->detractor)),
+                                "neutrals"      => ($value->promotor == 0 && $value->detractor == 0) ? $value->neutral : 100 - (round($value->detractor) + round($value->promotor)),//100 - (round($value->promotor) + round($value->detractor)),
                                 "detractors"    => round($value->detractor),
                                 "csat"          => (string)ROUND($value->csat),
                             ],
@@ -2087,7 +2088,7 @@ class Dashboard extends Generic
                         'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->dificil + $value->facil + $value->neutral) . ')' : 'Semana ' . $value->week . ' (' . ($value->dificil + $value->facil + $value->neutral) . ')',
                         'values' => [
                             "promoters"  => round($value->facil),
-                            "neutrals"   => ((round($value->facil) == 0) && (round($value->dificil) == 0)) ? round($value->neutral) : 100 - (round($value->facil) + round($value->dificil)),//100 - (round($value->facil) + round($value->dificil)),
+                            "neutrals"   => ($value->facil == 0 && $value->dificil == 0) ? round($value->neutral) : 100 - (round($value->facil) + round($value->dificil)),//100 - (round($value->facil) + round($value->dificil)),
                             "detractors" => round($value->dificil),
                             'ces' => (string)ROUND($value->ces)
                         ],
@@ -2370,7 +2371,7 @@ class Dashboard extends Generic
 
     // Funciones para Transvip
 
-    private function rankingProveedor($db, $datafilters, $dateIni, $dateEnd)
+    private function rankingTransvip($db, $datafilters, $dateIni, $dateEnd, $indicador, $text, $height, $width)
     {
         if (substr($datafilters, 30, 3) == 'NOW') {
             $datafilters = '';
@@ -2379,13 +2380,16 @@ class Dashboard extends Generic
         if ($datafilters)
             $datafilters = " AND $datafilters";
 
-        $query = "SELECT cbi as nombre, count(case when cbi != 99 and cbi != '' then 1 end) as total
+        $query = "SELECT $indicador as nombre, count(case when $indicador != 99 and $indicador != '' then 1 end) as total
         from $this->_dbSelected.$db as a
         left join $this->_dbSelected." . $db . "_start as b 
         on a.token = b.token 
-        WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters AND cbi != 99 AND cbi != ''
-        group by  cbi
+        WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters AND $indicador != 99 AND $indicador != '' 
+        AND etapaencuesta = 'P2'
+        group by  $indicador
         order by total DESC";
+
+       // echo $query;exit;
 
         $data = DB::select($query);
 
@@ -2397,36 +2401,51 @@ class Dashboard extends Generic
 
         foreach ($data as $key => $value) {
         
-           $values[] = [[
-            'regiones'  => $value->nombre,
-            'period1'   => $value->total,
-            'period2'   => ROUND($value->total * 100 / $totalAcum),
-           ]];
+        $values[] = [
+            'text'  => $value->nombre,
+            'cant'   => $value->total,
+            'porcentaje'   => ROUND($value->total * 100 / $totalAcum) . " %",
+           ];
         }
 
+        $standarStruct = [
+            [
+                "text" => "Nombres",
+                "key" => "text",
+                "cellColor" => "#17C784",
+                "textAlign" => "left"
+            ],
+            [
+                "text" => "Cant. Resp.",
+                "key" => "cant",
+                "cellColor" => "#17C784",
+                "textAlign" => "center"
+            ],
+            [
+                "text" => "Porcentaje",
+                "key" => "porcentaje",
+                "cellColor" => "#17C784",
+                "textAlign" => "center"
+            ]
+        ];
+
         return [
-            "height" => 3,
-            "width" =>  4,
-            "type" =>  "table-period",
+            "height" =>  $height,
+            "width" =>  $width,
+            "type" =>  "tables",
             "props" =>  [
                 "icon" => "arrow-right",
-                "text" => "Continuar Como Preoveedor",
-                "data" => [
-                    "columns" =>[
-                            [
-                            'regiones'  => "Nombres",
-                            'period1'   => "Cant. Resp.",
-                            'period2'   => "CBI(%)",
-                            
-                            ]
+                "text" => $text,
+                "tables" => [
+                    [
+                        "columns" => [
+                            $standarStruct[0],
+                            $standarStruct[1],
+                            $standarStruct[2]
+                        ],
+                        "values" => $values,
                     ],
-                    "values"  =>  $values,
-                    "colors" => [
-                        'regiones' => "#17C784",
-                        "YTD" => "#17C784"
-                    ]
-                ],
-
+                ]
             ]
         ];
         
@@ -2895,7 +2914,7 @@ class Dashboard extends Generic
                 'xLegend'   => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                 'values'    => [
                     "promoters"     => Round($value->promotor),
-                    "neutrals"      => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - (round($data[0]->detractor) + round($data[0]->promotor)),//100 - (Round($value->promotor) + Round($value->detractor)),
+                    "neutrals"      => ($value->promotor == 0 && $value->detractor == 0) ? round($value->neutral) : 100 - (round($value->detractor) + round($value->promotor)),//100 - (Round($value->promotor) + Round($value->detractor)),
                     "detractors"    => Round($value->detractor),
                     "nps"           => Round($value->NPS)
                 ],
@@ -3645,7 +3664,7 @@ class Dashboard extends Generic
                             'values' =>
                             [
                                 "promoters"     => round($value->$pro),
-                                "neutrals"      => ((round($value->$pro) == 0) && (round($value->$det) == 0)) ? round(round($value->$neu)) : round(100 - (round($value->$det) + round($value->$pro))),//(int)round(100 - (round($value->$det) + round($value->$pro))),
+                                "neutrals"      => ($value->$pro == 0 && $value->$det == 0) ? round(round($value->$neu)) : round(100 - (round($value->$det) + round($value->$pro))),//(int)round(100 - (round($value->$det) + round($value->$pro))),
                                 "detractors"    => round($value->$det),
                                 "csat"          => round($csat)
                             ]
@@ -3756,7 +3775,7 @@ class Dashboard extends Generic
                         'values' =>
                         [
                             "promoters"     => round($value->$pro),
-                            "neutrals"      => ((round($value->$pro) == 0) && (round($value->$det) == 0)) ? round(round($value->$neu)) : round(100 - (round($value->$det) + round($value->$pro))),//100 - (ROUND($value->$pro) + ROUND($value->$det)),
+                            "neutrals"      => ($value->$pro == 0 && $value->$det == 0) ? round($value->$neu) : round(100 - (round($value->$det) + round($value->$pro))),//100 - (ROUND($value->$pro) + ROUND($value->$det)),
                             "detractors"    => ROUND($value->$det),
                             "csat"          => (int)($csat)
                         ]
@@ -6316,12 +6335,12 @@ class Dashboard extends Generic
                 ],
                 [
                     "icon" => "plane",
-                    "percentage" => 'Act. no viajo',
+                    "percentage" => '1 / año',
                     "quantity" =>  '',
                 ],
                 [
                     "icon" => "plane",
-                    "percentage" => '1 / año',
+                    "percentage" => 'Act. no viajo',
                     "quantity" =>  '',
                 ],
             ]
@@ -6485,7 +6504,11 @@ class Dashboard extends Generic
         if ($this->_dbSelected  == 'customer_colmena'  && substr($request->survey, 0, 3) == 'tra') {
             $proveedor= null;
             if($db == 'adata_tra_cond'){
-                $proveedor = $this->rankingProveedor($db, $datafilters, $dateIni, $dateEnd);
+                $proveedor = $this->rankingTransvip($db, $datafilters, $dateIni, $dateEnd, 'cbi', "Continuar Como Preoveedor", 3, 4);
+                $frecCon = $this->rankingTransvip($db, $datafilters, $dateIni, $dateEnd, 'opc', "Frecuencia de conexión", 3, 4);
+                $contactoEmpresas = $this->rankingTransvip($db, $datafilters, $dateIni, $dateEnd, 'sino1', "Contacto otras empresas", 3, 4);
+                $atrImport = $this->rankingTransvip($db, $datafilters, $dateIni, $dateEnd, 'mult1', "Atributos más importantes", 3, 4);
+                $canalPref = $this->rankingTransvip($db, $datafilters, $dateIni, $dateEnd, 'opc2', "Canal Preferido", 3, 4);
             }
 
             $name = 'Transvip';
@@ -6516,10 +6539,10 @@ class Dashboard extends Generic
             $box14              = substr($request->survey, 3, 3) == 'con' ? $this->CSATDrivers($graphCSATDrivers) : $this->graphCsatTransvip($drivers, $request->survey);
             $box15              = substr($request->survey, 3, 3) == 'via' ? $this->traking($db, $startDateFilterMonth, $endDateFilterMonth) : null;
             $box16              = substr($request->survey, 3, 3) == 'con' ? $proveedor : null;
-            $box17              = null;
-            $box18              = null;
-            $box19              = null;
-            $box20              = null;
+            $box17              = substr($request->survey, 3, 3) == 'con' ? $frecCon : null;
+            $box18              = substr($request->survey, 3, 3) == 'con' ? $contactoEmpresas : null;
+            $box19              = substr($request->survey, 3, 3) == 'con' ? $atrImport : null;
+            $box20              = substr($request->survey, 3, 3) == 'con' ? $canalPref : null;
             $box21              = null;
             $npsBan             = $this->cxIntelligence($request);
         }
