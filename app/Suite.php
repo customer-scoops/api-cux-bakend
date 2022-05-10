@@ -621,12 +621,12 @@ class Suite
             "jetcom_csat5"  => "Proceso de pago",
             "jetcom_csat6"  => "Información en email de confirmación de compra",
 
-            "jetvue_csat1"  => "csat_1",
-            "jetvue_csat2"  => "csat_2",
-            "jetvue_csat3"  => "csat_3",
-            "jetvue_csat4"  => "csat_4",
-            "jetvue_csat5"  => "csat_5",
-            "jetvue_csat6"  => "csat_6",
+            "jetvue_csat1"  => "Uso de sitio Web",
+            "jetvue_csat2"  => "Selección de pasajes",
+            "jetvue_csat3"  => "Selección de equipaje",
+            "jetvue_csat4"  => "Selección de asientos",
+            "jetvue_csat5"  => "Proceso de pago",
+            "jetvue_csat6"  => "Información email",
         
         ];
         
