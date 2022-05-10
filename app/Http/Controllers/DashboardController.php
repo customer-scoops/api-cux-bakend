@@ -23,7 +23,7 @@ class DashboardController extends Controller
     }
     public function index(Request $request){
         if(TRIM($request->dataJwt[env('AUTH0_AUD')]->client) == 'MUT001'){
-            $dashboarMut = new DashboardMutual($request->dataJwt);
+            $dashboarMut = new DashboardMutual($request->dataJwt, $request);
             $data = $dashboarMut->generalInfo($request, $request->dataJwt);
         }
         if(TRIM($request->dataJwt[env('AUTH0_AUD')]->client) != 'MUT001'){
@@ -45,7 +45,15 @@ class DashboardController extends Controller
     }
     public function detailsDash(Request $request)
     {
-        $data = $this->_dashboard->detailsDash($request, $request->dataJwt);
+        if(TRIM($request->dataJwt[env('AUTH0_AUD')]->client) == 'MUT001'){
+            $dashboarMut = new DashboardMutual($request->dataJwt, $request);
+            $data = $dashboarMut->detailsDash($request, $request->dataJwt);
+        }
+        if(TRIM($request->dataJwt[env('AUTH0_AUD')]->client) != 'MUT001'){
+         $data = $this->_dashboard->detailsDash($request, $request->dataJwt);
+        }
+
+        //$data = $this->_dashboard->detailsDash($request, $request->dataJwt);
         return $this->generic($data['datas'], $data['status']);
     }
     public function textMining(Request $request)
