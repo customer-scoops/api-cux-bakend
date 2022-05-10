@@ -599,7 +599,6 @@ class Dashboard extends Generic
     {
         $surveys = $this->getDataSurvey($request, $jwt);
         $data = [];
-        $surveys = $indicators->getSurvey($request, $jwt);
         $otherGraph = [];
         if ($surveys['status'] == 200) {
             foreach ($surveys['datas'] as $key => $value) {
@@ -6171,8 +6170,4 @@ class Dashboard extends Generic
         $this->_nameClient = $value;
     }
 
-    protected function getDataSurvey($request, $jwt){
-        $indicators = new Suite($this->_jwt);
-        return $indicators->getSurvey($request, $jwt);
-    }
 }
