@@ -2228,6 +2228,7 @@ class Dashboard extends Generic
 
     private function rankingTransvip($db, $datafilters, $dateIni, $dateEnd, $indicador, $text, $height, $width)
     {
+        $values = [];
         if (substr($datafilters, 30, 3) == 'NOW') {
             $datafilters = '';
         }
@@ -2244,8 +2245,6 @@ class Dashboard extends Generic
         group by  $indicador
         order by total DESC";
 
-       // echo $query;exit;
-
         $data = DB::select($query);
 
         $totalAcum = 0;
@@ -2257,10 +2256,11 @@ class Dashboard extends Generic
         foreach ($data as $key => $value) {
         
         $values[] = [
-            'text'  => $value->nombre,
+            'text'  => $value->nombre == "0" ? "No" : ($value->nombre == "1" ? "Si" : str_replace("u00f3", "ó", str_replace("&nt", "ños", html_entity_decode(str_replace("&amp;","&",$value->nombre))))),
             'cant'   => $value->total,
             'porcentaje'   => ROUND($value->total * 100 / $totalAcum) . " %",
            ];
+      
         }
 
         $standarStruct = [
@@ -2730,16 +2730,16 @@ class Dashboard extends Generic
             if($perf == 'x'){
                 return [
                     "name"          => "ISN",
-                    "value"         => 0,
-                    "percentage"    => 0
+                    "value"         => "N/A",
+                    "percentage"    => "N/A"
                 ];
             }
         }
-
+        
         if($perf == 'x'){
             return [
                 "name"          =>"ISN",
-                "value"         =>Round($value->INS),
+                "value"         =>$value->mes == date('m') ? Round($value->INS) : 'N/A',
                 "percentage"    => 0
             ];
         }
@@ -5477,10 +5477,11 @@ class Dashboard extends Generic
             $ins = $this->NpsIsnTransvip($db, $dateIni, $dateEnd,'nps','csat',$datafilters,'', 'x' );
 
             $insPreviousPeriod = $this->npsPreviousPeriod($db,$dateEnd, $dateIni,'csat',''); 
-            
+
+
             $name = 'ISN';
-            $val = round($ins['value']);
-            $percentage= round($ins['value']-$insPreviousPeriod['ins']);  
+            $val =  $ins['value'] == 'N/A' ? 'N/A' : round($ins['value']);
+            $percentage= $ins['value'] == 'N/A' ? round(-$insPreviousPeriod['ins']) : round($ins['value']-$insPreviousPeriod['ins']);  
         }
 
         if ($this->_dbSelected == 'customer_banmedica') {
@@ -6150,11 +6151,11 @@ class Dashboard extends Generic
         if ($this->_dbSelected  == 'customer_colmena'  && substr($request->survey, 0, 3) == 'tra') {
             $proveedor= null;
             if($db == 'adata_tra_cond'){
-                $proveedor = $this->rankingTransvip($db, $datafilters, $dateIni, $dateEnd, 'cbi', "Continuar Como Preoveedor", 3, 4);
-                $frecCon = $this->rankingTransvip($db, $datafilters, $dateIni, $dateEnd, 'opc', "Frecuencia de conexión", 3, 4);
-                $contactoEmpresas = $this->rankingTransvip($db, $datafilters, $dateIni, $dateEnd, 'sino1', "Contacto otras empresas", 3, 4);
-                $atrImport = $this->rankingTransvip($db, $datafilters, $dateIni, $dateEnd, 'mult1', "Atributos más importantes", 3, 4);
-                $canalPref = $this->rankingTransvip($db, $datafilters, $dateIni, $dateEnd, 'opc2', "Canal Preferido", 3, 4);
+                $proveedor = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'cbi', "Continuar Como Proveedor", 3, 4);
+                $frecCon = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc', "Frecuencia de conexión", 3, 4);
+                $contactoEmpresas = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Contacto otras empresas", 3, 4);
+                $atrImport = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'mult1', "Atributos más importantes", 3, 4);
+                $canalPref = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc2', "Canal Preferido", 3, 4);
             }
             //dd($dataNps);exit;
             $name = 'Transvip';
@@ -6175,8 +6176,8 @@ class Dashboard extends Generic
             $npsConsolidado     = $this->graphNpsIsn($dataisn, $this->ButFilterWeeks);
             $npsVid             = $this->wordCloud($request); //null;
             $csatJourney        = $this->CSATJourney($graphCSATDrivers);
-            $csatDrivers        = $this->graphCLTransvip($dataCL);
-            $cx                 = $this->graphCbiResp($datasCbiResp);
+            $csatDrivers        = substr($request->survey, 3, 3) == 'via' ? $this->graphCLTransvip($dataCL) : null;
+            $cx                 = substr($request->survey, 3, 3) == 'via' ? $this->graphCbiResp($datasCbiResp) : null;
             $wordCloud          = substr($request->survey, 3, 3) == 'via' ? $this->globales($db, date('m'), date('Y'), 'sentido', 'Sentido', 'cbi', 'ins', 4, $datafilters) : null;
             $closedLoop         = substr($request->survey, 3, 3) == 'via' ? $this->globales($db, date('m'), date('Y'), 'tiposervicio', 'Vehículo', 'cbi', 'ins', 4, $datafilters): null;
             $detailGender       = substr($request->survey, 3, 3) == 'via' ? $this->globales($db, date('m'), date('Y'), 'sucursal', 'Sucursal', 'cbi', 'ins', 4, $datafilters) : null;
