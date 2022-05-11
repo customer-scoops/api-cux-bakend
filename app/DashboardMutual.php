@@ -17,7 +17,8 @@ class DashboardMutual extends Dashboard
 
     public function generalInfo($request, $jwt)
     {
-        $surveys = parent::getDataSurvey($request, $jwt);
+        $surveys = parent::getDataSurvey($request, $jwt); 
+        dd($jwt); 
         $data = [];
         $otherGraph = [];
 

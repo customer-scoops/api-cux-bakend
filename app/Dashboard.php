@@ -610,10 +610,7 @@ class Dashboard extends Generic
                     $cesInDb = 'ces';
                     $infoNps =[$this->infoNps($db, date('Y-m-d'),date('Y-m-01'),$npsInDb,$this->_initialFilter)]; 
                     $otherGraph = [$this->infoCsat($db, date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->_initialFilter)];
-                    
-                    if(substr($value['base'],0,3) == 'mut'){
-                        $otherGraph = [$this->infoCsat($db,date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->_initialFilter)];
-                    } 
+                     
                     if (substr($value['base'],0,3) == 'tra'){
                         if(substr($value['base'],3,3) == 'con')
                             $db = 'adata_tra_cond';
