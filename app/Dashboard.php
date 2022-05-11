@@ -1523,28 +1523,28 @@ class Dashboard extends Generic
         $mes = $monthAntEnd;
 
         if ($filter != 'all') {
-            if (substr($table, 6, 3) == 'tra' && substr($table, 6, 3) == 'via') {
+            //if(substr($table, 6, 7) != 'tra_via') {
                 $data = DB::select("SELECT ((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN $indicador END)*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as CSAT
                                     FROM $this->_dbSelected.$table
                                     WHERE mes = $mes AND annio = $annio");
-            }
-            if (substr($table, 6, 3) == 'tra' && substr($table, 6, 3) == 'via') {
-                    $dateSurvey = 'fechaservicio';
-                    $fecha = $annio . '-' . $mes . '-01' ;
-                    $fecha2 = $annio . '-' . $mes . '-31';
-                    $dateFilter = $dateSurvey . " between '" . $fecha . "' and '" . $fecha2 . "'";
+            //}
+            // if(substr($table, 6, 7) == 'tra_via') {
+            //         $dateSurvey = 'fechaservicio';
+            //         $fecha = $annio . '-' . $mes . '-01' ;
+            //         $fecha2 = $annio . '-' . $mes . '-31';
+            //         $dateFilter = $dateSurvey . " between '" . $fecha . "' and '" . $fecha2 . "'";
     
-                $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN csat BETWEEN 6 AND 7 THEN 1 END) -
-                                    COUNT(CASE WHEN csat BETWEEN 1 AND 4 THEN 1 END)) /
-                                    (COUNT(CASE WHEN csat != 99 THEN csat END)) * 100),1) AS INS,
-                                    ROUND(((COUNT(CASE WHEN nps BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
-                                    COUNT(CASE WHEN nps BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
-                                    (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1) AS NPS
-                                    FROM $this->_dbSelected.$table as a
-                                    left join $this->_dbSelected." . $table . "_start as b
-                                    on a.token = b.token
-                                    WHERE " . $dateFilter ." AND etapaencuesta = 'P2' $datafilters");
-            }
+            //     $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN csat BETWEEN 6 AND 7 THEN 1 END) -
+            //                         COUNT(CASE WHEN csat BETWEEN 1 AND 4 THEN 1 END)) /
+            //                         (COUNT(CASE WHEN csat != 99 THEN csat END)) * 100),1) AS INS,
+            //                         ROUND(((COUNT(CASE WHEN nps BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
+            //                         COUNT(CASE WHEN nps BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
+            //                         (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1) AS NPS
+            //                         FROM $this->_dbSelected.$table as a
+            //                         left join $this->_dbSelected." . $table . "_start as b
+            //                         on a.token = b.token
+            //                         WHERE " . $dateFilter ." AND etapaencuesta = 'P2' $datafilters");
+            // }
         }
 
         if ($filter == 'all') {
@@ -1563,7 +1563,15 @@ class Dashboard extends Generic
                                 on a.token = b.token
                                 WHERE a.mes = $mes AND a.annio = $annio $datafilters ) AS A");
         }
-        return $data[0]->CSAT;
+        // echo 'no hay data';
+        // print_r($data);
+        // if($data[0]->CSAT){
+        //     echo 'hay data';
+            return $data[0]->CSAT;
+        // }
+        // if(!$data){
+        //     return 0;
+        // }
     }
 
     //OKK
