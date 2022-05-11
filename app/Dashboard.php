@@ -1899,9 +1899,9 @@ class Dashboard extends Generic
 
     private function graphCes($table, $mes, $annio, $indicador, $dateIni, $dateEnd, $filter, $struct = 'two', $datafilters = null, $group = null)
     { 
-        $activeP2 ='';
-        if(substr($table, 10, 3) == 'con' || substr($table, 10, 3) == 'via')
-            $activeP2 = " AND etapaencuesta = 'P2' ";
+        $activeP2 = " AND etapaencuesta = 'P2' ";
+        if(substr($table, 10, 3) == 'ban' || substr($table, 10, 3) == 'vid')
+            $activeP2 ='';
 
         if ($group !== null) {
             $where = $datafilters;
@@ -1923,6 +1923,7 @@ class Dashboard extends Generic
             $data = DB::select("SELECT (COUNT(if($indicador between   $this->_minMaxCes and $this->_maxMaxCes  , $indicador, NULL)) - 
                                 COUNT(if($indicador between $this->_minCes and $this->_maxCes , $indicador, NULL))) * 100
                                 /COUNT(CASE WHEN $indicador != 99 THEN $indicador END) AS ces, 
+                                COUNT(CASE WHEN $indicador != 99 THEN $indicador END) AS total, 
                                 ROUND((count(if($indicador = $this->_minCes OR $indicador = $this->_maxCes, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as dificil, 
                                 ROUND((count(if($indicador = $this->_minMaxCes OR $indicador = $this->_maxMaxCes, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as facil, 
                                 ROUND((count(if($indicador =  $this->_minMediumCes, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as neutral,
@@ -1939,7 +1940,7 @@ class Dashboard extends Generic
                 if ($struct != 'one') {
                     $graphCES[] = [
                         //'xLegend'  => (string)$value->mes . '-' . $value->annio,
-                        'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->dificil + $value->facil + $value->neutral) . ')' : 'Semana ' . $value->week . ' (' . ($value->dificil + $value->facil + $value->neutral) . ')',
+                        'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->total) . ')' : 'Semana ' . $value->week . ' (' . ($value->total) . ')',
                         'values' => [
                             "promoters"  => round($value->facil),
                             "neutrals"   => ($value->facil == 0 && $value->dificil == 0) ? round($value->neutral) : 100 - (round($value->facil) + round($value->dificil)),//100 - (round($value->facil) + round($value->dificil)),
