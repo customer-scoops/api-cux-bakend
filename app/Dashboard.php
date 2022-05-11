@@ -1019,7 +1019,7 @@ class Dashboard extends Generic
         return '';
     }
 
-    public function resumenNps($table,$indicador,$dateIni,$dateEnd, $datafilters, $filter){
+    public function resumenNps($table,$dateIni,$dateEnd, $indicador, $filter,$datafilters){
 
         if ($filter == 'all') {
             $table2 = $this->primaryTable($table);
