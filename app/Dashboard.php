@@ -1919,7 +1919,6 @@ class Dashboard extends Generic
         $graphCES = array();
 
         if (substr($table, 10, 3) == 'com') {
-        
             $data = DB::select("SELECT (COUNT(if($indicador between   $this->_minMaxCes and $this->_maxMaxCes  , $indicador, NULL)) - 
                                 COUNT(if($indicador between $this->_minCes and $this->_maxCes , $indicador, NULL))) * 100
                                 /COUNT(CASE WHEN $indicador != 99 THEN $indicador END) AS ces, 
@@ -1954,8 +1953,6 @@ class Dashboard extends Generic
                     ];
                 }
             }
-
-
         }
 
         if (empty($data)) {         
