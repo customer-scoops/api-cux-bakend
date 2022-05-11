@@ -23,9 +23,9 @@ class DashboardMutual extends Dashboard
         $otherGraph = [];
 
         if ($surveys['status'] == 200) {
-            // if($surveys['datas'][0]['customer'] == 'MUT001'){
-            //     array_push($surveys['datas'], $this->consolidateMutual());
-            // }
+            if($surveys['datas'][0]['customer'] == 'MUT001'){
+                array_push($surveys['datas'], $this->consolidateMutual());
+            }
             
             foreach ($surveys['datas'] as $key => $value) {
                 if ($value['base'] != 'mutred'){
