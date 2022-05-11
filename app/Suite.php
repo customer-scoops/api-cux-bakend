@@ -95,9 +95,18 @@ class Suite
             if($request->get('company') !== null){
                 $codCustomer = $this->getCompany($request->get('company'));
             }
-            
+            $db = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1);
+            if (isset($jwt[env('AUTH0_AUD')]->surveysActive)) {
+                foreach ($jwt[env('AUTH0_AUD')]->surveysActive as $key => $value) {
+                    $surv[] = $value; 
+                }
+                $db->whereIn('codDbase',$surv);
+                unset($surv);
+            }
+
+            $resp = $db->get();
             //$codCustomer = ($request->get('company') !== null) ? $request->get('company'): $jwt[env('AUTH0_AUD')]->client;
-            $resp = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1)->get();
+            //$resp = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1)->get();
             //echo $resp;exit;  
             //dd(\DB::getQueryLog());
             if($codCustomer == 'TRA001')
