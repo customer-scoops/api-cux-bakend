@@ -704,17 +704,17 @@ class Dashboard extends Generic
         // if(substr($db, 6, 3) == 'tra' && substr($db, 10, 3) == 'via')
         //     $dateSurvey = 'fechaservicio';
 
-        $dataT = DB::select("SELECT COUNT(*) AS TOTAL 
-                            FROM $this->_dbSelected.".$db."_start 
-                            WHERE mailsended = 1 AND fechacarga BETWEEN '$dateIni' AND '$dateEnd'" );
-            
+        $dataT = DB::select("SELECT SUM(enviados) AS TOTAL 
+                            FROM $this->_dbSelected.datasengrid_transvip 
+                            WHERE tipo = 1 AND fechasend BETWEEN '$dateIni' AND '$dateEnd'" );
+
         $data = DB::select("SELECT COUNT(*) AS RESP 
                             FROM $this->_dbSelected.$db 
-                            WHERE date_survey  BETWEEN '$dateIni' AND '$dateEnd' and nps!= 99");
+                            WHERE date_survey  BETWEEN '$dateIni' AND '$dateEnd' and nps!= 99 AND etapaencuesta = 'P2'");
 
         $reenv = DB::select("SELECT SUM(enviados) as reenv
                             FROM $this->_dbSelected.datasengrid_transvip
-                            WHERE fechasend BETWEEN '$dateIni' AND '$dateEnd' AND tipo = '2'");  
+                            WHERE fechasend BETWEEN '$dateIni' AND '$dateEnd' AND tipo = 2");  
 
         $queryT = DB::select("SELECT 
                             SUM(abiertos) as opened, 
@@ -727,7 +727,7 @@ class Dashboard extends Generic
                             SUM(entregados) AS delivered, 
                             SUM(spam) as spam  
                             FROM $this->_dbSelected.datasengrid_transvip
-                            WHERE fechasend BETWEEN '$dateIni' AND '$dateEnd'  AND tipo = '1'");
+                            WHERE fechasend BETWEEN '$dateIni' AND '$dateEnd'  AND tipo = 1");
    
     return [
         "height"=> 4,
@@ -763,7 +763,7 @@ class Dashboard extends Generic
                     [
                         "icon"=> "tasarespuesta",
                         "text"=> "Tasa Respuesta",
-                        "value"=> ($dataT[0]->TOTAL == 0) ? 0 : round(($data[0]->RESP / $dataT[0]->TOTAL) * 100) . ' %',
+                        "value"=> ($dataT[0]->TOTAL == 0) ? 0 : round(($data[0]->RESP / $dataT[0]->TOTAL) * 100, 1) . ' %',
                         "textColor"=> "#fff",
                         "valueColor" => "#000",
                         "bgColor"=>  "#FFC700",
@@ -1807,7 +1807,7 @@ class Dashboard extends Generic
                                 on a.token = b.token
                                 where date_survey BETWEEN '$dateIni' AND'$dateEnd' and etapaencuesta = 'P2' $datafilters
                                 GROUP by  b.mes, b.annio
-                                order by  b.annio, b.mes");
+                                order by  b.annio, b.mes asc");
         }
         
         if(substr($survey,3,3) == 'via')
@@ -1821,7 +1821,7 @@ class Dashboard extends Generic
                                 on a.token = b.token
                                 where fechaservicio BETWEEN '$dateIni' AND'$dateEnd' and etapaencuesta = 'P2' $datafilters
                                 GROUP BY MONTH(fechaservicio), YEAR(fechaservicio)
-                                ORDER BY MONTH(fechaservicio), YEAR(fechaservicio) ASC");
+                                ORDER BY YEAR(fechaservicio), MONTH(fechaservicio) ASC");
         }
 
         if($data)
@@ -2322,25 +2322,26 @@ class Dashboard extends Generic
 
         if(substr($db, 6, 7) != 'tra_via')
         {
-    
+
             $data = DB::select("SELECT count(case when cbi between 4 and 5 then 1 end)*100/count(case when cbi != 99 then 1 end) as cbi,
                                 count(case when cbi != 99 then 1 end) as Total, a.mes, a.annio, date_survey 
                                 from $this->_dbSelected.$db as a
                                 left join $this->_dbSelected." . $db . "_start as b 
                                 on a.token = b.token 
                                 WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters
-                                GROUP BY a.mes, a.annio order by a.annio, a.mes");
+                                GROUP BY a.mes, a.annio order by a.annio, a.mes asc");
         }
 
         if(substr($db, 6, 7) == 'tra_via')
         {
+     
             $data = DB::select("SELECT count(case when cbi between 4 and 5 then 1 end)*100/count(case when cbi != 99 then 1 end) as cbi,
                                 count(case when cbi != 99 then 1 end) as Total, MONTH(fechaservicio) as mes, YEAR(fechaservicio) as annio, fechaservicio 
                                 from $this->_dbSelected.$db as a
                                 left join $this->_dbSelected." . $db . "_start as b 
                                 on a.token = b.token 
                                 WHERE fechaservicio BETWEEN '$dateEnd' AND '$dateIni' $datafilters
-                                GROUP BY MONTH(fechaservicio), YEAR(fechaservicio) order by MONTH(fechaservicio), YEAR(fechaservicio)");
+                                GROUP BY MONTH(fechaservicio), YEAR(fechaservicio) order by YEAR(fechaservicio), MONTH(fechaservicio) asc");
         }
         
                         
@@ -6162,7 +6163,9 @@ class Dashboard extends Generic
             $datasStatsByTaps   = null;
             $dataCL             = $this->closedloopTransvip($datafilters, $dateIni, $dateEnd, $request->survey);
             //REVISAR QUERYS SE DEMORAN 2 SEG DESDE ACA
-            $datasCbiResp       = $this->cbiResp($db,$datafilters, $dateIni, $dateEndIndicatorPrincipal);
+            $datasCbiResp       = $this->cbiResp($db,$datafilters, $dateIni, $dateEnd);
+
+            //dd($datasCbiResp );exit;
             $drivers            = $this->csatsDriversTransvip($db, trim($request->survey), $dateIni, $dateEnd, $datafilters);
             $graphCSATDrivers   = $this->GraphCSATDrivers($db, null, trim($request->survey), $csatInDb, $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters, $group);
             $dataisn            = $this->NpsIsnTransvip($db, $dateIni, $dateEnd, $npsInDb, $csatInDb, $datafilters, $group);
