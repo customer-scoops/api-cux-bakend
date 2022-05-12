@@ -57,28 +57,28 @@ class Dashboard extends Generic
     private $_valueAnomaliasPorcentajeText = 30;
     /* Función para saber el dia */
 
-    protected function getFirstMond()
+    protected function getFirstMond($day)
     {
-        $day = date("N");
+        //$day = date("N");
         $resta = 0;
         switch ($day) 
         {
-            case 2:
+            case 1:
                 $resta = 1;
                 break;
-            case 3:
+            case 2:
                 $resta = 2;
                 break;
-            case 4:
+            case 3:
                 $resta = 3;
                 break;
-            case 5:
+            case 4:
                 $resta = 4;
                 break;
-            case 6:
+            case 5:
                 $resta = 5;
                 break;
-            case 7:
+            case 6:
                 $resta = 6;
                 break;
         }
@@ -1327,7 +1327,7 @@ class Dashboard extends Generic
                                     ((count(if($indicador <= $this->_maxNps, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as detractor, 
                                     ((count(if($indicador = $this->_minMaxNps OR $indicador =$this->_maxMaxNps, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as promotor, 
                                     ((count(if($indicador=$this->_maxMediumNps OR $indicador=$this->_minMediumNps, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as neutral,              
-                                    a.mes, a.annio, WEEK(date_survey) AS week,$this->_fieldSelectInQuery  
+                                    a.mes, a.annio, WEEK(date_survey) AS week, WEEKDAY(date_survey) AS day,$this->_fieldSelectInQuery  
                                     FROM $this->_dbSelected.$table as a
                                     INNER JOIN $this->_dbSelected." . $table . "_start as b ON a.token = b.token 
                                     WHERE  $where $activeP2 $datafilters 
@@ -1365,7 +1365,7 @@ class Dashboard extends Generic
                                 ((count(if($indicador2 < 7, $indicador2, NULL))*100)/count(CASE WHEN $indicador2 != 99 THEN $indicador2 END)*$this->_porcentageVid) as detractor, 
                                 ((count(if($indicador2 > 8, $indicador2, NULL))*100)/count(CASE WHEN $indicador2 != 99 THEN $indicador2 END)*$this->_porcentageVid) as promotor, 
                                 ((count(if($indicador2 <= 8 AND $indicador2 >=7, $indicador2, NULL))*100)/count(CASE WHEN $indicador2 != 99 THEN $indicador2 END)*$this->_porcentageVid) as neutral,              
-                                a.mes, a.annio,date_survey, WEEK(date_survey) AS week, $this->_fieldSelectInQuery
+                                a.mes, a.annio,date_survey, WEEK(date_survey) AS week, WEEKDAY(date_survey) AS day, $this->_fieldSelectInQuery
                                 FROM $this->_dbSelected.$table2 as a
                                 LEFT JOIN $this->_dbSelected." . $table2 . "_start as b ON a.token = b.token 
                                 WHERE $where $datafilters
@@ -1375,7 +1375,7 @@ class Dashboard extends Generic
 
         if ($group2 == 'week') 
         { 
-            $mondayWeek = $this->getFirstMond();
+            $mondayWeek = $this->getFirstMond($data[0]->day);
         }
        $count = count($data)-1;
         //dd($data);exit;
@@ -2695,13 +2695,15 @@ class Dashboard extends Generic
         if(substr($table, 6, 3) == 'ban' || substr($table, 6, 3) == 'vid')
             $activeP2 ='';
         
-        if ($datafilters)
-            $datafilters = " AND $datafilters";
+        if ($datafilters && $group == null)
+            $datafilters = " AND $datafilters ";
 
         if(substr($table, 6, 7) != 'tra_via')
         {
             if($group != null){
                 $where = $datafilters;
+                // echo $where;
+                // exit;
                 $datafilters = '';
                 $group = "week";
             }
@@ -2715,10 +2717,12 @@ class Dashboard extends Generic
                 }
             }
 
+  
+
             $data = DB::select("SELECT COUNT(CASE WHEN a.$indicadorNPS!=99 THEN 1 END) as Total, 
                                 ROUND(((COUNT(CASE WHEN a.$indicadorNPS BETWEEN 9 AND 10 THEN 1 END) - COUNT(CASE WHEN a.$indicadorNPS BETWEEN 0 AND 6 THEN 1 END)) / (COUNT(CASE WHEN a.$indicadorNPS!=99 THEN 1 END)) * 100),1) AS NPS, 
                                 ROUND(((COUNT(CASE WHEN a.$indicadorINS BETWEEN 6 AND 7 THEN 1 END) - COUNT(CASE WHEN a.$indicadorINS BETWEEN 1 AND 4 THEN 1 END)) / (COUNT(CASE WHEN a.$indicadorINS!=99 THEN 1 END)) * 100),1) AS INS,
-                                a.mes, a.annio, date_survey, WEEK(date_survey) AS week
+                                a.mes, a.annio, date_survey, WEEK(date_survey) AS week, WEEKDAY(date_survey) AS day
                                 from $this->_dbSelected.$table as a
                                 left join $this->_dbSelected." . $table . "_start as b
                                 on a.token = b.token
@@ -2746,7 +2750,7 @@ class Dashboard extends Generic
             $data = DB::select("SELECT COUNT(CASE WHEN a.$indicadorNPS!=99 THEN 1 END) as Total, 
                                 ROUND(((COUNT(CASE WHEN a.$indicadorNPS BETWEEN 9 AND 10 THEN 1 END) - COUNT(CASE WHEN a.$indicadorNPS BETWEEN 0 AND 6 THEN 1 END)) / (COUNT(CASE WHEN a.$indicadorNPS!=99 THEN 1 END)) * 100),1) AS NPS, 
                                 ROUND(((COUNT(CASE WHEN a.$indicadorINS BETWEEN 6 AND 7 THEN 1 END) - COUNT(CASE WHEN a.$indicadorINS BETWEEN 1 AND 4 THEN 1 END)) / (COUNT(CASE WHEN a.$indicadorINS!=99 THEN 1 END)) * 100),1) AS INS,
-                                MONTH(fechaservicio) as mes, YEAR(fechaservicio) as annio, fechaservicio, WEEK(fechaservicio) AS week
+                                MONTH(fechaservicio) as mes, YEAR(fechaservicio) as annio, fechaservicio, WEEK(fechaservicio) AS week, WEEKDAY(fechaservicio) AS day
                                 from $this->_dbSelected.$table as a
                                 left join $this->_dbSelected." . $table . "_start as b
                                 on a.token = b.token
@@ -2757,7 +2761,7 @@ class Dashboard extends Generic
 
         if ($group == 'week') 
         { 
-            $mondayWeek = $this->getFirstMond();
+            $mondayWeek = $this->getFirstMond($data[0]->day);
         }
         $count = count($data)-1;
         
@@ -2767,10 +2771,10 @@ class Dashboard extends Generic
                 if ($key == 0) {
                     $insPreviousPeriod = 0;
                 }
-
+                //echo 'Lun ' . date('m-d', strtotime($mondayWeek . "- $count week")) . ' (' . ($value->Total) . ')'; exit;
                 $NpsInsTransvip[] = [
                     //'xLegend'   => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Total) . ')' : 'Semana ' . $value->week . ' (' . ($value->Total) . ')',
-                    'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Total) . ')' : 'Lun ' . date('m-d', strtotime($mondayWeek . "- $count week")) . ' (' . ($value->Total) . ')',
+                    'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Total) . ')' : 'Lun ' . $value->mes . '-' .date("'$value->mes' . '-d'", strtotime($mondayWeek . "- $count week")) . ' (' . ($value->Total) . ')',
                     'values'    => [
                         "nps"           => Round($value->NPS),
                         "ins"           => Round($value->INS),
