@@ -1365,7 +1365,7 @@ class Dashboard extends Generic
                                 ((count(if($indicador2 < 7, $indicador2, NULL))*100)/count(CASE WHEN $indicador2 != 99 THEN $indicador2 END)*$this->_porcentageVid) as detractor, 
                                 ((count(if($indicador2 > 8, $indicador2, NULL))*100)/count(CASE WHEN $indicador2 != 99 THEN $indicador2 END)*$this->_porcentageVid) as promotor, 
                                 ((count(if($indicador2 <= 8 AND $indicador2 >=7, $indicador2, NULL))*100)/count(CASE WHEN $indicador2 != 99 THEN $indicador2 END)*$this->_porcentageVid) as neutral,              
-                                a.mes, a.annio,date_survey, WEEK(date_survey) AS week, WEEKDAY(date_survey) AS day, $this->_fieldSelectInQuery
+                                a.mes, a.annio,date_survey, WEEK(date_survey) AS week, $this->_fieldSelectInQuery
                                 FROM $this->_dbSelected.$table2 as a
                                 LEFT JOIN $this->_dbSelected." . $table2 . "_start as b ON a.token = b.token 
                                 WHERE $where $datafilters
@@ -1375,7 +1375,7 @@ class Dashboard extends Generic
 
         if ($group2 == 'week') 
         { 
-            $mondayWeek = $this->getFirstMond($data[0]->day);
+            $mondayWeek = $this->getFirstMond(5);
         }
        $count = count($data)-1;
         //dd($data);exit;
