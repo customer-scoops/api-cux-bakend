@@ -535,40 +535,51 @@ class Dashboard extends Generic
     {
         $db2 = $this->primaryTable($db);
 
-        $activeP2 ='';
-        if(substr($db, 10, 3) == 'con' || substr($db, 10, 3) == 'via')
-            $activeP2 = " AND etapaencuesta = 'P2' ";
+        $activeP2 = " AND etapaencuesta = 'P2' ";
+        if(substr($db, 10, 3) == 'ban' || substr($db, 10, 3) == 'vid')
+            $activeP2 ='';
+        if(substr($db, 10, 3) != 'tra')
+        {
+            if ($filter == 'all') {
+                $data = DB::select("SELECT SUM(TOTAL) AS TOTAL 
+                                    FROM (SELECT COUNT(*) AS TOTAL 
+                                    FROM $this->_dbSelected." . $db . "_start 
+                                    WHERE mailsended = 1 AND fechacarga BETWEEN '$dateIni' AND '$dateEnd' 
+                                    UNION SELECT COUNT(*) AS TOTAL 
+                                    FROM $this->_dbSelected." . $db2 . "_start 
+                                    WHERE mailsended = 1 AND fechacarga BETWEEN '$dateIni' AND '$dateEnd' ) 
+                                    AS A");
+                $EmailSend = $data[0]->TOTAL;
 
-        if ($filter == 'all') {
-            $data = DB::select("SELECT SUM(TOTAL) AS TOTAL 
-                                FROM (SELECT COUNT(*) AS TOTAL 
-                                FROM $this->_dbSelected." . $db . "_start 
-                                WHERE mailsended = 1 AND fechacarga BETWEEN '$dateIni' AND '$dateEnd' 
-                                UNION SELECT COUNT(*) AS TOTAL 
-                                FROM $this->_dbSelected." . $db2 . "_start 
-                                WHERE mailsended = 1 AND fechacarga BETWEEN '$dateIni' AND '$dateEnd' ) 
-                                AS A");
-            $EmailSend = $data[0]->TOTAL;
-
-            $data2 = DB::select("SELECT SUM(RESP) AS RESP FROM 
-                                (SELECT COUNT(*) AS RESP 
-                                FROM $this->_dbSelected.$db 
-                                WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd'  and nps!= 99
-                                UNION 
-                                SELECT COUNT(*) AS RESP 
-                                FROM $this->_dbSelected.$db2 
-                                WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' and nps!= 99) AS A");              
-        };
+                $data2 = DB::select("SELECT SUM(RESP) AS RESP FROM 
+                                    (SELECT COUNT(*) AS RESP 
+                                    FROM $this->_dbSelected.$db 
+                                    WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd'  and nps!= 99
+                                    UNION 
+                                    SELECT COUNT(*) AS RESP 
+                                    FROM $this->_dbSelected.$db2 
+                                    WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' and nps!= 99) AS A");              
+            };
         
-        if($filter != 'all'){
-       
-        $data = DB::select("SELECT COUNT(*) AS TOTAL FROM $this->_dbSelected.".$db."_start WHERE mailsended = 1 AND fechacarga BETWEEN '$dateIni' AND '$dateEnd'" );
-        $EmailSend = $data[0]->TOTAL;
+            if($filter != 'all'){
+        
+                $data = DB::select("SELECT COUNT(*) AS TOTAL FROM $this->_dbSelected.".$db."_start WHERE mailsended = 1 AND fechacarga BETWEEN '$dateIni' AND '$dateEnd'" );
+                $EmailSend = $data[0]->TOTAL;
 
-        $data2 = DB::select("SELECT COUNT(*) AS RESP 
-                            FROM $this->_dbSelected.$db 
-                            WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' and nps!= 99 $activeP2");
-        };
+                $data2 = DB::select("SELECT COUNT(*) AS RESP 
+                                    FROM $this->_dbSelected.$db 
+                                    WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' and nps!= 99 $activeP2");
+            };
+        }
+
+        if(substr($db, 10, 3) != 'tra')
+        {
+            $surveyName = substr($db, 10, 4);
+            $dataT = DB::select("SELECT SUM(enviados) AS TOTAL 
+                                FROM $this->_dbSelected.datasengrid_transvip 
+                                WHERE tipo = 1 AND fechasend BETWEEN '$dateIni' AND '$dateEnd' and encuesta = '$surveyName'" );
+            $EmailSend = $dataT[0]->TOTAL;
+        }
 
         $EmailRESP = $data2[0]->RESP;
         return [
@@ -705,12 +716,12 @@ class Dashboard extends Generic
         // if(substr($db, 6, 3) == 'tra' && substr($db, 10, 3) == 'via')
         //     $dateSurvey = 'fechaservicio';
         $surveyName = substr($db, 10, 4);
-        // $dataT = DB::select("SELECT SUM(enviados) AS TOTAL 
-        //                     FROM $this->_dbSelected.datasengrid_transvip 
-        //                     WHERE tipo = 1 AND fechasend BETWEEN '$dateIni' AND '$dateEnd' and encuesta = '$surveyName'" );
-        $dataT = DB::select("SELECT COUNT(*) AS TOTAL 
-                            FROM $this->_dbSelected.".$db."_start 
-                            WHERE mailsended = 1 AND fechacarga BETWEEN '$dateIni' AND '$dateEnd'" );
+        $dataT = DB::select("SELECT SUM(enviados) AS TOTAL 
+                            FROM $this->_dbSelected.datasengrid_transvip 
+                            WHERE tipo = 1 AND fechasend BETWEEN '$dateIni' AND '$dateEnd' and encuesta = '$surveyName'" );
+        // $dataT = DB::select("SELECT COUNT(*) AS TOTAL 
+        //                     FROM $this->_dbSelected.".$db."_start 
+        //                     WHERE mailsended = 1 AND fechacarga BETWEEN '$dateIni' AND '$dateEnd'" );
 
         $data = DB::select("SELECT COUNT(*) AS RESP 
                             FROM $this->_dbSelected.$db 
