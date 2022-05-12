@@ -3618,6 +3618,12 @@ class Dashboard extends Generic
 
             if(substr($db, 6, 7) != 'tra_via')
             {   
+                echo "SELECT $query,date_survey
+                FROM $this->_dbSelected.$db as A
+                LEFT JOIN $this->_dbSelected." . $db . "_start as b
+                on A.token = b.token 
+                WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' $activeP2  $datafilters
+                ORDER BY date_survey"; exit;
                 $data = DB::select("SELECT $query,date_survey
                     FROM $this->_dbSelected.$db as A
                     LEFT JOIN $this->_dbSelected." . $db . "_start as b
