@@ -538,7 +538,7 @@ class Dashboard extends Generic
         $activeP2 = " AND etapaencuesta = 'P2' ";
         if(substr($db, 10, 3) == 'ban' || substr($db, 10, 3) == 'vid')
             $activeP2 ='';
-        if(substr($db, 10, 3) != 'tra')
+        if(substr($db, 6, 3) != 'tra')
         {
             if ($filter == 'all') {
                 $data = DB::select("SELECT SUM(TOTAL) AS TOTAL 
@@ -572,12 +572,29 @@ class Dashboard extends Generic
             };
         }
 
-        if(substr($db, 10, 3) != 'tra')
+        if(substr($db, 6, 3) == 'tra')
         {
             $surveyName = substr($db, 10, 4);
             $dataT = DB::select("SELECT SUM(enviados) AS TOTAL 
                                 FROM $this->_dbSelected.datasengrid_transvip 
                                 WHERE tipo = 1 AND fechasend BETWEEN '$dateIni' AND '$dateEnd' and encuesta = '$surveyName'" );
+
+            if(substr($db, 10, 3) != 'via')    
+            {
+                $data2 = DB::select("SELECT COUNT(*) AS RESP 
+                                    FROM $this->_dbSelected.$db 
+                                    WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' and nps!= 99 $activeP2");
+            }
+            
+            if(substr($db, 10, 3) == 'via')    
+            {
+                $data2 = DB::select("SELECT COUNT(*) AS RESP 
+                                    from $this->_dbSelected.$db as a
+                                    left join $this->_dbSelected." . $db . "_start as b
+                                    on a.token = b.token
+								    where fechaservicio BETWEEN '$dateIni' AND '$dateEnd' and nps!= 99 $activeP2");
+            }
+
             $EmailSend = $dataT[0]->TOTAL;
         }
 
@@ -723,9 +740,21 @@ class Dashboard extends Generic
         //                     FROM $this->_dbSelected.".$db."_start 
         //                     WHERE mailsended = 1 AND fechacarga BETWEEN '$dateIni' AND '$dateEnd'" );
 
-        $data = DB::select("SELECT COUNT(*) AS RESP 
-                            FROM $this->_dbSelected.$db 
-                            WHERE date_survey  BETWEEN '$dateIni' AND '$dateEnd' and nps!= 99 AND etapaencuesta = 'P2'");
+        if(substr($db, 10, 3) != 'via')    
+        {
+            $data = DB::select("SELECT COUNT(*) AS RESP 
+                                FROM $this->_dbSelected.$db 
+                                WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' and nps!= 99 and etapaencuesta = 'P2'");
+        }
+        
+        if(substr($db, 10, 3) == 'via')    
+        {
+            $data = DB::select("SELECT COUNT(*) AS RESP 
+                                from $this->_dbSelected.$db as a
+                                left join $this->_dbSelected." . $db . "_start as b
+                                on a.token = b.token
+                                where fechaservicio BETWEEN '$dateIni' AND '$dateEnd' and nps!= 99 and etapaencuesta = 'P2'");
+        }
 
         $reenv = DB::select("SELECT SUM(enviados) as reenv
                             FROM $this->_dbSelected.datasengrid_transvip
