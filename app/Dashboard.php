@@ -705,9 +705,12 @@ class Dashboard extends Generic
         // if(substr($db, 6, 3) == 'tra' && substr($db, 10, 3) == 'via')
         //     $dateSurvey = 'fechaservicio';
         $surveyName = substr($db, 10, 4);
-        $dataT = DB::select("SELECT SUM(enviados) AS TOTAL 
-                            FROM $this->_dbSelected.datasengrid_transvip 
-                            WHERE tipo = 1 AND fechasend BETWEEN '$dateIni' AND '$dateEnd' and encuesta = '$surveyName'" );
+        // $dataT = DB::select("SELECT SUM(enviados) AS TOTAL 
+        //                     FROM $this->_dbSelected.datasengrid_transvip 
+        //                     WHERE tipo = 1 AND fechasend BETWEEN '$dateIni' AND '$dateEnd' and encuesta = '$surveyName'" );
+        $dataT = DB::select("SELECT COUNT(*) AS TOTAL 
+                            FROM $this->_dbSelected.".$db."_start 
+                            WHERE mailsended = 1 AND fechacarga BETWEEN '$dateIni' AND '$dateEnd'" );
 
         $data = DB::select("SELECT COUNT(*) AS RESP 
                             FROM $this->_dbSelected.$db 
