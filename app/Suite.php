@@ -25,9 +25,15 @@ class Suite
     {
         $this->_jwt = $_jwt;
         $this->setDetailsClient($this->_jwt[env('AUTH0_AUD')]->client);
+        //echo $this->_jwt[env('AUTH0_AUD')]->client;
         //$this->nameDbSelected($this->_jwt[env('AUTH0_AUD')]->client);
         //$this->minMaxIndicatorNps($this->_jwt[env('AUTH0_AUD')]->client);
     }
+
+    public function getDBSelected(){
+        return $this->_dbSelected;
+    }
+
     public function saveUpdate($request, $jwt)
     {
         $rules = [
@@ -89,9 +95,19 @@ class Suite
             if($request->get('company') !== null){
                 $codCustomer = $this->getCompany($request->get('company'));
             }
-            
+            $db = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1);
+            if (isset($jwt[env('AUTH0_AUD')]->surveysActive)) {
+                foreach ($jwt[env('AUTH0_AUD')]->surveysActive as $key => $value) {
+                    $surv[] = $value; 
+                }
+                $db->whereIn('codDbase',$surv);
+                unset($surv);
+            }
+
+            $resp = $db->get();
             //$codCustomer = ($request->get('company') !== null) ? $request->get('company'): $jwt[env('AUTH0_AUD')]->client;
-            $resp = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1)->get();
+            //$resp = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1)->get();
+            //echo $resp;exit;  
             //dd(\DB::getQueryLog());
             if($codCustomer == 'TRA001')
                 $resp = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1)->where('codsurvey','TRA_VIA')->orWhere('codsurvey','TRA_COND')->get();
@@ -116,6 +132,7 @@ class Suite
             'datas'     => isset($surveys) ? $surveys: 'NO ENCONTRAMOS INFORMACION',
             'status'    => Response::HTTP_OK
         ];
+        //print_r($data);exit;
         return $data;
     }
     public function indicatorPrincipal($request, $jwt)
@@ -196,6 +213,7 @@ class Suite
         return [
             'datas'  => [
                 'client'            => $this->_nameClient,
+                'survey'            => $survey,
                 'startCalendar'     => $this->_dateStartClient,
                 'clients'           => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
                 'ticketCreated'     => (object)['high' =>$high,'medium' =>$medium, 'low' =>$low] ,
@@ -311,9 +329,12 @@ class Suite
                 }
                 $data[] = [
                     "ticket" => $value->ticket,
+                    "survey" => $survey,
                     "client" => array(
                         'name' => $value->nom,
-                        'rut'  => $value->rut
+                        'rut'  => $value->rut,
+                        'phone' => (isset($value->phone)) ?  $value->phone : '',
+                        'celu' => (isset($value->celu)) ?  $value->celu : '',
                     ),
                     "ltv"       => 'N/A',
                     "canal"     => $value->canal,
@@ -328,6 +349,8 @@ class Suite
                     "tableName" =>$value->tableName,
                     "visita"    => $value->visita,
                     "estapaEncuesta"=> $value->etapaencuesta,
+                    "subStatus1" => $value->field_1,
+                    "subStatus2" => $value->field_2,
                     "comentarios" => array(
                         'date'      => $value->fechacarga, 
                         'content'   => $value->contenido,
@@ -377,6 +400,11 @@ class Suite
             return  $this->_low;
         }
     }
+
+    protected function sendedEmail($nombre,$mail,$hash,$encuesta){
+        $this->sendedmail($nombre,$mail,$hash,$encuesta);
+    }
+
     private function sendedmail($nombre,$mail,$hash,$encuesta){
         $curl = curl_init();
         curl_setopt_array($curl, array(
@@ -563,13 +591,13 @@ class Suite
             "mutimg_csat5" => "Claridad información entregada",
             
             //TRANSVIP
-            "travia_csat1" => "Canal utilizado",
-            "travia_csat2" => "Tiempo para encontrar un conductor",
-            "travia_csat3" => "Coordinacion en Andén",
+            "travia_csat1" => "Creación reserva",
+            "travia_csat2" => "Tiempo para encontrar conductor",
+            "travia_csat3" => "Coordinación proceso embarque aeropuerto",
             "travia_csat4" => "Puntualidad del servicio",
-            "travia_csat5" => "Tiempo de llegada del vehículo",
-            "travia_csat6" => "Tiempo de espera del vehículo en aeropuerto",
-            "travia_csat7" => "Seguridad al trasladarte",
+            "travia_csat5" => "Tiempo llegada vehículo",
+            "travia_csat6" => "Espera vehículo en aeropuerto",
+            "travia_csat7" => "Conducción segura",
             "travia_csat8" => "Medidas Covid",
             "travia_csat9" => "Ruta y tiempo de traslado",
             "travia_csat10" => "Atención del Conductor",
@@ -601,6 +629,13 @@ class Suite
             "jetcom_csat4"  => "Selección de asientos",
             "jetcom_csat5"  => "Proceso de pago",
             "jetcom_csat6"  => "Información en email de confirmación de compra",
+
+            "jetvue_csat1"  => "Uso de sitio Web",
+            "jetvue_csat2"  => "Selección de pasajes",
+            "jetvue_csat3"  => "Selección de equipaje",
+            "jetvue_csat4"  => "Selección de asientos",
+            "jetvue_csat5"  => "Proceso de pago",
+            "jetvue_csat6"  => "Información email",
         
         ];
         
