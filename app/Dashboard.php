@@ -389,7 +389,7 @@ class Dashboard extends Generic
         if ($value){return $value;}
         
         $dataMatriz = $this->matriz($request);
-
+        
         if ($dataMatriz['datas'] == null) {
             return  $resp = [
                 "height"    => 4,
@@ -419,16 +419,15 @@ class Dashboard extends Generic
         if ($dataMatriz['datas']->cx->gainpoint != null) {
             $gainPoint = array_merge($dataMatriz['datas']->cx->gainpoint, $this->_anomaliasGain);
         }
-        if ($dataMatriz['datas']->cx->gainpoint == null || $dataMatriz['datas']->cx->gainpoint == 0) {
+        if ($dataMatriz['datas']->cx->gainpoint == null) {
             $gainPoint =  $this->_anomaliasGain;
         }
-        if ($dataMatriz['datas']->cx->painpoint != null ) {
+        if ($dataMatriz['datas']->cx->painpoint != null) {
             $painPoint = array_merge($dataMatriz['datas']->cx->painpoint, $this->_anomaliasPain);
         }
-        if ($dataMatriz['datas']->cx->painpoint == null || $dataMatriz['datas']->cx->painpoint == 0) {
+        if ($dataMatriz['datas']->cx->painpoint == null) {
             $painPoint = $this->_anomaliasPain;
         }
-        //print_r($dataMatriz['datas']->cx->painpoint);
 
         $resp = [
             "height" => 4,
@@ -622,8 +621,8 @@ class Dashboard extends Generic
 
                         $otherGraph =  [[
                             "name"          => "ISN",
-                            "value"         => Round($datas['insAct']),
-                            "percentage"    => round($datas['insAct']-$datas['ins']),
+                            "value"         => $datas['insAct'] == 'N/A' ? 'N/A' : Round($datas['insAct']),
+                            "percentage"    => $datas['insAct'] == 'N/A' ? round(-$datas['ins']) : round($datas['insAct']-$datas['ins']),
                         ]];
                     }
                     
@@ -656,7 +655,7 @@ class Dashboard extends Generic
         }
     
 
-    public function getEndCsat($survey){
+    protected function getEndCsat($survey){
         $datas = [
             //banemdica
             "banamb" => "10",
@@ -706,9 +705,12 @@ class Dashboard extends Generic
         // if(substr($db, 6, 3) == 'tra' && substr($db, 10, 3) == 'via')
         //     $dateSurvey = 'fechaservicio';
         $surveyName = substr($db, 10, 4);
-        $dataT = DB::select("SELECT SUM(enviados) AS TOTAL 
-                            FROM $this->_dbSelected.datasengrid_transvip 
-                            WHERE tipo = 1 AND fechasend BETWEEN '$dateIni' AND '$dateEnd' and encuesta = '$surveyName'" );     
+        // $dataT = DB::select("SELECT SUM(enviados) AS TOTAL 
+        //                     FROM $this->_dbSelected.datasengrid_transvip 
+        //                     WHERE tipo = 1 AND fechasend BETWEEN '$dateIni' AND '$dateEnd' and encuesta = '$surveyName'" );
+        $dataT = DB::select("SELECT COUNT(*) AS TOTAL 
+                            FROM $this->_dbSelected.".$db."_start 
+                            WHERE mailsended = 1 AND fechacarga BETWEEN '$dateIni' AND '$dateEnd'" );
 
         $data = DB::select("SELECT COUNT(*) AS RESP 
                             FROM $this->_dbSelected.$db 
@@ -898,8 +900,8 @@ class Dashboard extends Generic
                                     GROUP by a.mes, a.annio
                                     ORDER by a.date_survey ASC");
             }
-          
-            return ['ins' => $data[0]->INS, 'nps' => $data[0]->NPS, 'insAct' => count($data2) === 0 ? 0 : $data2[0]->INS, 'npsAct' => count($data2) === 0 ? 0 : $data2[0]->NPS];
+            
+            return ['ins' => $data[0]->INS == null ? 0 : $data[0]->INS, 'nps' => $data[0]->NPS == null ? 0 : $data[0]->NPS, 'insAct' => count($data2) === 0 ? 'N/A' : $data2[0]->INS, 'npsAct' => count($data2) === 0 ? 'N/A' : $data2[0]->NPS];
         }
 
         if ($this->_dbSelected == 'customer_jetsmart') {
@@ -1921,6 +1923,7 @@ class Dashboard extends Generic
         $graphCES = array();
 
         if (substr($table, 10, 3) == 'com') {
+        
             $data = DB::select("SELECT (COUNT(if($indicador between   $this->_minMaxCes and $this->_maxMaxCes  , $indicador, NULL)) - 
                                 COUNT(if($indicador between $this->_minCes and $this->_maxCes , $indicador, NULL))) * 100
                                 /COUNT(CASE WHEN $indicador != 99 THEN $indicador END) AS ces, 
@@ -1956,6 +1959,8 @@ class Dashboard extends Generic
                     ];
                 }
             }
+
+
         }
 
         if (empty($data)) {         
@@ -2864,7 +2869,7 @@ class Dashboard extends Generic
                     $datafilters = '';
                 }
             }
-    
+
             $data = DB::select("SELECT COUNT(CASE WHEN a.$indicadorNPS!=99 THEN 1 END) as Total, 
                                 ROUND(((COUNT(CASE WHEN a.$indicadorNPS BETWEEN 9 AND 10 THEN 1 END) - COUNT(CASE WHEN a.$indicadorNPS BETWEEN 0 AND 6 THEN 1 END)) / (COUNT(CASE WHEN a.$indicadorNPS!=99 THEN 1 END)) * 100),1) AS NPS, 
                                 ROUND(((COUNT(CASE WHEN a.$indicadorINS BETWEEN 6 AND 7 THEN 1 END) - COUNT(CASE WHEN a.$indicadorINS BETWEEN 1 AND 4 THEN 1 END)) / (COUNT(CASE WHEN a.$indicadorINS!=99 THEN 1 END)) * 100),1) AS INS,
@@ -2925,7 +2930,6 @@ class Dashboard extends Generic
         }
         
         if($perf == 'x'){
-            
             return [
                 "name"          =>"ISN",
                 "value"         =>$value->mes == date('m') ? Round($value->INS) : 'N/A',
@@ -4066,7 +4070,7 @@ class Dashboard extends Generic
         
         if($str == 'ges' || $str == 'eri' || $str == 'com'){
           
-            $data = DB::select("SELECT COUNT(if(ces !=99,1,NULL )) as Total,
+            $data = DB::select("SELECT COUNT(*) as Total,
                                 (COUNT(if($ces between  $this->_minMaxCes and  $this->_maxMaxCes  , $ces, NULL)) - COUNT(if($ces between $this->_minCes and $this->_maxCes , $ces, NULL)))/COUNT(if(ces !=99,1,NULL ))* 100 AS CES 
                                 FROM $this->_dbSelected.$db as a
                                 LEFT JOIN $this->_dbSelected." . $db . "_start as b 
@@ -5659,18 +5663,16 @@ class Dashboard extends Generic
         }
        
         if($this->_dbSelected == 'customer_colmena' && substr($survey, 0, 3) == 'tra'){
-            if(substr($survey,3,3) == 'con')
-                $db = 'adata_tra_cond';
-            if(substr($survey,3,3) == 'via')
-                $db = 'adata_tra_via';
-            $ins = $this->NpsIsnTransvip($db, $dateIni, $dateEnd,'nps','csat',$datafilters,'', 'x' );
+            // if(substr($survey,3,3) == 'con')
+            //     $db = 'adata_tra_cond';
+            // if(substr($survey,3,3) == 'via')
+            //     $db = 'adata_tra_via';
+            // $ins = $this->NpsIsnTransvip($db, $dateIni, $dateEnd,'nps','csat',$datafilters,'', 'x' );
 
-            $insPreviousPeriod = $this->npsPreviousPeriod($db,$dateEnd, $dateIni,'csat',''); 
-
-
+            // $insPreviousPeriod = $this->npsPreviousPeriod($db,$dateEnd, $dateIni,'csat',''); 
             $name = 'ISN';
-            $val =  $ins['value'] == 'N/A' ? 'N/A' : round($ins['value']);
-            $percentage= $ins['value'] == 'N/A' ? round(-$insPreviousPeriod['ins']) : round($ins['value']-$insPreviousPeriod['ins']);  
+            $val =  $dataCsat['insAct'] == 'N/A' ? 'N/A' : round($dataCsat['insAct']);
+            $percentage= $dataCsat['insAct'] == 'N/A' ? round(-$dataCsat['ins']) : round($dataCsat['insAct']-$dataCsat['ins']);  
         }
 
         if ($this->_dbSelected == 'customer_banmedica') {
@@ -6352,18 +6354,17 @@ class Dashboard extends Generic
             $dataCL             = $this->closedloopTransvip($datafilters, $dateIni, $dateEnd, $request->survey);
             //REVISAR QUERYS SE DEMORAN 2 SEG DESDE ACA
             $datasCbiResp       = $this->cbiResp($db,$datafilters, $dateIni, $dateEnd);
-
-            //dd($datasCbiResp );exit;
             $drivers            = $this->csatsDriversTransvip($db, trim($request->survey), $dateIni, $dateEnd, $datafilters);
             $graphCSATDrivers   = $this->GraphCSATDriversTransvip($db, trim($request->survey), $dateIni, $startDateFilterMonth, null, 'two', $datafilters);
             $dataisn            = $this->NpsIsnTransvip($db, $dateIni, $dateEnd, $npsInDb, $csatInDb, $datafilters, $group);
+            $dataIsnPerf        = $this->npsPreviousPeriod($db,$dateIni,$dateEndIndicatorPrincipal,'isn','' );
             $tiempoVehiculo     = $this->NpsIsnTransvip($db, $dateIni, $dateEnd, $npsInDb, 'csat2', $datafilters, null);
             $coordAnden         = $this->NpsIsnTransvip($db, $dateIni, $dateEnd, $npsInDb, 'csat3', $datafilters, null);
             //HASTA ACA
             $tiempoAeropuerto   = $this->NpsIsnTransvip($db, $dateIni,$dateEnd, $npsInDb, 'csat6', $datafilters, null);
             $tiempoLlegadaAnden = $this->NpsIsnTransvip($db, $dateIni, $dateEnd, $npsInDb, 'csat5', $datafilters, null);
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient, $request->survey, $db);
-            $performance        = $this->cardsPerformace($dataNps, $dataisn, $dateEnd, $dateIni, $request->survey, $datafilters);
+            $performance        = $this->cardsPerformace($dataNps, $dataIsnPerf, $dateEnd, $dateIni, $request->survey, $datafilters);
             $npsConsolidado     = $this->graphNpsIsn($dataisn, $this->ButFilterWeeks);
             $npsVid             = $this->wordCloud($request); //null;
             $csatJourney        = $this->CSATJourney($graphCSATDrivers);
