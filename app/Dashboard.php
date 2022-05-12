@@ -389,7 +389,7 @@ class Dashboard extends Generic
         if ($value){return $value;}
         
         $dataMatriz = $this->matriz($request);
-        
+
         if ($dataMatriz['datas'] == null) {
             return  $resp = [
                 "height"    => 4,
@@ -419,15 +419,16 @@ class Dashboard extends Generic
         if ($dataMatriz['datas']->cx->gainpoint != null) {
             $gainPoint = array_merge($dataMatriz['datas']->cx->gainpoint, $this->_anomaliasGain);
         }
-        if ($dataMatriz['datas']->cx->gainpoint == null) {
+        if ($dataMatriz['datas']->cx->gainpoint == null || $dataMatriz['datas']->cx->gainpoint == 0) {
             $gainPoint =  $this->_anomaliasGain;
         }
-        if ($dataMatriz['datas']->cx->painpoint != null) {
+        if ($dataMatriz['datas']->cx->painpoint != null ) {
             $painPoint = array_merge($dataMatriz['datas']->cx->painpoint, $this->_anomaliasPain);
         }
-        if ($dataMatriz['datas']->cx->painpoint == null) {
+        if ($dataMatriz['datas']->cx->painpoint == null || $dataMatriz['datas']->cx->painpoint == 0) {
             $painPoint = $this->_anomaliasPain;
         }
+        //print_r($dataMatriz['datas']->cx->painpoint);
 
         $resp = [
             "height" => 4,
@@ -655,7 +656,7 @@ class Dashboard extends Generic
         }
     
 
-    protected function getEndCsat($survey){
+    public function getEndCsat($survey){
         $datas = [
             //banemdica
             "banamb" => "10",
@@ -707,7 +708,7 @@ class Dashboard extends Generic
         $surveyName = substr($db, 10, 4);
         $dataT = DB::select("SELECT SUM(enviados) AS TOTAL 
                             FROM $this->_dbSelected.datasengrid_transvip 
-                            WHERE tipo = 1 AND fechasend BETWEEN '$dateIni' AND '$dateEnd' and encuesta = '$surveyName'" );
+                            WHERE tipo = 1 AND fechasend BETWEEN '$dateIni' AND '$dateEnd' and encuesta = '$surveyName'" );     
 
         $data = DB::select("SELECT COUNT(*) AS RESP 
                             FROM $this->_dbSelected.$db 
@@ -1920,7 +1921,6 @@ class Dashboard extends Generic
         $graphCES = array();
 
         if (substr($table, 10, 3) == 'com') {
-        
             $data = DB::select("SELECT (COUNT(if($indicador between   $this->_minMaxCes and $this->_maxMaxCes  , $indicador, NULL)) - 
                                 COUNT(if($indicador between $this->_minCes and $this->_maxCes , $indicador, NULL))) * 100
                                 /COUNT(CASE WHEN $indicador != 99 THEN $indicador END) AS ces, 
@@ -1956,8 +1956,6 @@ class Dashboard extends Generic
                     ];
                 }
             }
-
-
         }
 
         if (empty($data)) {         
@@ -4068,7 +4066,7 @@ class Dashboard extends Generic
         
         if($str == 'ges' || $str == 'eri' || $str == 'com'){
           
-            $data = DB::select("SELECT COUNT(*) as Total,
+            $data = DB::select("SELECT COUNT(if(ces !=99,1,NULL )) as Total,
                                 (COUNT(if($ces between  $this->_minMaxCes and  $this->_maxMaxCes  , $ces, NULL)) - COUNT(if($ces between $this->_minCes and $this->_maxCes , $ces, NULL)))/COUNT(if(ces !=99,1,NULL ))* 100 AS CES 
                                 FROM $this->_dbSelected.$db as a
                                 LEFT JOIN $this->_dbSelected." . $db . "_start as b 

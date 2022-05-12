@@ -580,11 +580,11 @@ class DashboardMutual extends Dashboard
                                 a.mes, a.annio ,".$this->getValueParams('_fieldSelectInQuery')."  
                                 FROM ".$this->getValueParams('_dbSelected').".$table as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected')."." . $table . "_start as b ON a.token = b.token 
-                                WHERE  a.mes = $mes  AND a.annio = $annio AND etapaencuesta = 'P2' ". $this->filterZona." ". $this->filterCentro."
+                                WHERE  a.mes = $mes  AND a.annio = $annio AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." ". $this->filterCentro."
                                 GROUP BY  a.mes, a.annio 
                                 ORDER BY date_survey ASC");
         }
-
+    
         if ($data != null && $data[0]->ISN != null){
             return[
                 "name"              => "isn",
