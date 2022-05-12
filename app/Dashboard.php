@@ -419,13 +419,13 @@ class Dashboard extends Generic
         if ($dataMatriz['datas']->cx->gainpoint != null) {
             $gainPoint = array_merge($dataMatriz['datas']->cx->gainpoint, $this->_anomaliasGain);
         }
-        if ($dataMatriz['datas']->cx->gainpoint == null) {
+        if ($dataMatriz['datas']->cx->gainpoint == null || $dataMatriz['datas']->cx->gainpoint == 0) {
             $gainPoint =  $this->_anomaliasGain;
         }
         if ($dataMatriz['datas']->cx->painpoint != null) {
             $painPoint = array_merge($dataMatriz['datas']->cx->painpoint, $this->_anomaliasPain);
         }
-        if ($dataMatriz['datas']->cx->painpoint == null) {
+        if ($dataMatriz['datas']->cx->painpoint == null || $dataMatriz['datas']->cx->painpoint == 0) {
             $painPoint = $this->_anomaliasPain;
         }
 
@@ -655,7 +655,7 @@ class Dashboard extends Generic
         }
     
 
-    protected function getEndCsat($survey){
+    public function getEndCsat($survey){
         $datas = [
             //banemdica
             "banamb" => "10",
@@ -4070,7 +4070,7 @@ class Dashboard extends Generic
         
         if($str == 'ges' || $str == 'eri' || $str == 'com'){
           
-            $data = DB::select("SELECT COUNT(*) as Total,
+            $data = DB::select("SELECT COUNT(if(ces !=99,1,NULL )) as Total,
                                 (COUNT(if($ces between  $this->_minMaxCes and  $this->_maxMaxCes  , $ces, NULL)) - COUNT(if($ces between $this->_minCes and $this->_maxCes , $ces, NULL)))/COUNT(if(ces !=99,1,NULL ))* 100 AS CES 
                                 FROM $this->_dbSelected.$db as a
                                 LEFT JOIN $this->_dbSelected." . $db . "_start as b 
