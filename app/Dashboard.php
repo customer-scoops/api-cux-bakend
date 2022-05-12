@@ -2251,7 +2251,7 @@ class Dashboard extends Generic
                       AND etapaencuesta = 'P2'
                       group by  $indicador
                       order by total DESC";
-
+            
             $data = DB::select($query);
 
             $totalAcum = 0;
@@ -2300,7 +2300,7 @@ class Dashboard extends Generic
                       on a.token = b.token 
                       WHERE date_survey  BETWEEN '$dateEnd' AND '$dateIni' $datafilters AND $indicador != 99 AND $indicador != '' 
                       AND etapaencuesta = 'P2'";
-
+                      
             $data = DB::select($query);
             $totalAcum = 0;
             $dataVal = array();
@@ -2774,7 +2774,8 @@ class Dashboard extends Generic
                 //echo 'Lun ' . date('m-d', strtotime($mondayWeek . "- $count week")) . ' (' . ($value->Total) . ')'; exit;
                 $NpsInsTransvip[] = [
                     //'xLegend'   => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Total) . ')' : 'Semana ' . $value->week . ' (' . ($value->Total) . ')',
-                    'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Total) . ')' : 'Lun ' . $value->mes . '-' .date("'$value->mes' . '-d'", strtotime($mondayWeek . "- $count week")) . ' (' . ($value->Total) . ')',
+                    //'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Total) . ')' : 'Lun ' . date('m-d', strtotime($mondayWeek . "- $count week")) . ' (' . ($value->Total) . ')',
+                    'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Total) . ')' : 'Lun ' . date('m-d', strtotime($mondayWeek . "- $count week")) . ' (' . ($value->Total) . ')',
                     'values'    => [
                         "nps"           => Round($value->NPS),
                         "ins"           => Round($value->INS),
