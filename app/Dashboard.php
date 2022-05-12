@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use DB;
 use App\Suite;
 use App\Generic;
+use ArrayObject;
 use Carbon\Carbon;
 use Mockery\Undefined;
 
@@ -2236,31 +2237,83 @@ class Dashboard extends Generic
         if ($datafilters)
             $datafilters = " AND $datafilters";
 
-        $query = "SELECT $indicador as nombre, count(case when $indicador != 99 and $indicador != '' then 1 end) as total
-        from $this->_dbSelected.$db as a
-        left join $this->_dbSelected." . $db . "_start as b 
-        on a.token = b.token 
-        WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters AND $indicador != 99 AND $indicador != '' 
-        AND etapaencuesta = 'P2'
-        group by  $indicador
-        order by total DESC";
+        if($text != "Atributos más importantes")
+        {
+            $query = "SELECT $indicador as nombre, count(case when $indicador != 99 and $indicador != '' then 1 end) as total
+                      from $this->_dbSelected.$db as a
+                      left join $this->_dbSelected." . $db . "_start as b 
+                      on a.token = b.token 
+                      WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters AND $indicador != 99 AND $indicador != '' 
+                      AND etapaencuesta = 'P2'
+                      group by  $indicador
+                      order by total DESC";
 
-        $data = DB::select($query);
+            $data = DB::select($query);
 
-        $totalAcum = 0;
-
-        foreach ($data as $key => $value) {
-            $totalAcum = $totalAcum + $value->total;
-        }
-
-        foreach ($data as $key => $value) {
+            $totalAcum = 0;
+    
+            foreach ($data as $key => $value) {
+                $totalAcum = $totalAcum + $value->total;
+            }
+    
+            foreach ($data as $key => $value) {
+            
+            $values[] = [
+                'text'  => $value->nombre == "0" ? "No" : ($value->nombre == "1" ? "Si" : str_replace("u00f3", "ó", str_replace("&nt", "ños", html_entity_decode(str_replace("&amp;","&",$value->nombre))))),
+                'cant'   => $value->total,
+                'porcentaje'   => ROUND($value->total * 100 / $totalAcum) . " %",
+                ];
         
-        $values[] = [
-            'text'  => $value->nombre == "0" ? "No" : ($value->nombre == "1" ? "Si" : str_replace("u00f3", "ó", str_replace("&nt", "ños", html_entity_decode(str_replace("&amp;","&",$value->nombre))))),
-            'cant'   => $value->total,
-            'porcentaje'   => ROUND($value->total * 100 / $totalAcum) . " %",
-           ];
-      
+            }
+        }
+        
+        if($text == "Atributos más importantes")
+        {
+            $query = '';
+            $fields = [
+                'calidApp' => 'Calidad y funcionamiento de la App Conductores', 
+                'cantServ' => 'Cantidad de servicios ofrecidos', 
+                'seguridad' => 'Seguridad', 
+                'canCom' => 'Canales de comunicación con empresa', 
+                'ingProm' => 'Ingreso promedio por viaje', 
+                'flexHor' =>'Flexibilidad de horario', 
+                'tipoClient' =>'Tipo de Cliente'
+            ];
+            $count = 0; 
+            foreach ($fields as $key => $value) {
+                if($count == (count($fields)-1))
+                {
+                    $query .= " count(CASE WHEN json_contains(`mult1`, '" . '"'. $value . '"'. "', '$') THEN 1 END) as " . $key ." ";
+                } else
+                {
+                    $query .= " count(CASE WHEN json_contains(`mult1`, '" . '"'. $value . '"'. "', '$') THEN 1 END) as " . $key .",";
+                }
+                $count++;
+            }
+            $query = "SELECT $query
+                      from $this->_dbSelected.$db as a
+                      left join $this->_dbSelected." . $db . "_start as b 
+                      on a.token = b.token 
+                      WHERE date_survey  BETWEEN '$dateEnd' AND '$dateIni' $datafilters AND $indicador != 99 AND $indicador != '' 
+                      AND etapaencuesta = 'P2'";
+
+            $data = DB::select($query);
+            $totalAcum = 0;
+            $dataVal = array();
+            foreach ($fields as $key => $value) {
+                $totalAcum = $totalAcum + intval($data[0]->$key);
+                $dataVal[$key] = $data[0]->$key;
+            }
+            arsort($dataVal);
+            foreach ($dataVal as $key => $value) {
+        
+                $values[] = [
+                    'text'  => $fields[$key],
+                    'cant'   => $value,
+                    'porcentaje'   => ROUND($value * 100 / $totalAcum) . " %",
+                   ];
+              
+            }
         }
 
         $standarStruct = [
