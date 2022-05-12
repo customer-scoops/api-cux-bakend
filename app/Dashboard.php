@@ -700,14 +700,18 @@ class Dashboard extends Generic
     }
 
     private function traking($db,$dateIni,$dateEnd) {
-        // echo $db;exit;
+        //echo substr($db, 10, 4);exit;
         // $dateSurvey = 'date_survey';
         // if(substr($db, 6, 3) == 'tra' && substr($db, 10, 3) == 'via')
         //     $dateSurvey = 'fechaservicio';
-
+        // echo $dateIni;
+        // echo '************';
+        // echo $dateEnd;
+        // exit;
+        $surveyName = substr($db, 10, 4);
         $dataT = DB::select("SELECT SUM(enviados) AS TOTAL 
                             FROM $this->_dbSelected.datasengrid_transvip 
-                            WHERE tipo = 1 AND fechasend BETWEEN '$dateIni' AND '$dateEnd'" );
+                            WHERE tipo = 1 AND fechasend BETWEEN '$dateIni' AND '$dateEnd' and encuesta = '$surveyName'" );
 
         $data = DB::select("SELECT COUNT(*) AS RESP 
                             FROM $this->_dbSelected.$db 
@@ -715,20 +719,20 @@ class Dashboard extends Generic
 
         $reenv = DB::select("SELECT SUM(enviados) as reenv
                             FROM $this->_dbSelected.datasengrid_transvip
-                            WHERE fechasend BETWEEN '$dateIni' AND '$dateEnd' AND tipo = 2");  
+                            WHERE fechasend BETWEEN '$dateIni' AND '$dateEnd' AND tipo = 2 and encuesta = '$surveyName'");  
 
         $queryT = DB::select("SELECT 
                             SUM(abiertos) as opened, 
                             SUM(click) as clicks 
                             FROM $this->_dbSelected.datasengrid_transvip
-                            WHERE fechasend BETWEEN '$dateIni' AND '$dateEnd'");
+                            WHERE fechasend BETWEEN '$dateIni' AND '$dateEnd' and encuesta = '$surveyName'");
 
         $queryX = DB::select("SELECT SUM(enviados) as sended, 
                             SUM(rebotados) as bounced,
                             SUM(entregados) AS delivered, 
                             SUM(spam) as spam  
                             FROM $this->_dbSelected.datasengrid_transvip
-                            WHERE fechasend BETWEEN '$dateIni' AND '$dateEnd'  AND tipo = 1");
+                            WHERE fechasend BETWEEN '$dateIni' AND '$dateEnd' AND tipo = 1 and encuesta = '$surveyName'");
    
     return [
         "height"=> 4,
@@ -2305,15 +2309,22 @@ class Dashboard extends Generic
                 $dataVal[$key] = $data[0]->$key;
             }
             arsort($dataVal);
-            foreach ($dataVal as $key => $value) {
-        
-                $values[] = [
-                    'text'  => $fields[$key],
-                    'cant'   => $value,
-                    'porcentaje'   => ROUND($value * 100 / $totalAcum) . " %",
-                   ];
-              
+            if ($totalAcum != 0) 
+            {
+                foreach ($dataVal as $key => $value) {
+            
+                    $values[] = [
+                        'text'  => $fields[$key],
+                        'cant'  => $value,
+                        'porcentaje'   => ROUND($value * 100 / $totalAcum) . " %",
+                    ];
+                
+                }
             }
+            if ($totalAcum == 0)
+            {
+                $values = [];
+            } 
         }
 
         $standarStruct = [
@@ -6240,12 +6251,12 @@ class Dashboard extends Generic
             $detailGeneration   = substr($request->survey, 3, 3) == 'via' ? $this->ranking($db, 'convenio', 'Convenio', $endDateFilterMonth, $startDateFilterMonth, $filterClient,$datafilters, 6, 5) : null;
             $detailsProcedencia = substr($request->survey, 3, 3) == 'via' ? $this->graphINS($tiempoVehiculo, $coordAnden, $tiempoAeropuerto, $tiempoLlegadaAnden) : null;
             $box14              = substr($request->survey, 3, 3) == 'con' ? $this->CSATDrivers($graphCSATDrivers) : $this->graphCsatTransvip($drivers, $request->survey);
-            $box15              = substr($request->survey, 3, 3) == 'via' ? $this->traking($db, $startDateFilterMonth, $endDateFilterMonth) : null;
+            $box15              = substr($request->survey, 3, 3) == 'con' ? $canalPref : null;
             $box16              = substr($request->survey, 3, 3) == 'con' ? $proveedor : null;
             $box17              = substr($request->survey, 3, 3) == 'con' ? $frecCon : null;
             $box18              = substr($request->survey, 3, 3) == 'con' ? $contactoEmpresas : null;
             $box19              = substr($request->survey, 3, 3) == 'con' ? $atrImport : null;
-            $box20              = substr($request->survey, 3, 3) == 'con' ? $canalPref : null;
+            $box20              = $this->traking($db, $startDateFilterMonth, $endDateFilterMonth); //substr($request->survey, 3, 3) == 'via' ? $this->traking($db, $startDateFilterMonth, $endDateFilterMonth) : null;
             $box21              = null;
             $npsBan             = $this->cxIntelligence($request);
         }
