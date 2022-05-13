@@ -242,7 +242,8 @@ class Suite
             
             $dbQuery->where('etapaencuesta', 'P2');
             $dbQuery->where('contenido','!=', '');
-            $dbQuery->whereBetween('nps', [$this->_startMinNps,$this->_startMaxNps]);
+            if($client != 'BAN001' && $client != 'VID001')
+                $dbQuery->whereBetween('nps', [$this->_startMinNps,$this->_startMaxNps]);
             $dbQuery->where('date','>=', $this->_dateStartClient);
             //$dbQuery = DB::table('dataSuite_banmedica');
             
@@ -251,6 +252,16 @@ class Suite
                 $filters = (json_decode($request->get('filters')));
                 if ($filters) {
                     foreach ($filters as $key => $value) {
+                        //dd($value->key);
+                        if($value->key == 'typeClient')
+                        {
+                            if($value->value == 'detractor')
+                                $dbQuery->whereBetween('nps', [0,6]);
+                            if($value->value == 'neutral')
+                                $dbQuery->whereBetween('nps', [7,8]);
+                            if($value->value == 'promotor')
+                                $dbQuery->whereBetween('nps', [9,10]);
+                        }
                         if(in_array($value->key, $validFilterKeys)) {
                             $dbQuery->where($value->key,  $value->value);
                         }
@@ -280,18 +291,18 @@ class Suite
             }
 
             //Filtro por dia a contactar
-            if($request->get('dateSchedule') !== null) {
-                $dateSchedule = $request->get('dateSchedule');
-                // TODO validar endDate
-                $dbQuery->where('dateSchedule', '=', $dateSchedule);
-            }
+            // if($request->get('dateSchedule') !== null) {
+            //     $dateSchedule = $request->get('dateSchedule');
+            //     // TODO validar endDate
+            //     $dbQuery->where('dateSchedule', '=', $dateSchedule);
+            // }
 
-            //Filtro por dia a contactar
-            if($request->get('dateSchedule') !== null) {
-                $dateSchedule = $request->get('dateSchedule');
-                // TODO validar endDate
-                $dbQuery->where('dateSchedule', '=', $dateSchedule);
-            }
+            // //Filtro por dia a contactar
+            // if($request->get('dateSchedule') !== null) {
+            //     $dateSchedule = $request->get('dateSchedule');
+            //     // TODO validar endDate
+            //     $dbQuery->where('dateSchedule', '=', $dateSchedule);
+            // }
 
             // //Filtro por Detract, Neut y Prom
             // if($request->get('typeClient') !== null) {
@@ -729,12 +740,12 @@ class Suite
     }
     //FIN CONFIGURACION DE CLIENTES
 
-    public function setMinNps($value){
-        $this->_startMinNps = $value;
-    }
+    // public function setMinNps($value){
+    //     $this->_startMinNps = $value;
+    // }
     
-    public function setMaxNps($value){
-        $this->_startMaxNps = $value;
-    }
+    // public function setMaxNps($value){
+    //     $this->_startMaxNps = $value;
+    // }
 
 }
