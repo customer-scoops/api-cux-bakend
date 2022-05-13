@@ -9,9 +9,10 @@ use Illuminate\Support\Facades\DB;
 
 class SuiteBanmedica extends Suite
 {
-   public function __construct($jwt)
+   public function __construct($jwt, $request)
    {
        parent::__construct($jwt);
+       //$this->setIndicators($request);
    }
 
    public function saveUpdate($request, $jwt)
@@ -24,11 +25,9 @@ class SuiteBanmedica extends Suite
            "detail" => 'required|string',
            "subStatus1" => 'required|string',
            "subStatus2" => 'required|string',
-           //"data.field1" => 'required|string',
-           //"data.field2" => 'required|string',
-           //"data.field3" => 'required|string',
-           //"dateSchedule" => 'required|date_format:Y-m-d',
-           //"timeSchedule" => 'required|date_format:H:i:s'
+           "caso" => 'required|string',
+           "dateSchedule" => 'date_format:Y-m-d',
+           //"timeSchedule" => 'date_format:H:i:s'
        ];
 
        //print_r($request);
@@ -49,19 +48,17 @@ class SuiteBanmedica extends Suite
                     'estado_close' => $request->status, 
                     'det_close' => $request->detail, 
                     'fec_close'=>date('Y-m-d'),
-                    //'fecha_programa_llamada'=> $request->dateSchedule,
+                    'fecha_programa_llamada'=> $request->dateSchedule,
                     //'hora_programa_llamada'=> $request->timeSchedule,
                     'field_1'=>$request->subStatus1,
                     'field_2'=>$request->subStatus2,
-                    //'field_1'=>$request->data["field1"],
-                    //'field_2'=>$request->data["field2"],
-                    //'field_3'=>$request->data["field3"]
+                    'field_3'=>$request->caso,
                     ]
                 );
                 
-           if($resp===1){
+           if($resp===1 && $request->subStatus1 != 'Agendar llamada'){
                $namev = DB::table($this->getDBSelected().'.'.'adata_'.substr($request->survey,0,3).'_'.substr($request->survey,3,6).'_start')->where('id', $request->ticket)->first();
-               $this->sendedEmail($namev->nom, $namev->mail, $namev->token, $request->survey); // Cuando se pruebe hay que comentar esto para que no le mande le mail al cliente.
+               //$this->sendedEmail($namev->nom, $namev->mail, $namev->token, $request->survey); // Cuando se pruebe hay que comentar esto para que no le mande le mail al cliente.
            }
            return[
                'datas'  => 'complet',

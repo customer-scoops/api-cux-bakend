@@ -232,7 +232,7 @@ class Suite
     public function resumenIndicator($request, $jwt)
     {
         //echo $this->_jwt[env('AUTH0_AUD')]->client;
-        $validFilterKeys    = array("nps","csat","estado"); // <-- keys habilitadas para filtrar
+        $validFilterKeys    = array("nps","csat","estado", "dateSchedule"); // <-- keys habilitadas para filtrar
         $validOrderKeys     = array("nps", "date","csat"); // <-- keys habilitadas para Ordenar
         
         try{
@@ -251,7 +251,8 @@ class Suite
             
             $dbQuery->where('etapaencuesta', 'P2');
             $dbQuery->where('contenido','!=', '');
-            $dbQuery->whereBetween('nps', [$this->_startMinNps,$this->_startMaxNps]);
+            if($client != 'BAN001' && $client != 'VID001')
+                $dbQuery->whereBetween('nps', [$this->_startMinNps,$this->_startMaxNps]);
             $dbQuery->where('date','>=', $this->_dateStartClient);
             //$dbQuery = DB::table('dataSuite_banmedica');
             
@@ -260,6 +261,15 @@ class Suite
                 $filters = (json_decode($request->get('filters')));
                 if ($filters) {
                     foreach ($filters as $key => $value) {
+                        if($value->key == 'typeClient')
+                        {
+                            if($value->value == 'detractor')
+                                $dbQuery->whereBetween('nps', [0,6]);
+                            if($value->value == 'neutral')
+                                $dbQuery->whereBetween('nps', [7,8]);
+                            if($value->value == 'promotor')
+                                $dbQuery->whereBetween('nps', [9,10]);
+                        }
                         if(in_array($value->key, $validFilterKeys)) {
                             $dbQuery->where($value->key,  $value->value);
                         }
@@ -335,6 +345,8 @@ class Suite
                         'rut'  => $value->rut,
                         'phone' => (isset($value->phone)) ?  $value->phone : '',
                         'celu' => (isset($value->celu)) ?  $value->celu : '',
+                        'dateSchedule' =>  (isset($value->dateSchedule)) ?  $value->dateSchedule : '',
+                        'timeSchedule' =>(isset($value->timeSchedule)) ?  $value->timeSchedule : ''
                     ),
                     "ltv"       => 'N/A',
                     "canal"     => $value->canal,
@@ -351,6 +363,7 @@ class Suite
                     "estapaEncuesta"=> $value->etapaencuesta,
                     "subStatus1" => $value->field_1,
                     "subStatus2" => $value->field_2,
+                    "caso" => $value->field_3,
                     "comentarios" => array(
                         'date'      => $value->fechacarga, 
                         'content'   => $value->contenido,
@@ -709,4 +722,13 @@ class Suite
         return $survey;
     }
     //FIN CONFIGURACION DE CLIENTES
+
+    // public function setMinNps($value){
+    //     $this->_startMinNps = $value;
+    // }
+    
+    // public function setMaxNps($value){
+    //     $this->_startMaxNps = $value;
+    // }
+
 }
