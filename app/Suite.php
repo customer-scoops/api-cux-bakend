@@ -223,7 +223,7 @@ class Suite
     public function resumenIndicator($request, $jwt)
     {
         //echo $this->_jwt[env('AUTH0_AUD')]->client;
-        $validFilterKeys    = array("nps","csat","estado"); // <-- keys habilitadas para filtrar
+        $validFilterKeys    = array("nps","csat","estado", "dateSchedule"); // <-- keys habilitadas para filtrar
         $validOrderKeys     = array("nps", "date","csat"); // <-- keys habilitadas para Ordenar
         
         try{
@@ -252,7 +252,6 @@ class Suite
                 $filters = (json_decode($request->get('filters')));
                 if ($filters) {
                     foreach ($filters as $key => $value) {
-                        //dd($value->key);
                         if($value->key == 'typeClient')
                         {
                             if($value->value == 'detractor')
@@ -289,32 +288,6 @@ class Suite
                 // TODO validar endDate
                 $dbQuery->where('date', '<', $endDate);
             }
-
-            //Filtro por dia a contactar
-            // if($request->get('dateSchedule') !== null) {
-            //     $dateSchedule = $request->get('dateSchedule');
-            //     // TODO validar endDate
-            //     $dbQuery->where('dateSchedule', '=', $dateSchedule);
-            // }
-
-            // //Filtro por dia a contactar
-            // if($request->get('dateSchedule') !== null) {
-            //     $dateSchedule = $request->get('dateSchedule');
-            //     // TODO validar endDate
-            //     $dbQuery->where('dateSchedule', '=', $dateSchedule);
-            // }
-
-            // //Filtro por Detract, Neut y Prom
-            // if($request->get('typeClient') !== null) {
-            //     $typeClient = $request->get('typeClient');
-            //     // TODO validar endDate
-            //     if($typeClient == 'promotor')
-            //         $dbQuery->whereBetween('nps', [9,10]);
-            //     if($typeClient == 'neutral')
-            //         $dbQuery->whereBetween('nps', [7,8]);
-            //     if($typeClient == 'detractor')
-            //         $dbQuery->whereBetween('nps', [0,6]);
-            // }
 
             // Ordenamos
             if($request->get('orders') !== null) {
@@ -381,6 +354,7 @@ class Suite
                     "estapaEncuesta"=> $value->etapaencuesta,
                     "subStatus1" => $value->field_1,
                     "subStatus2" => $value->field_2,
+                    "caso" => $value->field_3,
                     "comentarios" => array(
                         'date'      => $value->fechacarga, 
                         'content'   => $value->contenido,
