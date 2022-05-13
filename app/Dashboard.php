@@ -2434,7 +2434,7 @@ class Dashboard extends Generic
                 'calidApp' => 'Calidad y funcionamiento de la App Conductores', 
                 'cantServ' => 'Cantidad de servicios ofrecidos', 
                 'seguridad' => 'Seguridad', 
-                'canCom' => 'Canales de comunicación con empresa', 
+                'canCom' => 'Canales de comunicaciu00f3n con empresa', 
                 'ingProm' => 'Ingreso promedio por viaje', 
                 'flexHor' =>'Flexibilidad de horario', 
                 'tipoClient' =>'Tipo de Cliente'
@@ -2456,7 +2456,7 @@ class Dashboard extends Generic
                       on a.token = b.token 
                       WHERE date_survey  BETWEEN '$dateEnd' AND '$dateIni' $datafilters AND $indicador != 99 AND $indicador != '' 
                       AND etapaencuesta = 'P2'";
-                      
+
             $data = DB::select($query);
             $totalAcum = 0;
             $dataVal = array();
@@ -2470,7 +2470,7 @@ class Dashboard extends Generic
                 foreach ($dataVal as $key => $value) {
             
                     $values[] = [
-                        'text'  => $fields[$key],
+                        'text'  => str_replace("u00f3", "ó",$fields[$key]),
                         'cant'  => $value,
                         'porcentaje'   => ROUND($value * 100 / $totalAcum) . " %",
                     ];
