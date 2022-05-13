@@ -1404,7 +1404,7 @@ class Dashboard extends Generic
                                 ((count(if($indicador2 < 7, $indicador2, NULL))*100)/count(CASE WHEN $indicador2 != 99 THEN $indicador2 END)*$this->_porcentageVid) as detractor, 
                                 ((count(if($indicador2 > 8, $indicador2, NULL))*100)/count(CASE WHEN $indicador2 != 99 THEN $indicador2 END)*$this->_porcentageVid) as promotor, 
                                 ((count(if($indicador2 <= 8 AND $indicador2 >=7, $indicador2, NULL))*100)/count(CASE WHEN $indicador2 != 99 THEN $indicador2 END)*$this->_porcentageVid) as neutral,              
-                                a.mes, a.annio,date_survey, WEEK(date_survey) AS week, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek, $this->_fieldSelectInQuery
+                                a.mes, a.annio,date_survey, WEEK(date_survey) AS week, $this->_fieldSelectInQuery
                                 FROM $this->_dbSelected.$table2 as a
                                 LEFT JOIN $this->_dbSelected." . $table2 . "_start as b ON a.token = b.token 
                                 WHERE $where $datafilters
@@ -1756,7 +1756,7 @@ class Dashboard extends Generic
                                 GROUP BY $group
                                 UNION
                                 SELECT ((COUNT(CASE WHEN $indicador BETWEEN 9 AND 10 THEN $indicador END)*100)/COUNT(CASE WHEN $indicador != 99 THEN $indicador END))*0.23 AS csat,
-                                a.mes, a.annio, date_survey, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek,$this->_fieldSelectInQuery
+                                a.mes, a.annio, date_survey, $this->_fieldSelectInQuery
                                 FROM $this->_dbSelected.$table2 as a
                                 INNER JOIN $this->_dbSelected." . $table2 . "_start as b on a.token = b. token
                                 WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and  $indicador != 99  $datafilters
@@ -3010,7 +3010,7 @@ class Dashboard extends Generic
                                 ((count(if($indicador < 7, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador!=99 THEN 1 END))*$this->_porcentageVid as detractor,
                                 ((count(if($indicador> 8 AND $indicador <=10, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador!=99 THEN 1 END))*$this->_porcentageVid as promotor, 
                                 ((count(if($indicador=8 OR $indicador=7, nps, NULL))*100)/COUNT(CASE WHEN $indicador!=99 THEN 1 END))*$this->_porcentageVid as neutral, 
-                                a.mes, a.annio, date_survey, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek, $this->_fieldSelectInQuery  
+                                a.mes, a.annio, date_survey, $this->_fieldSelectInQuery  
                                 FROM $this->_dbSelected.$table2 as a
                                 INNER JOIN $this->_dbSelected." . $table2 . "_start as b on a.token = b.token 
                                 WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters Group BY a.annio, a.mes ) as A 
