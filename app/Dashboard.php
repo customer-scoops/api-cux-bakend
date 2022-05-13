@@ -1346,7 +1346,7 @@ class Dashboard extends Generic
                                     ((count(if($indicador <= $this->_maxNps, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as detractor, 
                                     ((count(if($indicador = $this->_minMaxNps OR $indicador =$this->_maxMaxNps, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as promotor, 
                                     ((count(if($indicador=$this->_maxMediumNps OR $indicador=$this->_minMediumNps, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as neutral,              
-                                    MONTH(fechaservicio) as mes, YEAR(fechaservicio) as annio, WEEK(fechaservicio) AS week, WEEKDAY(fechaservicio)) as mondayWeek, $this->_fieldSelectInQuery  
+                                    MONTH(fechaservicio) as mes, YEAR(fechaservicio) as annio, WEEK(fechaservicio) AS week, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek, $this->_fieldSelectInQuery  
                                     FROM $this->_dbSelected.$table as a
                                     INNER JOIN $this->_dbSelected." . $table . "_start as b ON a.token = b.token 
                                     WHERE  fechaservicio BETWEEN '$dateEnd' AND '$dateIni' $activeP2 $datafilters 
