@@ -29,7 +29,7 @@ class SuiteBanmedica extends Suite
            //"data.field2" => 'required|string',
            //"data.field3" => 'required|string',
            "dateSchedule" => 'date_format:Y-m-d',
-           "timeSchedule" => 'date_format:H:i:s'
+           //"timeSchedule" => 'date_format:H:i:s'
        ];
 
        //print_r($request);
@@ -51,7 +51,7 @@ class SuiteBanmedica extends Suite
                     'det_close' => $request->detail, 
                     'fec_close'=>date('Y-m-d'),
                     'fecha_programa_llamada'=> $request->dateSchedule,
-                    'hora_programa_llamada'=> $request->timeSchedule,
+                    //'hora_programa_llamada'=> $request->timeSchedule,
                     'field_1'=>$request->subStatus1,
                     'field_2'=>$request->subStatus2,
                     //'field_1'=>$request->data["field1"],
