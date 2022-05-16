@@ -209,7 +209,7 @@ class Suite
             $convertionRate = (($convertion / $ticketClosed) * 100);
         $closedRate = 0;
         if ($ticketCreated > 0)
-            $closedRate = round(($ticketClosed / $ticketCreated) * 100);
+            $closedRate = round(($ticketClosed / $ticketCreated) * 100,1);
         return [
             'datas'  => [
                 'client'            => $this->_nameClient,
