@@ -3017,36 +3017,6 @@ class Dashboard extends Generic
                                 Group BY annio, mes 
                                 ORDER BY date_survey ASC"); 
                                 
-                echo "SELECT sum(NPS) as NPS,sum(detractor) AS detractor,sum(promotor) AS promotor,sum(neutral) as neutral, mes, annio, sum(Cdet) as Cdet, sum(Cpro) as Cpro, sum(Cneu) as Cneu, $this->_fieldSelectInQuery
-                FROM (SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
-                COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
-                COUNT(CASE WHEN $indicador!=99 THEN 1 END) * 100),1)*$this->_porcentageBan AS NPS,
-                count(if($indicador < 7, $indicador, NULL)) as Cdet,
-                count(if($indicador> 8 AND $indicador <=10, $indicador, NULL)) as Cpro,
-                count(if($indicador=8 OR $indicador=7, $indicador, NULL)) as Cneu,
-                ((count(if($indicador < 7, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador!=99 THEN 1 END))*$this->_porcentageBan as detractor, 
-                ((count(if($indicador> 8 AND $indicador <=10, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador!=99 THEN 1 END))*$this->_porcentageBan as promotor, 
-                ((count(if($indicador=8 OR $indicador=7, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador!=99 THEN 1 END))*$this->_porcentageBan as neutral,
-                a.mes, a.annio, date_survey, $this->_fieldSelectInQuery 
-                FROM $this->_dbSelected.$table as a
-                INNER JOIN $this->_dbSelected." . $table . "_start as b on a.token = b.token
-                WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni'  $datafilters	
-                Group BY a.annio,a.mes
-                UNION 
-                SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
-                COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) / COUNT(CASE WHEN $indicador!=99 THEN 1 END) * 100),1)*$this->_porcentageVid AS NPS,
-                count(if($indicador < 7, $indicador, NULL)) as Cdet,
-                count(if($indicador> 8 AND $indicador <=10, $indicador, NULL)) as Cpro,
-                count(if($indicador=8 OR $indicador=7, $indicador, NULL)) as Cneu,
-                ((count(if($indicador < 7, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador!=99 THEN 1 END))*$this->_porcentageVid as detractor,
-                ((count(if($indicador> 8 AND $indicador <=10, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador!=99 THEN 1 END))*$this->_porcentageVid as promotor, 
-                ((count(if($indicador=8 OR $indicador=7, nps, NULL))*100)/COUNT(CASE WHEN $indicador!=99 THEN 1 END))*$this->_porcentageVid as neutral, 
-                a.mes, a.annio, date_survey, $this->_fieldSelectInQuery  
-                FROM $this->_dbSelected.$table2 as a
-                INNER JOIN $this->_dbSelected." . $table2 . "_start as b on a.token = b.token 
-                WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters Group BY a.annio, a.mes ) as A 
-                Group BY annio, mes 
-                ORDER BY date_survey ASC";
             }
             
             if($table2 == null){
