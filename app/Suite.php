@@ -364,6 +364,7 @@ class Suite
                     "subStatus1" => $value->field_1,
                     "subStatus2" => $value->field_2,
                     "caso" => $value->field_3,
+                    "cliente_det_close"=> $value->cliente_det_close,
                     "comentarios" => array(
                         'date'      => $value->fechacarga, 
                         'content'   => $value->contenido,
