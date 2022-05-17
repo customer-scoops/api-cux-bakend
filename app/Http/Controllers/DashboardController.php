@@ -72,10 +72,11 @@ class DashboardController extends Controller
         return $this->generic($data['datas'], $data['status']);
     }
     public function downloadExcel(Request $request)
-    {
+    {  
         $startDate  = $request->get('startDate');
         $endDate    = $request->get('endDate');
         $survey     = $request->get('survey');
+    
         if(!isset($startDate) && !isset($endDate) && !isset($survey)){return $this->generic('Not datas filters', Response::HTTP_UNPROCESSABLE_ENTITY);}
         $resp = $this->_dashboard->downloadExcel($request, $request->dataJwt);
         return response($resp, 200)
