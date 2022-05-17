@@ -2755,7 +2755,7 @@ class Dashboard extends Generic
                     FROM $this->_dbSelected.$db as a
                     left join $this->_dbSelected." . $db . "_start as b
                     on a.token = b.token 
-                    where  MONTH(fechaservicio) = '$mes' and YEAR(fechaservicio) = '$annio' and b.$indicatorBD != ''  $datafilters
+                    where  MONTH(fechaservicio) = '$mes' and YEAR(fechaservicio) = '$annio' and b.$indicatorBD != '' and etapaencuesta = 'P2' $datafilters
                     GROUP by $indicatorName
                     order by $indicatorName";
         }
