@@ -6409,6 +6409,7 @@ class Dashboard extends Generic
             $box20              = $sucNpsCsat;
             $cx                 = $this->cxIntelligence($request);
             $box21              = $rankingSuc;
+            $box22              = null;
         }
 
         if ($this->_dbSelected  == 'customer_colmena'  && substr($request->survey, 0, 3) == 'tra') {
@@ -6421,7 +6422,6 @@ class Dashboard extends Generic
                 $canalPref = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc2', "Canal Preferido", 3, 4);
             }
             $name = 'Transvip';
-            $datasStatsByTaps   = null;
             $dataCL             = $this->closedloopTransvip($datafilters, $dateIni, $dateEnd, $request->survey);
             //REVISAR QUERYS SE DEMORAN 2 SEG DESDE ACA
             $datasCbiResp       = $this->cbiResp($db,$datafilters, $dateIni, $dateEnd);
@@ -6444,16 +6444,18 @@ class Dashboard extends Generic
             $wordCloud          = substr($request->survey, 3, 3) == 'via' ? $this->globales($db, date('m'), date('Y'), 'sentido', 'Sentido', 'cbi', 'ins', 4, $datafilters) : null;
             $closedLoop         = substr($request->survey, 3, 3) == 'via' ? $this->globales($db, date('m'), date('Y'), 'tiposervicio', 'Vehículo', 'cbi', 'ins', 4, $datafilters): null;
             $detailGender       = substr($request->survey, 3, 3) == 'via' ? $this->globales($db, date('m'), date('Y'), 'sucursal', 'Sucursal', 'cbi', 'ins', 4, $datafilters) : null;
-            $detailGeneration   = substr($request->survey, 3, 3) == 'via' ? $this->ranking($db, 'convenio', 'Convenio', $endDateFilterMonth, $startDateFilterMonth, $filterClient,$datafilters, 6, 5) : null;
-            $detailsProcedencia = substr($request->survey, 3, 3) == 'via' ? $this->graphINS($tiempoVehiculo, $coordAnden, $tiempoAeropuerto, $tiempoLlegadaAnden) : null;
-            $box14              = substr($request->survey, 3, 3) == 'con' ? $this->CSATDrivers($graphCSATDrivers) : $this->graphCsatTransvip($drivers, $request->survey);
-            $box15              = substr($request->survey, 3, 3) == 'con' ? $canalPref : null;
-            $box16              = substr($request->survey, 3, 3) == 'con' ? $proveedor : null;
-            $box17              = substr($request->survey, 3, 3) == 'con' ? $frecCon : null;
-            $box18              = substr($request->survey, 3, 3) == 'con' ? $contactoEmpresas : null;
-            $box19              = substr($request->survey, 3, 3) == 'con' ? $atrImport : null;
-            $box20              = $this->traking($db, $startDateFilterMonth, $endDateFilterMonth); //substr($request->survey, 3, 3) == 'via' ? $this->traking($db, $startDateFilterMonth, $endDateFilterMonth) : null;
-            $box21              = null;
+            $detailGeneration   = substr($request->survey, 3, 3) == 'via' ? $this->globales($db, date('m'), date('Y'), 'condicionservicio', 'Servicio', 'cbi', 'ins', 4, $datafilters) : null;
+            $datasStatsByTaps   = substr($request->survey, 3, 3) == 'via' ? $this->globales($db, date('m'), date('Y'), 'tipocliente', 'Cliente', 'cbi', 'ins', 4, $datafilters) : null;
+            $detailsProcedencia = substr($request->survey, 3, 3) == 'via' ? $this->globales($db, date('m'), date('Y'), 'tipoReserva', 'Reserva', 'cbi', 'ins', 4, $datafilters) : null;
+            $box14              = substr($request->survey, 3, 3) == 'via' ? $this->ranking($db, 'convenio', 'Convenio', $endDateFilterMonth, $startDateFilterMonth, $filterClient,$datafilters, 6, 5) : null;
+            $box15              = substr($request->survey, 3, 3) == 'via' ? $this->graphINS($tiempoVehiculo, $coordAnden, $tiempoAeropuerto, $tiempoLlegadaAnden) : null;
+            $box16              = substr($request->survey, 3, 3) == 'con' ? $this->CSATDrivers($graphCSATDrivers) : $this->graphCsatTransvip($drivers, $request->survey);
+            $box17              = substr($request->survey, 3, 3) == 'con' ? $canalPref : null;
+            $box18              = substr($request->survey, 3, 3) == 'con' ? $proveedor : null;
+            $box19              = substr($request->survey, 3, 3) == 'con' ? $frecCon : null;
+            $box20              = substr($request->survey, 3, 3) == 'con' ? $contactoEmpresas : null;
+            $box21              = substr($request->survey, 3, 3) == 'con' ? $atrImport : null;
+            $box22              = $this->traking($db, $startDateFilterMonth, $endDateFilterMonth); //substr($request->survey, 3, 3) == 'via' ? $this->traking($db, $startDateFilterMonth, $endDateFilterMonth) : null;
             $npsBan             = $this->cxIntelligence($request);
         }
 
@@ -6480,7 +6482,6 @@ class Dashboard extends Generic
             $npsVid             = $this->cardNpsBanmedica($this->_nameClient, $dataNPSGraph); //NPS
             $csatJourney        = $this->cardNpsBanmedica($this->_nameClient , $dataCsatGraph, 'CSAT');//Csat
             $csatDrivers        = substr($db, 10, 3) == 'com' ?  $this->cardNpsBanmedica($this->_nameClient, $dataCesGraph, 'CES') : null; //Ces
-            $cx                 = $this->cxIntelligence($request);
             $wordCloud          = $this->CSATJourney($graphCSATDrivers);;
             $closedLoop         = null; 
             $detailGender       = substr($db, 10, 3) == 'via' ? $this->gapJetsmart($db, $request->survey,'csat', $dateIni, $dateEnd, $structGAPJetSmart, $datafilters): null;
@@ -6495,7 +6496,9 @@ class Dashboard extends Generic
             $box19              = null;
             $box20              = null;
             $box21              = null;
+            $box22              = null;
             $npsBan             = null;
+            $cx                 = $this->cxIntelligence($request);
         }
 
         $filters = $this->filters($request, $jwt, $datafilters);
@@ -6526,7 +6529,8 @@ class Dashboard extends Generic
                 $box18,
                 $box19,
                 $box20,
-                $box21
+                $box21,
+                $box22
             ]
         ];
 

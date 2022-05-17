@@ -1090,6 +1090,7 @@ class DashboardMutual extends Dashboard
             $box19              = $ges;
             $box20              = $sucNpsCsat;
             $box21              = $rankingSuc;
+            $box22              = null;
         }
         $filters = $this->filters($request, $jwt, $datafilters);
         $data = [
@@ -1119,7 +1120,8 @@ class DashboardMutual extends Dashboard
                 $box18,
                 $box19,
                 $box20,
-                $box21
+                $box21,
+                $box22
             ]
         ];
         
