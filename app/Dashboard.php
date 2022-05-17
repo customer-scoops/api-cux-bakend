@@ -626,6 +626,13 @@ class Dashboard extends Generic
     //Voy a hacer algo raro
     public function generalInfo($request, $jwt)
     {
+        $down = FALSE;
+        //print_r($jwt);exit;
+        $download = in_array("database:download",($jwt['permissions']));
+       
+        if($download == 1){
+            $down = TRUE;
+        }
         $surveys = $this->getDataSurvey($request, $jwt);
         $data = [];
         $otherGraph = [];
@@ -664,12 +671,23 @@ class Dashboard extends Generic
                             $otherGraph = [$this->infoCsat($db,date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->_initialFilter)];
                     }
 
+                    if($jwt[env('AUTH0_AUD')]->client == 'BAN001'){
+                        $data[] = [
+                            'client'        => $this->_nameClient, 'clients'  => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
+                            "title"         => ucwords(strtolower($value['name'])),
+                            "identifier"    => $value['base'],
+                            "download"      => $down,
+                            "principalIndicator" => $infoNps,
+                            "journeyMap"    => $this->GraphCSATDrivers($db,$db2,$value['base'],$csatInDb,date('Y-m-d'),date('Y-m-01'),$this->_initialFilter,'one'),
+                            "otherGraphs"   => $otherGraph
+                        ];
+                    }
+
                     $data[] = [
                         'client'        => $this->_nameClient, 'clients'  => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
                         "title"         => ucwords(strtolower($value['name'])),
                         "identifier"    => $value['base'],
                         "principalIndicator" => $infoNps,
-
                         "journeyMap"    => $this->GraphCSATDrivers($db,$db2,$value['base'],$csatInDb,date('Y-m-d'),date('Y-m-01'),$this->_initialFilter,'one'),
                         "otherGraphs"   => $otherGraph
                     ];
@@ -3104,6 +3122,7 @@ class Dashboard extends Generic
         ));
         $response = curl_exec($curl);
         curl_close($curl);
+
         return ($response);
         exit;
     }
