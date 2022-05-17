@@ -5800,8 +5800,8 @@ class Dashboard extends Generic
                             ],
                             [
                                 "name"    =>  substr($survey, 0, 3) == 'mut'? 'ISN' : $dataCsat['name'],
-                                "value"   => round($dataCsat['value']),
-                                "m2m"     => (int)round($dataCsat['percentage']),
+                                "value"   => $dataCsat['value'] != 'N/A' ? round($dataCsat['value']) : 'N/A',
+                                "m2m"     => $dataCsat['value'] != 'N/A' ? (int)round($dataCsat['percentage']) : 'N/A',
                             ],
                         ];
             }
