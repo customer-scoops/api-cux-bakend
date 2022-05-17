@@ -24,7 +24,15 @@ class SuiteController extends Controller
     }
     public function getAll(Request $request)
     {
-        $data = $this->_suite->resumenIndicator($request, $request->dataJwt);
+        if ($request->dataJwt[env('AUTH0_AUD')]->client == 'BAN001')
+        {
+            $suiteBan = new SuiteBanmedica($request->dataJwt, $request);
+            $data = $suiteBan->resumenIndicator($request, $request->dataJwt);
+        }
+        if ($request->dataJwt[env('AUTH0_AUD')]->client != 'BAN001')
+        {
+            $data = $this->_suite->resumenIndicator($request, $request->dataJwt);
+        }
         return $this->generic($data['datas'], $data['status']);
     }
     public function getDataCards(Request $request)
@@ -44,7 +52,7 @@ class SuiteController extends Controller
     }
     public function updateRegisterBanmedica(Request $request)
     {
-        $suiteBan = new SuiteBanmedica($request->dataJwt);
+        $suiteBan = new SuiteBanmedica($request->dataJwt, $request);
         $data = $suiteBan->saveUpdate($request, $request->dataJwt);
         return $this->generic($data['datas'], $data['status']);
     }
