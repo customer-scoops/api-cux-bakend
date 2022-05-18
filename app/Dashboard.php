@@ -683,14 +683,17 @@ class Dashboard extends Generic
                         ];
                     }
 
-                    $data[] = [
-                        'client'        => $this->_nameClient, 'clients'  => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
-                        "title"         => ucwords(strtolower($value['name'])),
-                        "identifier"    => $value['base'],
-                        "principalIndicator" => $infoNps,
-                        "journeyMap"    => $this->GraphCSATDrivers($db,$db2,$value['base'],$csatInDb,date('Y-m-d'),date('Y-m-01'),$this->_initialFilter,'one'),
-                        "otherGraphs"   => $otherGraph
-                    ];
+                    if($jwt[env('AUTH0_AUD')]->client != 'BAN001')
+                    {
+                        $data[] = [
+                            'client'        => $this->_nameClient, 'clients'  => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
+                            "title"         => ucwords(strtolower($value['name'])),
+                            "identifier"    => $value['base'],
+                            "principalIndicator" => $infoNps,
+                            "journeyMap"    => $this->GraphCSATDrivers($db,$db2,$value['base'],$csatInDb,date('Y-m-d'),date('Y-m-01'),$this->_initialFilter,'one'),
+                            "otherGraphs"   => $otherGraph
+                        ];
+                    }
                 }
             }
         }
