@@ -29,7 +29,7 @@ class DashboardMutual extends Dashboard
             }
             
             foreach ($surveys['datas'] as $key => $value) {
-                if ($value['base'] != 'mutred'){
+                //if ($value['base'] != 'mutred'){
                     $this->surveyFilterZona($value['base'], $jwt, $request);
                     $this->surveyFilterCentro($value['base'], $jwt, $request);
                     $this->whereConsolidado($value['base'],$jwt);
@@ -46,7 +46,7 @@ class DashboardMutual extends Dashboard
                         "journeyMap"            => $this->GraphCSATDriversMutual($db,$value['base'],date('Y-m-d'),date('Y-m-01'),$this->getInitialFilter(),$struct = 'one'),
                         "otherGraphs"           => $otherGraph
                     ];
-                }
+                //}
             }
         }
         return [
