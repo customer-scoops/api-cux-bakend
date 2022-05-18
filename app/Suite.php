@@ -603,6 +603,17 @@ class Suite
             "mutimg_csat3" => "Amabilidad personal clínico",
             "mutimg_csat4" => "Comodidad recepción",
             "mutimg_csat5" => "Claridad información entregada",
+
+            "mutcet_csat1" => "csat1",
+            "mutcet_csat2" => "csat2",
+            "mutcet_csat3" => "csat3",
+            "mutcet_csat4" => "csat4",
+            "mutcet_csat5" => "csat5",
+
+            "mutred_csat1" => "csat1",
+            "mutred_csat2" => "csat2",
+            "mutred_csat3" => "csat3",
+            "mutred_csat4" => "csat4",
             
             //TRANSVIP
             "travia_csat1" => "Creación reserva",
