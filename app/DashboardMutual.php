@@ -29,7 +29,7 @@ class DashboardMutual extends Dashboard
             }
             
             foreach ($surveys['datas'] as $key => $value) {
-                if ($value['base'] != 'mutred'){
+                //if ($value['base'] != 'mutred'){
                     $this->surveyFilterZona($value['base'], $jwt, $request);
                     $this->surveyFilterCentro($value['base'], $jwt, $request);
                     $this->whereConsolidado($value['base'],$jwt);
@@ -46,7 +46,7 @@ class DashboardMutual extends Dashboard
                         "journeyMap"            => $this->GraphCSATDriversMutual($db,$value['base'],date('Y-m-d'),date('Y-m-01'),$this->getInitialFilter(),$struct = 'one'),
                         "otherGraphs"           => $otherGraph
                     ];
-                }
+                //}
             }
         }
         return [
@@ -498,6 +498,7 @@ class DashboardMutual extends Dashboard
 
     private function GraphCSATDriversMutual($db, $survey,  $dateEnd, $dateIni, $filter, $struct = 'two', $datafilters = null)
     {
+        //echo $survey;exit;
         $graphCSAT = [];
         $endCsat = $this->getEndCsat($survey);
         $fieldBd = $this->getFielInDbCsat($survey);
@@ -616,7 +617,7 @@ class DashboardMutual extends Dashboard
         if ($data == null || $data[0]->ISN == null){
             return[
                 "name"              => "isn",
-                "value"             => round(0),
+                "value"             => 'N/A',
                 "percentage"        => round(0),
             ];
         }
@@ -999,6 +1000,13 @@ class DashboardMutual extends Dashboard
             $request->merge(['Centro_Atencion'=>$jwt[env('AUTH0_AUD')]->centros[0]]);
         }
 
+        if( $request->survey == 'mutcon' )
+        {
+            if(isset($jwt[env('AUTH0_AUD')]->surveysActive)){
+                // echo 'entre'; exit;
+                    $request->merge(['survey'=>$jwt[env('AUTH0_AUD')]->surveysActive[0]]);
+                }
+        }
 
         if ($request->survey === null) {
             return [
@@ -1042,13 +1050,7 @@ class DashboardMutual extends Dashboard
         $csatInDb   = $this->getFielInDbCsat($request->survey);
       
         $db = 'adata_'.substr($request->survey,0,3).'_'.trim(substr($request->survey,3,6));
-       
         $this->whereConsolidado(substr($request->survey,0,6),$jwt);
-
-            if(isset($jwt[env('AUTH0_AUD')]->surveysActive)){
-                $request->merge(['survey'=>$jwt[env('AUTH0_AUD')]->surveysActive[0]]);
-            }
-           
 
         $rankingSuc = null;
         $ges = null;
@@ -1061,11 +1063,11 @@ class DashboardMutual extends Dashboard
         $Procedencia = null;
         $csat1 = null;
         $csat2 = null;
-   
+        
         $dataNps    = $this->resumenNpsM($db, $dateIni, $dateEndIndicatorPrincipal, 'nps', $filterClient, $datafilters);
 
-        
         if ($this->getValueParams('_dbSelected')  == 'customer_colmena'  && substr($request->survey, 0, 3) == 'mut') {
+            
             $name = 'Mutual';
             $nameCsat1 = 'Tiempo espera para tu atención';
             $nameCsat2 = 'Amabilidad profesionales';

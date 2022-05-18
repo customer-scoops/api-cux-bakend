@@ -627,7 +627,6 @@ class Dashboard extends Generic
     public function generalInfo($request, $jwt)
     {
         $down = FALSE;
-        //print_r($jwt);exit;
         $download = in_array("database:download",($jwt['permissions']));
        
         if($download == 1){
@@ -682,9 +681,9 @@ class Dashboard extends Generic
                             "otherGraphs"   => $otherGraph
                         ];
                     }
+                    
+                    if($jwt[env('AUTH0_AUD')]->client != 'BAN001'){
 
-                    if($jwt[env('AUTH0_AUD')]->client != 'BAN001')
-                    {
                         $data[] = [
                             'client'        => $this->_nameClient, 'clients'  => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
                             "title"         => ucwords(strtolower($value['name'])),
@@ -730,6 +729,8 @@ class Dashboard extends Generic
             "mutreh" => "5",
             "muturg" => "5",
             "mutcon" => "5",
+            "mutred" => "4",
+            "mutcet" => "5",
             //demo
             "demdem" => "8",
             //transvip
