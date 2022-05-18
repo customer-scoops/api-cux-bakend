@@ -683,6 +683,7 @@ class Dashboard extends Generic
                     }
                     
                     if($jwt[env('AUTH0_AUD')]->client != 'BAN001'){
+
                         $data[] = [
                             'client'        => $this->_nameClient, 'clients'  => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
                             "title"         => ucwords(strtolower($value['name'])),
