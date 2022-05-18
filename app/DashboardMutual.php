@@ -10,6 +10,7 @@ class DashboardMutual extends Dashboard
     private $filterZona = '';
     private $filterCentro = '';
     private $whereCons = '';
+    private $_activeSurvey = 'mutamb';
  
     public function __construct($jwt, $request)
     {
@@ -19,7 +20,7 @@ class DashboardMutual extends Dashboard
     public function generalInfo($request, $jwt)
     {
         $surveys = parent::getDataSurvey($request, $jwt); 
-        //dd($jwt); 
+
         $data = [];
         $otherGraph = [];
 
@@ -59,26 +60,20 @@ class DashboardMutual extends Dashboard
         $this->whereCons = '';
 
         if ($base == 'mutcon'){
-            $surveys = $jwt[env('AUTH0_AUD')]->surveysActive;
-        
-            $text = "'".$surveys[0]."'";
+            if (isset($jwt[env('AUTH0_AUD')]->surveysActive)){
+                $surveys = $jwt[env('AUTH0_AUD')]->surveysActive;
+            
+                $text = "'".$surveys[0]."'";
 
-            for($i =1; $i<count($surveys); $i++)
-            {
-                $text .= ", '".$surveys[$i]."'";
+                for($i =1; $i<count($surveys); $i++)
+                {
+                    $text .= ", '".$surveys[$i]."'";
+                }
+
+                $this->whereCons  = " and survey in (". $text .")";
             }
-
-            $this->whereCons  = " and survey in (". $text .")";
         }
     }
-
-    // private function setWhereConsolidado($jwt, $request){
-    //     if($request->get('zonal') !== null)
-    //         return trim($request->get('zonal'));
-
-    //     if(isset($jwt[env('AUTH0_AUD')]->surveysActive))
-    //         return $jwt[env('AUTH0_AUD')]->surveysActive;
-    //     }
 
     protected function infoNpsMutual($table,  $dateIni, $dateEnd, $indicador, $filter, $dataFilter)
     {
@@ -94,7 +89,112 @@ class DashboardMutual extends Dashboard
         $generalDataCsat['graph']   = $this->graphIsn($table,  $indicador, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $this->getValueParams('_initialFilter'), 'one');
         return $generalDataCsat;
     }
-    
+
+    public function backCards($request, $jwt)
+    {
+        $this->surveyFilterZona($request->get('survey'), $jwt, $request);
+        $this->surveyFilterCentro($request->get('survey'), $jwt, $request);
+        $this->whereConsolidado($request->get('survey'),$jwt);
+                    
+        $survey     = ($request->get('survey') === null) ? $this->_activeSurvey : $request->get('survey');
+        $npsInDb    = $this->getFielInDb($survey);
+        $dataEmail  = $this->email('adata_' . substr($survey, 0, 3) . '_' . substr($survey, 3, 6), date('Y-m-01'), date('Y-m-d'), $this->getValueParams('_initialFilter'));
+        $data       = $this->infoClosedLoop('adata_' . substr($survey, 0, 3) . '_' . substr($survey, 3, 6), date('Y-m-01'), date('Y-m-d'), $npsInDb, $this->getValueParams('_initialFilter'));
+        $resp = [$dataEmail, $data];
+        //array_push($resp,$data);
+        return [
+            'datas'     => $resp,
+            'status'    => Response::HTTP_OK
+        ];
+    }
+
+    private function infoClosedLoop($db, $dateIni, $dateEnd, $fieldInBd, $filter, $datafilters = null)
+    {
+        if ($datafilters)
+            $datafilters = " AND $datafilters";
+
+        if ($filter != 'all') {
+            $data = DB::select("SELECT COUNT(*) as ticketCreated,
+                                COUNT(if(B.estado_close = 4, B.id, NULL)) as ticketClosed, 
+                                COUNT(if(B.estado_close = 2, B.id, NULL)) as ticketPending, 
+                                COUNT(if(B.estado_close = 1 OR B.estado_close = 3, B.id, NULL)) as ticketInProgres,  ".$this->getValueParams('_fieldSelectInQuery')."
+                                FROM ".$this->getValueParams('_dbSelected').".$db as A 
+                                INNER JOIN ".$this->getValueParams('_dbSelected')."." . $db . "_start as B ON (A.token = B.token) 
+                                WHERE B.fechacarga BETWEEN '$dateIni' AND '$dateEnd' AND $fieldInBd IN (0,1,2,3,4,5,6) AND  
+                                ".$this->getValueParams('_obsNps')." != '' $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ");
+                            
+        }
+       
+        $closedRate = 0;
+        //var_dump($data[0]->ticketCreated);
+        if ($data[0]->ticketCreated != "0") {
+            $closedRate = round(($data[0]->ticketClosed / $data[0]->ticketCreated) * 100, 3);
+        }
+        return [
+            "name"          => "Close loop report",
+            "icon"          => "closed-loop",
+            "variant"       => "boxes",
+            "box" => [
+                [
+                    "value"      => $closedRate,
+                    "text"       => "Closed rate",
+                    "percentage" => 0,
+                ],
+                [
+                    "value" => (int)$data[0]->ticketCreated,
+                    "text"  => "Ticket created",
+                ],
+                [
+                    "value" => (int)$data[0]->ticketClosed,
+                    "text"  => "Closed ticket",
+                ],
+            ],
+        ];
+    }
+
+    private function email($db, $dateIni, $dateEnd, $filter)
+    {
+        $activeP2 = " AND etapaencuesta = 'P2' ";
+ 
+        $activeP2 ='';
+        $data = DB::select("SELECT COUNT(*) AS TOTAL FROM  ".$this->getValueParams('_dbSelected').".$db as a
+                            left join ".$this->getValueParams('_dbSelected')."." . $db . "_start as b
+                            on a.token = b.token
+                            WHERE mailsended = 1 AND fechacarga BETWEEN '$dateIni' AND '$dateEnd' ".$this->filterZona." 
+                            ". $this->filterCentro." ".$this->whereCons ."  " );
+
+        $EmailSend = $data[0]->TOTAL;
+
+        $data2 = DB::select("SELECT COUNT(*) AS RESP 
+                            FROM ".$this->getValueParams('_dbSelected').".$db as a
+                            left join ".$this->getValueParams('_dbSelected')."." . $db . "_start as b
+                             on a.token = b.token
+                            WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' and nps!= 99 $activeP2  ".$this->filterZona." 
+                            ". $this->filterCentro." ".$this->whereCons ."");
+
+        $EmailRESP = $data2[0]->RESP;
+        return [
+            "name"          => "Tracking de envíos",
+            "icon"          => "email-stats",
+            "variant"       => "boxes",
+            "box" => [
+                [
+                    "value" => (!$EmailSend) ? 0 : $EmailSend,
+                    "text"  => "Enviados",
+                ],
+                [
+                    "value" => (!$EmailRESP) ? 0 : $EmailRESP,
+                    "text"  => "Respondidos",
+                ],
+                [
+                    "value" => ($EmailSend == 0) ? 0 : round(($EmailRESP / $EmailSend) * 100) . ' %',
+                    "text"  => "Tasa de respuesta",
+                ],
+            ],
+        ];
+    }
+
+
     private function graphIsn($table,  $indicador, $dateIni, $dateEnd, $filter, $struct = 'two', $datafilters = null, $group = null){
         if ($group !== null) {
             $where = $datafilters;
@@ -446,7 +546,7 @@ class DashboardMutual extends Dashboard
 
     private function surveyFilterZona($survey, $jwt, $request){
         $this->filterZona = '';
-        $filter = ['mutamb','mutreh','muturg','mutimg','muthos'];
+        $filter = ['mutamb','mutreh','muturg','mutimg','muthos','mutcon'];
         if(isset($jwt[env('AUTH0_AUD')]->zona)){
             if(in_array( $survey,$filter)){
                 $this->filterZona= " AND zonal = '". $this->setFilterZona($jwt, $request)."'" ;
@@ -465,7 +565,7 @@ class DashboardMutual extends Dashboard
     private function surveyFilterCentro($survey, $jwt, $request){
         $this->filterCentro = '';
        
-        $filter = ['mutamb','mutreh','muturg','mutimg','muthos'];
+        $filter = ['mutamb','mutreh','muturg','mutimg','muthos','mutcon'];
         if(isset($jwt[env('AUTH0_AUD')]->centros)){
             if(in_array( $survey,$filter)){
                 $this->filterCentro= " AND catencion in ('".$this->setFilterCentro($jwt, $request)."') ";
@@ -475,7 +575,6 @@ class DashboardMutual extends Dashboard
 
     private function setFilterCentro($jwt, $request){
  
-           
             $centros = '';
             if($request->get('catencion') !== null)
                 return trim($request->get('catencion'));
@@ -493,7 +592,7 @@ class DashboardMutual extends Dashboard
                     return $centros;
                 }
             }
-        
+            return $centros;
     } 
 
     private function GraphCSATDriversMutual($db, $survey,  $dateEnd, $dateIni, $filter, $struct = 'two', $datafilters = null)
@@ -998,6 +1097,9 @@ class DashboardMutual extends Dashboard
         // }
         if(isset($jwt[env('AUTH0_AUD')]->centros)){
             $request->merge(['Centro_Atencion'=>$jwt[env('AUTH0_AUD')]->centros[0]]);
+        }
+        if(isset($jwt[env('AUTH0_AUD')]->surveysActive)){
+            $request->merge(['survey'=>$jwt[env('AUTH0_AUD')]->surveysActive[0]]);
         }
 
         if( $request->survey == 'mutcon' )
