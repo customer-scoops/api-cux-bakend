@@ -33,7 +33,14 @@ class DashboardController extends Controller
     }
     public function indexBackCards(Request $request)
     {
-        $data = $this->_dashboard->backCards($request, $request->dataJwt);
+        if(TRIM($request->dataJwt[env('AUTH0_AUD')]->client) == 'MUT001'){
+            $dashboarMut = new DashboardMutual($request->dataJwt, $request);
+            $data = $dashboarMut->backCards($request, $request->dataJwt);
+        }
+        if(TRIM($request->dataJwt[env('AUTH0_AUD')]->client) != 'MUT001'){
+            $data = $this->_dashboard->backCards($request, $request->dataJwt);
+        }
+        
         return $this->generic($data['datas'], $data['status']);
     }
     //CX-INTELLIGENCE AND WORD CLUOD
