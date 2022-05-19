@@ -1098,9 +1098,6 @@ class DashboardMutual extends Dashboard
         if(isset($jwt[env('AUTH0_AUD')]->centros)){
             $request->merge(['Centro_Atencion'=>$jwt[env('AUTH0_AUD')]->centros[0]]);
         }
-        if(isset($jwt[env('AUTH0_AUD')]->surveysActive)){
-            $request->merge(['survey'=>$jwt[env('AUTH0_AUD')]->surveysActive[0]]);
-        }
 
         if( $request->survey == 'mutcon' )
         {
@@ -1149,7 +1146,6 @@ class DashboardMutual extends Dashboard
         $filterClient  = ($request->client === null) ? $this->getValueParams('_initialFilter') : $request->client;
         $indetifyClient = substr($request->survey, 0, 3);
         $indetifyClient = ($filterClient == 'all') ? $indetifyClient : $filterClient;
-        $csatInDb   = $this->getFielInDbCsat($request->survey);
       
         $db = 'adata_'.substr($request->survey,0,3).'_'.trim(substr($request->survey,3,6));
         $this->whereConsolidado(substr($request->survey,0,6),$jwt);
