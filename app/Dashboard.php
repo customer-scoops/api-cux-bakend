@@ -2466,7 +2466,7 @@ class Dashboard extends Generic
                       AND etapaencuesta = 'P2'
                       group by  $indicador
                       order by total DESC";
-            
+        
             $data = DB::select($query);
 
             $totalAcum = 0;
@@ -4109,7 +4109,7 @@ class Dashboard extends Generic
                           [
                               "type" => "stacked-bar",
                               "key" => "detractors",
-                              "text" => "Difícil",
+                              "text" => "Insatisfecho",
                               "bgColor" => "#fe4560",
                           ],
                           [
@@ -4121,7 +4121,7 @@ class Dashboard extends Generic
                           [
                               "type" => "stacked-bar",
                               "key" => "promoters",
-                              "text" => "Fácil",
+                              "text" => "Satisfecho",
                               "bgColor" => "#17C784",
                           ],
                           [
@@ -4240,7 +4240,7 @@ class Dashboard extends Generic
             }
         }
 
-        $resp = $this->CSATDriversAtr($graphCSAT, $endCsatAtr["name"], 4, 12);
+        $resp = $this->CSATDriversAtr($graphCSAT, $endCsatAtr["name"], 4, 6);
         return $resp;
     }
 
@@ -6824,6 +6824,10 @@ class Dashboard extends Generic
                 $aerolineas = $this->OrdenAerolineas($db, $startDateFilterMonth, $endDateFilterMonth);
                 $brandAwareness = $this->BrandAwareness($db, $startDateFilterMonth, $endDateFilterMonth);
             }
+            // if ($db == 'adata_jet_com') {
+            //     $graf = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc_1', "Ingreso", 3, 4); 
+            //     //$graf =  $this->globales($db, date('m'), date('Y'), 'sentido', 'Sentido', 'cbi', 'ins', 4, $datafilters);
+            // }
             //atr
             //$atr = $this->GraphCSATAtributos($db, trim($request->survey), 'csat1',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
             //dd($atr); exit;
@@ -6844,18 +6848,18 @@ class Dashboard extends Generic
             $closedLoop         = null; 
             $detailGender       = substr($db, 10, 3) == 'via' ? $this->gapJetsmart($db, $request->survey,'csat', $dateIni, $dateEnd, $structGAPJetSmart, $datafilters): $this->GraphCSATAtributos($db, trim($request->survey), 'csat1',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
             $detailGeneration   = substr($db, 10, 3) == 'via' ? $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'gene', $endDateFilterMonth, $startDateFilterMonth,  $filterClient,  $datafilters, $jetNamesGene) : $this->GraphCSATAtributos($db, trim($request->survey), 'csat2',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
-            $datasStatsByTaps   = $this->GraphCSATAtributos($db, trim($request->survey), 'csat3',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
+            $datasStatsByTaps   = substr($db, 10, 3) != 'via' ? $this->GraphCSATAtributos($db, trim($request->survey), 'csat3',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters): null;
             $detailsProcedencia = substr($db, 10, 3) == 'via' ? $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'laboral' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesLab) : $this->GraphCSATAtributos($db, trim($request->survey), 'csat4',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
             $box14              = substr($db, 10, 3) == 'via' ? $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'frec2' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesFrecVuelo) : $this->GraphCSATAtributos($db, trim($request->survey), 'csat5',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
-            $box15              = $this->GraphCSATAtributos($db, trim($request->survey), 'csat6',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
-            $box16              = $aerolineas;
-            $box17              = $brandAwareness;
+            $box15              = substr($db, 10, 3) != 'via' ? $this->GraphCSATAtributos($db, trim($request->survey), 'csat6',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters) : null;
+            $box16              = substr($db, 10, 3) == 'vue' ? $this->GraphCSATAtributos($db, trim($request->survey), 'csat7',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters) : null;
+            $box17              = substr($db, 10, 3) == 'com' ? $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc_1', "Ingreso", 3, 4) : null;
             $box18              = null;
             $box19              = null;
             $box20              = null;
             $box21              = null;
-            $box22              = null;
-            $npsBan             = null;
+            $box22              = $aerolineas;
+            $npsBan             = $brandAwareness;
             $cx                 = $this->cxIntelligence($request);
         }
 
