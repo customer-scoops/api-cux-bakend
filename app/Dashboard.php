@@ -55,6 +55,13 @@ class Dashboard extends Generic
     private $_valueMinAnomaliasText = -20;
     private $_valueMaxAnomaliasText = 30;
     private $_valueAnomaliasPorcentajeText = 30;
+    private $_minCsatAtr;
+    private $_maxCsatAtr;
+    private $_minMediumCsatAtr;
+    private $_maxMediumCsatAtr;
+    private $_minMaxCsatAtr;
+    private $_maxMaxCsatAtr;
+
     /* Función para saber el dia */
 
     protected function getFirstMond()
@@ -2459,7 +2466,7 @@ class Dashboard extends Generic
                       AND etapaencuesta = 'P2'
                       group by  $indicador
                       order by total DESC";
-            
+        
             $data = DB::select($query);
 
             $totalAcum = 0;
@@ -3910,6 +3917,333 @@ class Dashboard extends Generic
       
         return $graphCSAT;
     }
+
+    /*** GraphCsatDriversAtributos***/
+
+    public function getEndCsatNameAtr($survey, $csat){
+        
+        $datas = [
+            //JetSmart
+            "jetcom" => 
+            [
+                "csat1" => 
+                [
+                    "end" => "4",
+                    "name" => "Utilización sitio Web",
+                    "names" => 
+                    [
+                        "1"=> "Velocidad de carga",
+                        "2"=> "Sitio rápido/ágil",
+                        "3"=> "Compra en pocos pasos",
+                        "4"=> "Facilidad de uso",
+                    ]
+                ],
+                "csat2" => 
+                [
+                    "end" => "5",
+                    "name" => "Selección de pasajes",
+                    "names" => 
+                    [
+                        "1"=> "Disponibilidad horaria",
+                        "2"=> "Tarifas bajas",
+                        "3"=> "Beneficio Club de Descuentos",
+                        "4"=> "Elección de vuelo",
+                        "5"=> "Ingreso de datos de los pasajeros",
+                    ]
+                ],
+                "csat3" => 
+                [
+                    "end" => "2",
+                    "name" => "Selección y compra de equipaje",
+                    "names" => 
+                    [
+                        "1"=> "Precio adecuado",
+                        "2"=> "No se entiende selección y precios",
+                    ]
+                ],
+                "csat4" => 
+                [
+                    "end" => "5",
+                    "name" => "Selección de asientos",
+                    "names" => 
+                    [
+                        "1"=> "Información clara",
+                        "2"=> "Proceso fácil y rápido",
+                        "3"=> "Costo extra",
+                        "4"=> "Selección aleatoria",
+                        "5"=> "Elección de opcionales/extras",
+                    ]
+                ],
+                "csat5" =>
+                [
+                    "end" => "6",
+                    "name" => "Proceso de Pago",
+                    "names" => 
+                    [
+                        "1"=> "Proceso fácil",
+                        "2"=> "Procesp rápido/ágil",
+                        "3"=> "Proceso seguro",
+                        "4"=> "Cantidad de medios de pago",
+                        "5"=> "Pago de cuotas sin interés",
+                        "6"=> "Generación de errors de transacción",
+                    ]
+                ],
+                "csat6" => 
+                [
+                    "end" => "3",
+                    "name" => "Contenido email de confirmación",
+                    "names" => 
+                    [
+                        "1"=> "Información justa y necesaria",
+                        "2"=> "Velocidad de confirmación",
+                        "3"=> "Existencia de otros canales",
+                    ]
+                ],
+            ],
+            "jetvue" => 
+            [
+                "csat1" => 
+                [
+                    "end" => "4",
+                    "name" => "csat1",
+                    "names" => 
+                    [
+                        "1"=> "atr_1",
+                        "2"=> "atr_2",
+                        "3"=> "atr_3",
+                        "4"=> "atr_4",
+                    ]
+                ],
+                "csat2" => 
+                [
+                    "end" => "5",
+                    "name" => "csat2",
+                    "names" => 
+                    [
+                        "1"=> "atr_1",
+                        "2"=> "atr_2",
+                        "3"=> "atr_3",
+                        "4"=> "atr_4",
+                        "5"=> "atr_5",
+                    ]
+                ],
+                "csat3" => 
+                [
+                    "end" => "3",
+                    "name" => "csat3",
+                    "names" => 
+                    [
+                        "1"=> "atr_1",
+                        "2"=> "atr_2",
+                        "3"=> "atr_3",
+                    ]
+                ],
+                "csat4" =>  
+                [
+                    "end" => "3",
+                    "name" => "csat4",
+                    "names" => 
+                    [
+                        "1"=> "atr_1",
+                        "2"=> "atr_2",
+                        "3"=> "atr_3",
+                    ]
+                ],
+                "csat5" =>  
+                [
+                    "end" => "3",
+                    "name" => "csat5",
+                    "names" => 
+                    [
+                        "1"=> "atr_1",
+                        "2"=> "atr_2",
+                        "3"=> "atr_3",
+                    ]
+                ],
+                "csat6" => 
+                [
+                    "end" => "6",
+                    "name" => "csat6",
+                    "names" => 
+                    [
+                        "1"=> "atr_1",
+                        "2"=> "atr_2",
+                        "3"=> "atr_3",
+                        "4"=> "atr_4",
+                        "5"=> "atr_5",
+                        "6"=> "atr_6",
+                    ]
+                ],
+                "csat7" =>  
+                [
+                    "end" => "3",
+                    "name" => "csat7",
+                    "names" => 
+                    [
+                        "1"=> "atr_1",
+                        "2"=> "atr_2",
+                        "3"=> "atr_3",
+                    ]
+                ],
+            ],
+        ];
+
+        if (array_key_exists($survey, $datas)) {
+            return $datas[$survey][$csat];
+        }
+        if (!array_key_exists($survey, $datas)) {
+            return false;
+        }
+    }
+
+    protected function CSATDriversAtr($graphCSATDrivers, $title, $height, $width){
+        return [
+              "height" => $height,
+              "width" => $width,
+              "type"  => "chart-horizontal",
+              "props" => [
+                  "icon" => "arrow-right",
+                  "text" => $title,
+                  "chart" => [
+                      "fields" => [
+                          [
+                              "type" => "stacked-bar",
+                              "key" => "detractors",
+                              "text" => "Insatisfecho",
+                              "bgColor" => "#fe4560",
+                          ],
+                          [
+                              "type" => "stacked-bar",
+                              "key" => "neutrals",
+                              "text" => "Neutro",
+                              "bgColor" => "#FFC700",
+                          ],
+                          [
+                              "type" => "stacked-bar",
+                              "key" => "promoters",
+                              "text" => "Satisfecho",
+                              "bgColor" => "#17C784",
+                          ],
+                          [
+                              "type" => "total",
+                              "key" => "csat",
+                              "text" => "CSAT",
+                          ],
+                      ],
+                      "values" => $graphCSATDrivers
+                  ],
+              ],
+          ];
+      }
+
+    private function GraphCSATAtributos($db, $survey, $indicatorCSAT,  $dateEnd, $dateIni, $filter, $struct = 'two', $datafilters = null)
+    {
+        $graphCSAT = [];
+
+        $endCsatAtr = $this->getEndCsatNameAtr($survey, $indicatorCSAT);
+     
+        $activeP2 = " AND etapaencuesta = 'P2' ";
+        if(substr($db, 6, 3) == 'ban' || substr($db, 6, 3) == 'vid')
+            $activeP2 ='';
+
+        $query = "";
+        
+        if ($datafilters)
+            $datafilters = " AND $datafilters";
+        
+        $query = "(COUNT(if( $indicatorCSAT = $this->_minMaxCsatAtr OR $indicatorCSAT = $this->_maxMaxCsatAtr, $indicatorCSAT, NULL))* 100)/COUNT(if($indicatorCSAT !=99,1,NULL )) AS  $indicatorCSAT, 
+        ((count(if($indicatorCSAT between $this->_minCsatAtr and $this->_maxCsatAtr,  $indicatorCSAT, NULL))*100)/count(case when $indicatorCSAT != 99 THEN  $indicatorCSAT END)) as detractor, 
+        ((count(if($indicatorCSAT  = $this->_minMaxCsatAtr  OR $indicatorCSAT = $this->_maxMaxCsatAtr,  $indicatorCSAT, NULL))*100)/count(if($indicatorCSAT !=99,1,NULL ))) as promotor, 
+        ((count(if($indicatorCSAT = $this->_maxMediumCsatAtr  or $indicatorCSAT = $this->_minMediumCsatAtr,  $indicatorCSAT, NULL))*100)/count(case when  $indicatorCSAT != 99 THEN   $indicatorCSAT END)) as neutral,";
+
+        for ($i = 1; $i <= $endCsatAtr["end"]; $i++) {
+
+            if ($i != $endCsatAtr["end"]) {
+                $query .= " (COUNT(if( atr".$i."_".$indicatorCSAT." = $this->_minMaxCsatAtr OR atr".$i."_".$indicatorCSAT." = $this->_maxMaxCsatAtr, atr".$i."_".$indicatorCSAT.", NULL))* 100)/COUNT(if(atr".$i."_".$indicatorCSAT." !=99,1,NULL )) AS  atr".$i."_".$indicatorCSAT.", 
+                            ((count(if(csat$i between $this->_minCsatAtr and $this->_maxCsatAtr, atr".$i."_".$indicatorCSAT.", NULL))*100)/count(case when csat$i != 99 THEN  csat$i END)) as detractor$i, 
+                            ((count(if(csat$i  = $this->_minMaxCsatAtr  OR csat$i = $this->_maxMaxCsatAtr,  atr".$i."_".$indicatorCSAT.", NULL))*100)/count(if(atr".$i."_".$indicatorCSAT." !=99,1,NULL ))) as promotor$i, 
+                            ((count(if(csat$i = $this->_maxMediumCsatAtr  or csat$i = $this->_minMediumCsatAtr,  atr".$i."_".$indicatorCSAT.", NULL))*100)/count(case when  atr".$i."_".$indicatorCSAT." != 99 THEN atr".$i."_".$indicatorCSAT." END)) as neutral$i,";
+            }
+            if ($i == $endCsatAtr["end"]) {
+                $query .= " (COUNT(if( atr".$i."_".$indicatorCSAT." = $this->_minMaxCsatAtr OR atr".$i."_".$indicatorCSAT." = $this->_maxMaxCsatAtr, atr".$i."_".$indicatorCSAT.", NULL))* 100)/COUNT(if(atr".$i."_".$indicatorCSAT." !=99,1,NULL )) AS  atr".$i."_".$indicatorCSAT.", 
+                            ((count(if(csat$i between $this->_minCsatAtr and $this->_maxCsatAtr,  atr".$i."_".$indicatorCSAT.", NULL))*100)/count(case when csat$i != 99 THEN  csat$i END)) as detractor$i, 
+                            ((count(if(csat$i  = $this->_minMaxCsatAtr  OR csat$i = $this->_maxMaxCsatAtr,  atr".$i."_".$indicatorCSAT.", NULL))*100)/count(if(atr".$i."_".$indicatorCSAT." !=99,1,NULL ))) as promotor$i, 
+                            ((count(if(csat$i = $this->_maxMediumCsatAtr  or csat$i = $this->_minMediumCsatAtr,  atr".$i."_".$indicatorCSAT.", NULL))*100)/count(case when  atr".$i."_".$indicatorCSAT." != 99 THEN  atr".$i."_".$indicatorCSAT." END)) as neutral$i ";
+            }
+        }
+
+        $data = DB::select("SELECT $query,date_survey
+            FROM $this->_dbSelected.$db as A
+            LEFT JOIN $this->_dbSelected." . $db . "_start as b
+            on A.token = b.token 
+            WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' $activeP2  $datafilters
+            ORDER BY date_survey" );
+        
+        if ($data[0]->$indicatorCSAT != null) 
+        {
+            $graphCSAT[] = [
+                'xLegend'  => $endCsatAtr["name"],
+                'values' =>
+                [
+                    "promoters"     => round($data[0]->$indicatorCSAT),
+                    "neutrals"      => ($data[0]->promotor == 0 && $data[0]->detractor == 0) ? round(round($data[0]->neutral)) : round(100 - (round($data[0]->detractor) + round($data[0]->promotor))),//(int)round(100 - (round($value->$det) + round($value->$pro))),
+                    "detractors"    => round($data[0]->detractor),
+                    "csat"          => round($data[0]->promotor)
+                ]
+            ];
+            
+            for ($i = 1; $i <= $endCsatAtr["end"]; $i++) {
+                $total   = 'atr' . $i.'_'.$indicatorCSAT;
+                $pro = 'promotor' . $i;
+                $neu = 'neutral' . $i;
+                $det = 'detractor' . $i;
+
+                $graphCSAT[] = [
+                    'xLegend'  => $endCsatAtr["names"][$i],
+                    'values' =>
+                    [
+                        "promoters"     => round($data[0]->$pro),
+                        "neutrals"      => ($data[0]->$pro == 0 && $data[0]->$det == 0) ? round(round($data[0]->$neu)) : round(100 - (round($data[0]->$det) + round($data[0]->$pro))),//(int)round(100 - (round($value->$det) + round($value->$pro))),
+                        "detractors"    => round($data[0]->$det),
+                        "csat"          => round($data[0]->$total)
+                    ]
+                ];
+                
+            }
+        }
+
+        if ($data[0]->$indicatorCSAT == null) {
+            $graphCSAT[] = [
+                'xLegend'  => $endCsatAtr["name"],
+                'values' =>
+                [
+                    "promoters"     => 0,
+                    "neutrals"      => 0,
+                    "detractors"    => 0,
+                    "csat"          => 0
+                ]
+            ];
+            
+            for ($i = 1; $i <= $endCsatAtr["end"]; $i++) {
+
+                $graphCSAT[] = [
+                    'xLegend'  => $endCsatAtr["names"][$i],
+                    'values' =>
+                    [
+                        "promoters"     => 0,
+                        "neutrals"      => 0,
+                        "detractors"    => 0,
+                        "csat"          => 0
+                    ]
+                ];
+                
+            }
+        }
+
+        $resp = $this->CSATDriversAtr($graphCSAT, $endCsatAtr["name"], 4, 6);
+        return $resp;
+    }
+
 
     private function nameSurvey($name)
     {
@@ -6490,7 +6824,7 @@ class Dashboard extends Generic
                 $aerolineas = $this->OrdenAerolineas($db, $startDateFilterMonth, $endDateFilterMonth);
                 $brandAwareness = $this->BrandAwareness($db, $startDateFilterMonth, $endDateFilterMonth);
             }
-            //dd($dataNps);exit;
+
             $dataCes            = $this->ces($db, $dateIni, $dateEndIndicatorPrincipal, 'ces', $datafilters);
             $dataNPSGraph       = $this->graphNps($db, $npsInDb, $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
             $dataCsatGraph      = $this->graphCsat($db, $csatInDb, $dateIni, $dateEnd,  $filterClient, 'two' ,$datafilters);
@@ -6500,27 +6834,26 @@ class Dashboard extends Generic
             $dataisn            = $this->graphCbi($db, date('m'), date('Y'), 'cbi', $dateIni, $dateEnd, $datafilters, 'two');
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient,$request->survey, $db);
             $performance        = $this->cardsPerformace($dataNps, $dataCsat, $dateEnd, $dateIni, $request->survey, $datafilters,  $dataCes, $dataCbi,$ces);
-            //$performance      = $this->graphCbiResp($dataCbi);
             $npsConsolidado     = $this->graphsStruct($dataisn, 12, 'cbi');
             $npsVid             = $this->cardNpsBanmedica($this->_nameClient, $dataNPSGraph); //NPS
             $csatJourney        = $this->cardNpsBanmedica($this->_nameClient , $dataCsatGraph, 'CSAT');//Csat
             $csatDrivers        = substr($db, 10, 3) == 'com' ?  $this->cardNpsBanmedica($this->_nameClient, $dataCesGraph, 'CES') : null; //Ces
             $wordCloud          = $this->CSATJourney($graphCSATDrivers);;
             $closedLoop         = null; 
-            $detailGender       = substr($db, 10, 3) == 'via' ? $this->gapJetsmart($db, $request->survey,'csat', $dateIni, $dateEnd, $structGAPJetSmart, $datafilters): null;
-            $detailGeneration   = substr($db, 10, 3) == 'via' ? $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'gene', $endDateFilterMonth, $startDateFilterMonth,  $filterClient,  $datafilters, $jetNamesGene) : null;
-            $datasStatsByTaps   = null;
-            $detailsProcedencia = substr($db, 10, 3) == 'via' ? $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'laboral' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesLab) : null;
-            $box14              = substr($db, 10, 3) == 'via' ? $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'frec2' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesFrecVuelo) : null;
-            $box15              = $aerolineas;
-            $box16              = $brandAwareness; 
-            $box17              = null;
+            $detailGender       = substr($db, 10, 3) == 'via' ? $this->gapJetsmart($db, $request->survey,'csat', $dateIni, $dateEnd, $structGAPJetSmart, $datafilters): $this->GraphCSATAtributos($db, trim($request->survey), 'csat1',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
+            $detailGeneration   = substr($db, 10, 3) == 'via' ? $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'gene', $endDateFilterMonth, $startDateFilterMonth,  $filterClient,  $datafilters, $jetNamesGene) : $this->GraphCSATAtributos($db, trim($request->survey), 'csat2',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
+            $datasStatsByTaps   = substr($db, 10, 3) != 'via' ? $this->GraphCSATAtributos($db, trim($request->survey), 'csat3',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters): null;
+            $detailsProcedencia = substr($db, 10, 3) == 'via' ? $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'laboral' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesLab) : $this->GraphCSATAtributos($db, trim($request->survey), 'csat4',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
+            $box14              = substr($db, 10, 3) == 'via' ? $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'frec2' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesFrecVuelo) : $this->GraphCSATAtributos($db, trim($request->survey), 'csat5',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
+            $box15              = substr($db, 10, 3) != 'via' ? $this->GraphCSATAtributos($db, trim($request->survey), 'csat6',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters) : null;
+            $box16              = substr($db, 10, 3) == 'vue' ? $this->GraphCSATAtributos($db, trim($request->survey), 'csat7',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters) : null;
+            $box17              = substr($db, 10, 3) == 'com' ? $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc_1', "Ingreso", 2, 4) : null;
             $box18              = null;
             $box19              = null;
             $box20              = null;
             $box21              = null;
-            $box22              = null;
-            $npsBan             = null;
+            $box22              = $aerolineas;
+            $npsBan             = $brandAwareness;
             $cx                 = $this->cxIntelligence($request);
         }
 
@@ -6703,6 +7036,12 @@ class Dashboard extends Generic
            $this->_minMediumCes        = 3;
            $this->_minMaxCes           = 4;
            $this->_maxMaxCes           = 5;
+           $this->_minCsatAtr          = 1;
+           $this->_maxCsatAtr          = 2;
+           $this->_minMediumCsatAtr    = 3;
+           $this->_maxMediumCsatAtr    = 3;
+           $this->_minMaxCsatAtr       = 4;
+           $this->_maxMaxCsatAtr       = 5;
         }
     }
 
