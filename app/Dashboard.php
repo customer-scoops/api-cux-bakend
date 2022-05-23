@@ -384,12 +384,12 @@ class Dashboard extends Generic
         ]);
         
         $survey = $request->get('survey');
-        $value  = \Cache::get('cx' . $survey . $request->get('startDate') . $request->get('endDate'));
+        //$value  = \Cache::get('cx' . $survey . $request->get('startDate') . $request->get('endDate'));
         //$value = \Cache::pull('cx'.$survey.$request->get('startDate').$request->get('endDate'));
-        if ($value){return $value;}
+        //if ($value){return $value;}
         
         $dataMatriz = $this->matriz($request);
-        
+       //print_r($dataMatriz);exit;
         if ($dataMatriz['datas'] == null) {
             return  $resp = [
                 "height"    => 4,
@@ -415,10 +415,12 @@ class Dashboard extends Generic
                             ]
                         ];
                     }
-                        
+        //print_r($this->_anomaliasGain);   
+        //print_r($dataMatriz['datas']->cx->gainpoint);exit;             
         if ($dataMatriz['datas']->cx->gainpoint != null) {
             $gainPoint = array_merge($dataMatriz['datas']->cx->gainpoint, $this->_anomaliasGain);
         }
+        //print_r($gainPoint);exit;
         if ($dataMatriz['datas']->cx->gainpoint == null || $dataMatriz['datas']->cx->gainpoint == 0) {
             $gainPoint =  $this->_anomaliasGain;
         }
@@ -428,6 +430,8 @@ class Dashboard extends Generic
         if ($dataMatriz['datas']->cx->painpoint == null || $dataMatriz['datas']->cx->painpoint == 0) {
             $painPoint = $this->_anomaliasPain;
         }
+
+        //print_r($painPoint);exit;
 
         $resp = [
             "height" => 4,
@@ -2768,6 +2772,10 @@ class Dashboard extends Generic
 
         if(substr($db, 6, 7) == 'tra_via')
         {
+            $group = $indicatorName;
+            if($indicatorName == 'Reserva'){
+                $group = 'b.'.$indicatorBD;
+            }
             $queryTra = "SELECT DISTINCT(b.$indicatorBD) as $indicatorName, 
                     count(case when nps != 99 then 1 end) as Total, 
                     round(((count(case when csat between 6 and 7 then 1 end) - count(case when csat between 1 and 5 then 1 end))*100)/count(case when csat != 99 then 1 end)) as $indic2,
@@ -2778,11 +2786,10 @@ class Dashboard extends Generic
                     left join $this->_dbSelected." . $db . "_start as b
                     on a.token = b.token 
                     where  MONTH(fechaservicio) = '$mes' and YEAR(fechaservicio) = '$annio' and b.$indicatorBD != '' and etapaencuesta = 'P2' $datafilters
-                    GROUP by $indicatorName
+                    GROUP by $group
                     order by $indicatorName";
         }
 
- 
         $data = DB::select($queryTra);
         $lastSentido  = '';
         $values = [];
@@ -2910,7 +2917,6 @@ class Dashboard extends Generic
         {
             if($group != null){
                 $where = $datafilters;
-                // echo $where;
                 // exit;
                 $datafilters = '';
                 $group = "week";
@@ -6057,10 +6063,15 @@ class Dashboard extends Generic
     {
             if ($this->_valueAnomaliasPorcentajeText < $cant) {
                 if ($this->_valueMinAnomaliasText >= $value) {
-                    array_push($this->_anomaliasPain, $group);
+                    //if(!in_array($group,$this->_anomaliasPain)){
+                       // array_push($this->_anomaliasPain, $group);
+                    //}
                 }
                 if ($this->_valueMaxAnomaliasText <= $value) {
-                    array_push($this->_anomaliasGain, $group);
+                    //echo 'hola';
+                    //if(!in_array($group,$this->_anomaliasGain)){
+                        //array_push($this->_anomaliasGain, $group);
+                    //}
                 }
             }    
     }
@@ -6073,7 +6084,7 @@ class Dashboard extends Generic
         if ($this->_valueMaxAnomalias <= $value) {
             array_push($this->_anomaliasGain, $text);
         }
-        //print_r($this->_anomaliasPain);
+        //print_r($this->_anomaliasPain);exit;
     }
 
     private function setAnomaliasCBI($value, $text){
