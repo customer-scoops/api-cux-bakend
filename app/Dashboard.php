@@ -3809,19 +3809,41 @@ class Dashboard extends Generic
         if ($filter != 'all') {
             $fieldBd = $this->getFielInDbCsat($survey);
             $query = "";
-            for ($i = 1; $i <= $endCsat; $i++) {
+            if(substr($db, 6, 7) != 'jet_vue' && substr($db, 6, 7) != 'jet_com'){
+            
+                for ($i = 1; $i <= $endCsat; $i++) {
 
-                if ($i != $endCsat) {
-                    $query .= " (COUNT(if( $fieldBd$i = $this->_minMaxCsat OR $fieldBd$i = $this->_maxMaxCsat, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL )) AS  $fieldBd$i, 
-                                ((count(if(csat$i between $this->_minCsat and $this->_maxCsat,  $fieldBd$i, NULL))*100)/count(case when csat$i != 99 THEN  csat$i END)) as detractor$i, 
-                                ((count(if(csat$i  = $this->_minMaxCsat  OR csat$i = $this->_maxMaxCsat,  $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL ))) as promotor$i, 
-                                ((count(if(csat$i = $this->_maxMediumCsat  or csat$i = $this->_minMediumCsat,  $fieldBd$i, NULL))*100)/count(case when  $fieldBd$i != 99 THEN   $fieldBd$i END)) as neutral$i,";
+                    if ($i != $endCsat) {
+                        $query .= " (COUNT(if( $fieldBd$i = $this->_minMaxCsat OR $fieldBd$i = $this->_maxMaxCsat, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL )) AS  $fieldBd$i, 
+                                    ((count(if(csat$i between $this->_minCsat and $this->_maxCsat,  $fieldBd$i, NULL))*100)/count(case when csat$i != 99 THEN  csat$i END)) as detractor$i, 
+                                    ((count(if(csat$i  = $this->_minMaxCsat  OR csat$i = $this->_maxMaxCsat,  $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL ))) as promotor$i, 
+                                    ((count(if(csat$i = $this->_maxMediumCsat  or csat$i = $this->_minMediumCsat,  $fieldBd$i, NULL))*100)/count(case when  $fieldBd$i != 99 THEN   $fieldBd$i END)) as neutral$i,";
+                    }
+                    if ($i == $endCsat) {
+                        $query .= " (COUNT(if( $fieldBd$i = $this->_minMaxCsat OR $fieldBd$i = $this->_maxMaxCsat, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL )) AS  $fieldBd$i, 
+                                    ((count(if(csat$i between $this->_minCsat and $this->_maxCsat,  $fieldBd$i, NULL))*100)/count(case when csat$i != 99 THEN  csat$i END)) as detractor$i, 
+                                    ((count(if(csat$i  = $this->_minMaxCsat  OR csat$i = $this->_maxMaxCsat,  $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL ))) as promotor$i, 
+                                    ((count(if(csat$i = $this->_maxMediumCsat  or csat$i = $this->_minMediumCsat,  $fieldBd$i, NULL))*100)/count(case when  $fieldBd$i != 99 THEN  $fieldBd$i END)) as neutral$i ";
+                    }
                 }
-                if ($i == $endCsat) {
-                    $query .= " (COUNT(if( $fieldBd$i = $this->_minMaxCsat OR $fieldBd$i = $this->_maxMaxCsat, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL )) AS  $fieldBd$i, 
-                                ((count(if(csat$i between $this->_minCsat and $this->_maxCsat,  $fieldBd$i, NULL))*100)/count(case when csat$i != 99 THEN  csat$i END)) as detractor$i, 
-                                ((count(if(csat$i  = $this->_minMaxCsat  OR csat$i = $this->_maxMaxCsat,  $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL ))) as promotor$i, 
-                                ((count(if(csat$i = $this->_maxMediumCsat  or csat$i = $this->_minMediumCsat,  $fieldBd$i, NULL))*100)/count(case when  $fieldBd$i != 99 THEN  $fieldBd$i END)) as neutral$i ";
+            }
+
+            if(substr($db, 6, 7) == 'jet_vue' || substr($db, 6, 7) == 'jet_com'){
+
+                for ($i = 1; $i <= $endCsat; $i++) {
+
+                    if ($i != $endCsat) {
+                        $query .= " (COUNT(if( $fieldBd$i = $this->_minMaxCsatAtr OR $fieldBd$i = $this->_maxMaxCsatAtr, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL )) AS  $fieldBd$i, 
+                                    ((count(if(csat$i between $this->_minCsatAtr and $this->_maxCsatAtr,  $fieldBd$i, NULL))*100)/count(case when csat$i != 99 THEN  csat$i END)) as detractor$i, 
+                                    ((count(if(csat$i  = $this->_minMaxCsatAtr OR csat$i = $this->_maxMaxCsatAtr,  $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL ))) as promotor$i, 
+                                    ((count(if(csat$i = $this->_maxMediumCsatAtr or csat$i = $this->_minMediumCsatAtr,  $fieldBd$i, NULL))*100)/count(case when  $fieldBd$i != 99 THEN   $fieldBd$i END)) as neutral$i,";
+                    }
+                    if ($i == $endCsat) {
+                        $query .= " (COUNT(if( $fieldBd$i = $this->_minMaxCsatAtr OR $fieldBd$i = $this->_maxMaxCsatAtr, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL )) AS  $fieldBd$i, 
+                                    ((count(if(csat$i between $this->_minCsatAtr and $this->_maxCsatAtr,  $fieldBd$i, NULL))*100)/count(case when csat$i != 99 THEN  csat$i END)) as detractor$i, 
+                                    ((count(if(csat$i  = $this->_minMaxCsatAtr OR csat$i = $this->_maxMaxCsatAtr,  $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL ))) as promotor$i, 
+                                    ((count(if(csat$i = $this->_maxMediumCsatAtr or csat$i = $this->_minMediumCsatAtr,  $fieldBd$i, NULL))*100)/count(case when  $fieldBd$i != 99 THEN  $fieldBd$i END)) as neutral$i ";
+                    }
                 }
             }
 
@@ -6847,14 +6869,14 @@ class Dashboard extends Generic
             $csatDrivers        = substr($db, 10, 3) == 'com' ?  $this->cardNpsBanmedica($this->_nameClient, $dataCesGraph, 'CES') : null; //Ces
             $wordCloud          = $this->CSATJourney($graphCSATDrivers);;
             $closedLoop         = null; 
-            $detailGender       = substr($db, 10, 3) == 'via' ? $this->gapJetsmart($db, $request->survey,'csat', $dateIni, $dateEnd, $structGAPJetSmart, $datafilters): $this->GraphCSATAtributos($db, trim($request->survey), 'csat6',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
+            $detailGender       = substr($db, 10, 3) == 'via' ? $this->gapJetsmart($db, $request->survey,'csat', $dateIni, $dateEnd, $structGAPJetSmart, $datafilters): $this->GraphCSATAtributos($db, trim($request->survey), 'csat1',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
             $detailGeneration   = substr($db, 10, 3) == 'via' ? $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'gene', $endDateFilterMonth, $startDateFilterMonth,  $filterClient,  $datafilters, $jetNamesGene) : $this->GraphCSATAtributos($db, trim($request->survey), 'csat2',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
             $datasStatsByTaps   = substr($db, 10, 3) != 'via' ? $this->GraphCSATAtributos($db, trim($request->survey), 'csat3',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters): null;
             $detailsProcedencia = substr($db, 10, 3) == 'via' ? $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'laboral' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesLab) : $this->GraphCSATAtributos($db, trim($request->survey), 'csat4',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
             $box14              = substr($db, 10, 3) == 'via' ? $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'frec2' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesFrecVuelo) : $this->GraphCSATAtributos($db, trim($request->survey), 'csat5',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
             $box15              = substr($db, 10, 3) != 'via' ? $this->GraphCSATAtributos($db, trim($request->survey), 'csat6',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters) : null;
             $box16              = substr($db, 10, 3) == 'vue' ? $this->GraphCSATAtributos($db, trim($request->survey), 'csat7',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters) : null;
-            $box17              = substr($db, 10, 3) == 'com' ? $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc_1', "Ingreso", 2, 4) : $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc_1', "Motivo de Vuelo", 4, 4);
+            $box17              = substr($db, 10, 3) == 'com' ? $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc_1', "Ingreso", 2, 4) : (substr($db, 10, 3) == 'vue' ? $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc_1', "Motivo de Vuelo", 4, 4): null);
             $box18              = substr($db, 10, 3) == 'vue' ? $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Motivo de Vuelo", 4, 4) : null;
             $box19              = null;
             $box20              = null;
