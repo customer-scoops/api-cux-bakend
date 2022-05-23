@@ -2596,13 +2596,10 @@ class Dashboard extends Generic
     private function rankingInconvLlegada($db, $datafilters, $dateIni, $dateEnd, $indicador, $text, $height, $width)
     {
         $values = [];
-        $val = [];
-        //$sino1 = $this->rankingTransvipData('adata_tra_cond', $datafilters, $dateIni, $dateEnd, 'sino1', 'Notificación itinerario vuelo');
-        //$sino1 = $this->rankingTransvipData($db, $datafilters, $dateIni, $dateEnd, 'sino1', "Inconveniente llegada");
-        //$sino2 = $this->rankingTransvipData('adata_tra_cond', $datafilters, $dateIni, $dateEnd, 'sino1', 'Compra equipaje WEB');
-        $sino2 = $this->rankingTransvipData('adata_tra_cond', $datafilters, $dateIni, $dateEnd, 'sino1', 'Compra equipaje WEB');
-        $sino3 = $this->rankingTransvipData('adata_tra_cond', $datafilters, $dateIni, $dateEnd, 'sino1', 'Notificación itinerario vuelo');
-        $sino4 = $this->rankingTransvipData('adata_tra_cond', $datafilters, $dateIni, $dateEnd, 'sino1', 'Atención Contact Center');
+
+        $sino2 = $this->rankingTransvipData($db, $datafilters, $dateIni, $dateEnd, 'sino2', 'Compra equipaje WEB');
+        $sino3 = $this->rankingTransvipData($db, $datafilters, $dateIni, $dateEnd, 'sino3', 'Notificación itinerario vuelo');
+        $sino4 = $this->rankingTransvipData($db, $datafilters, $dateIni, $dateEnd, 'sino4', 'Atención Contact Center');
 
         foreach ($sino2 as $key => $value) {
             if($value['text'] == 'Si'){
@@ -4404,7 +4401,7 @@ class Dashboard extends Generic
         ];
 
         return [
-            "height" =>  3,
+            "height" =>  2,
             "width" =>  8,
             "type" =>  "tables",
             "props" =>  [
@@ -7037,7 +7034,7 @@ class Dashboard extends Generic
             $box16              = substr($db, 10, 3) == 'vue' ? $this->GraphCSATAtributos($db, trim($request->survey), 'csat7',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters) : null;
             $box17              = substr($db, 10, 3) == 'com' ? $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc_1', "Ingreso", 2, 4) : (substr($db, 10, 3) == 'vue' ? $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc_1', "Motivo de Vuelo", 4, 4): null);
             $box18              = substr($db, 10, 3) == 'vue' ? $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Inconveniente llegada", 2, 4) : null;
-            $box19              = substr($db, 10, 3) == 'vue' ? $this->rankingInconvLlegada($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Inconvenientes", 2, 4) : null;
+            $box19              = substr($db, 10, 3) == 'vue' ? $this->rankingInconvLlegada($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Tipo Inconveniente", 2, 4) : null;
             $box20              = substr($db, 10, 3) == 'vue' ? $this->statsJetSmartResp($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, $datafilters) : null;
             $box21              = $aerolineas;
             $box22              = $brandAwareness;
