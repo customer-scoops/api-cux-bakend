@@ -4273,6 +4273,95 @@ class Dashboard extends Generic
         return $resp;
     }
 
+    private function statsJetSmart($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, $fieldFilter, $text, $datafilters = null)
+    {
+        
+        $query = "SELECT COUNT(*) as Total,
+                      ROUND(((COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
+                      COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
+                      (COUNT(a.$npsInDb) - COUNT(CASE WHEN a.$npsInDb=99 THEN 1 END)) * 100),1) AS NPS,
+                      ROUND(COUNT(if($csatInDb between  9 and  10 , $csatInDb, NULL))* 100/COUNT(if($csatInDb !=99,1,NULL ))) AS CSAT
+                      FROM $this->_dbSelected.$db as a
+                      LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token
+                      WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' and $fieldFilter != 0 and nps!= 99 and csat!= 99  $datafilters
+                      GROUP BY $fieldFilter";
+
+        $data = $data = DB::select($query);
+        //echo $text;exit;
+        if($data){
+                $resp = [
+                    "text"      => $text,
+                    "nps"       => ROUND($data->NPS) . " %",
+                    "csat"      => ROUND($data->CSAT) . " %",
+                    "quantity"  => $data->Total,
+                ];
+        }
+
+        if(!$data){
+            $resp = [
+                "text"      => $text,
+                "nps"       => 'N/A',
+                "csat"      => 'N/A',
+                "quantity"  => 'N/A',
+            ];
+        }
+
+        return $resp;
+    }
+
+    private function statsJetSmartResp($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, $datafilters = null)
+    {
+        $statsEmbAero   = $this->statsJetSmart($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, 'hasbag', 'Entraga equipaje Aeropuerto',$datafilters);
+        $statsCheckIn   = $this->statsJetSmart($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, 'hasach', 'Check-in Aeropuerto',$datafilters);
+        $statsEmbPriori = $this->statsJetSmart($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, 'haspbd', 'Embarque prioritario',$datafilters);
+        $data = [$statsEmbAero, $statsCheckIn, $statsEmbPriori];
+        $standarStruct = [
+            [
+                "text" => "NPS",
+                "key" => "nps",
+                "cellColor" => "rgb(0,0,0)",
+            ],
+            [
+                "text" => "CSAT",
+                "key" => "csat",
+                "cellColor" => "rgb(0,0,0)",
+            ],
+            [
+                "text" => "Cantidad de respuesta",
+                "key" => "quantity",
+                "cellColor" => "rgb(0,0,0)",
+            ]
+        ];
+
+        return [
+            "height" =>  3,
+            "width" =>  8,
+            "type" =>  "tables",
+            "props" =>  [
+                "icon" => "arrow-right",
+                "text" => "STATS by clients",
+                "tables" => [
+                    [
+                        "columns" => [
+                            [
+                                "text" => "Clientes",
+                                "key" => "text",
+                                "headerColor" => "#17C784",
+                                "cellColor" => "#949494",
+                                "textAlign" => "left"
+                            ],
+                            $standarStruct[0],
+                            $standarStruct[1],
+                            $standarStruct[2],
+                        ],
+                        "values" => $data,
+                    ]
+                ]
+            ]
+        ];
+
+
+    }
 
     private function nameSurvey($name)
     {
@@ -6878,7 +6967,7 @@ class Dashboard extends Generic
             $box16              = substr($db, 10, 3) == 'vue' ? $this->GraphCSATAtributos($db, trim($request->survey), 'csat7',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters) : null;
             $box17              = substr($db, 10, 3) == 'com' ? $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc_1', "Ingreso", 2, 4) : (substr($db, 10, 3) == 'vue' ? $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc_1', "Motivo de Vuelo", 4, 4): null);
             $box18              = substr($db, 10, 3) == 'vue' ? $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Motivo de Vuelo", 4, 4) : null;
-            $box19              = null;
+            $box19              = substr($db, 10, 3) == 'vue' ? $this->statsJetSmartResp($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, $datafilters) : null;
             $box20              = null;
             $box21              = $aerolineas;
             $box22              = $brandAwareness;
