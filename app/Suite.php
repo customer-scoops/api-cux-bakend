@@ -209,7 +209,7 @@ class Suite
             $convertionRate = (($convertion / $ticketClosed) * 100);
         $closedRate = 0;
         if ($ticketCreated > 0)
-            $closedRate = round(($ticketClosed / $ticketCreated) * 100);
+            $closedRate = round(($ticketClosed / $ticketCreated) * 100,1);
         return [
             'datas'  => [
                 'client'            => $this->_nameClient,
@@ -232,7 +232,7 @@ class Suite
     public function resumenIndicator($request, $jwt)
     {
         //echo $this->_jwt[env('AUTH0_AUD')]->client;
-        $validFilterKeys    = array("nps","csat","estado"); // <-- keys habilitadas para filtrar
+        $validFilterKeys    = array("nps","csat","estado", "dateSchedule"); // <-- keys habilitadas para filtrar
         $validOrderKeys     = array("nps", "date","csat"); // <-- keys habilitadas para Ordenar
         
         try{
@@ -251,7 +251,8 @@ class Suite
             
             $dbQuery->where('etapaencuesta', 'P2');
             $dbQuery->where('contenido','!=', '');
-            $dbQuery->whereBetween('nps', [$this->_startMinNps,$this->_startMaxNps]);
+            if($client != 'BAN001' && $client != 'VID001')
+                $dbQuery->whereBetween('nps', [$this->_startMinNps,$this->_startMaxNps]);
             $dbQuery->where('date','>=', $this->_dateStartClient);
             //$dbQuery = DB::table('dataSuite_banmedica');
             
@@ -260,6 +261,15 @@ class Suite
                 $filters = (json_decode($request->get('filters')));
                 if ($filters) {
                     foreach ($filters as $key => $value) {
+                        if($value->key == 'typeClient')
+                        {
+                            if($value->value == 'detractor')
+                                $dbQuery->whereBetween('nps', [0,6]);
+                            if($value->value == 'neutral')
+                                $dbQuery->whereBetween('nps', [7,8]);
+                            if($value->value == 'promotor')
+                                $dbQuery->whereBetween('nps', [9,10]);
+                        }
                         if(in_array($value->key, $validFilterKeys)) {
                             $dbQuery->where($value->key,  $value->value);
                         }
@@ -335,6 +345,8 @@ class Suite
                         'rut'  => $value->rut,
                         'phone' => (isset($value->phone)) ?  $value->phone : '',
                         'celu' => (isset($value->celu)) ?  $value->celu : '',
+                        'dateSchedule' =>  (isset($value->dateSchedule)) ?  $value->dateSchedule : '',
+                        //'timeSchedule' =>(isset($value->timeSchedule)) ?  $value->timeSchedule : ''
                     ),
                     "ltv"       => 'N/A',
                     "canal"     => $value->canal,
@@ -349,8 +361,10 @@ class Suite
                     "tableName" =>$value->tableName,
                     "visita"    => $value->visita,
                     "estapaEncuesta"=> $value->etapaencuesta,
-                    "subStatus1" => $value->field_1,
-                    "subStatus2" => $value->field_2,
+                    "subStatus1" => substr($client, 0, 3) == 'BAN' ? $value->field_1 : '',
+                    "subStatus2" =>substr($client, 0, 3) == 'BAN' ? $value->field_2 : '',
+                    "caso" => substr($client, 0, 3) == 'BAN' ? $value->field_3 : '',
+                    "cliente_det_close"=> substr($client, 0, 3) == 'BAN' ? $value->cliente_det_close : '',
                     "comentarios" => array(
                         'date'      => $value->fechacarga, 
                         'content'   => $value->contenido,
@@ -589,15 +603,26 @@ class Suite
             "mutimg_csat3" => "Amabilidad personal clínico",
             "mutimg_csat4" => "Comodidad recepción",
             "mutimg_csat5" => "Claridad información entregada",
+
+            "mutcet_csat1" => "csat1",
+            "mutcet_csat2" => "csat2",
+            "mutcet_csat3" => "csat3",
+            "mutcet_csat4" => "csat4",
+            "mutcet_csat5" => "csat5",
+
+            "mutred_csat1" => "csat1",
+            "mutred_csat2" => "csat2",
+            "mutred_csat3" => "csat3",
+            "mutred_csat4" => "csat4",
             
             //TRANSVIP
-            "travia_csat1" => "Canal utilizado",
-            "travia_csat2" => "Tiempo para encontrar un conductor",
-            "travia_csat3" => "Coordinacion en Andén",
+            "travia_csat1" => "Creación reserva",
+            "travia_csat2" => "Tiempo para encontrar conductor",
+            "travia_csat3" => "Coordinación proceso embarque aeropuerto",
             "travia_csat4" => "Puntualidad del servicio",
-            "travia_csat5" => "Tiempo de llegada del vehículo",
-            "travia_csat6" => "Tiempo de espera del vehículo en aeropuerto",
-            "travia_csat7" => "Seguridad al trasladarte",
+            "travia_csat5" => "Tiempo llegada vehículo",
+            "travia_csat6" => "Espera vehículo en aeropuerto",
+            "travia_csat7" => "Conducción segura",
             "travia_csat8" => "Medidas Covid",
             "travia_csat9" => "Ruta y tiempo de traslado",
             "travia_csat10" => "Atención del Conductor",
@@ -709,4 +734,13 @@ class Suite
         return $survey;
     }
     //FIN CONFIGURACION DE CLIENTES
+
+    // public function setMinNps($value){
+    //     $this->_startMinNps = $value;
+    // }
+    
+    // public function setMaxNps($value){
+    //     $this->_startMaxNps = $value;
+    // }
+
 }

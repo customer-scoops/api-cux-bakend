@@ -33,7 +33,14 @@ class DashboardController extends Controller
     }
     public function indexBackCards(Request $request)
     {
-        $data = $this->_dashboard->backCards($request, $request->dataJwt);
+        if(TRIM($request->dataJwt[env('AUTH0_AUD')]->client) == 'MUT001'){
+            $dashboarMut = new DashboardMutual($request->dataJwt, $request);
+            $data = $dashboarMut->backCards($request, $request->dataJwt);
+        }
+        if(TRIM($request->dataJwt[env('AUTH0_AUD')]->client) != 'MUT001'){
+            $data = $this->_dashboard->backCards($request, $request->dataJwt);
+        }
+        
         return $this->generic($data['datas'], $data['status']);
     }
     //CX-INTELLIGENCE AND WORD CLUOD
@@ -72,10 +79,11 @@ class DashboardController extends Controller
         return $this->generic($data['datas'], $data['status']);
     }
     public function downloadExcel(Request $request)
-    {
+    {  
         $startDate  = $request->get('startDate');
         $endDate    = $request->get('endDate');
         $survey     = $request->get('survey');
+    
         if(!isset($startDate) && !isset($endDate) && !isset($survey)){return $this->generic('Not datas filters', Response::HTTP_UNPROCESSABLE_ENTITY);}
         $resp = $this->_dashboard->downloadExcel($request, $request->dataJwt);
         return response($resp, 200)
