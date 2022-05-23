@@ -2446,7 +2446,7 @@ class Dashboard extends Generic
         return $graphCSAT;
     
     }
-    private function rankingTransvip($db, $datafilters, $dateIni, $dateEnd, $indicador, $text, $height, $width)
+    private function rankingTransvipData($db, $datafilters, $dateIni, $dateEnd, $indicador, $text)
     {
         $values = [];
         if (substr($datafilters, 30, 3) == 'NOW') {
@@ -2541,6 +2541,14 @@ class Dashboard extends Generic
                 $values = [];
             } 
         }
+        //print_r($values);exit;
+        return $values;
+        
+    }
+
+    private function rankingTransvip($db, $datafilters, $dateIni, $dateEnd, $indicador, $text, $height, $width)
+    {
+        $values = $this->rankingTransvipData($db, $datafilters, $dateIni, $dateEnd, $indicador, $text);
 
         $standarStruct = [
             [
@@ -2585,6 +2593,80 @@ class Dashboard extends Generic
         
     }
 
+    private function rankingInconvLlegada($db, $datafilters, $dateIni, $dateEnd, $indicador, $text, $height, $width)
+    {
+        $values = [];
+        $val = [];
+        //$sino1 = $this->rankingTransvipData('adata_tra_cond', $datafilters, $dateIni, $dateEnd, 'sino1', 'Notificación itinerario vuelo');
+        //$sino1 = $this->rankingTransvipData($db, $datafilters, $dateIni, $dateEnd, 'sino1', "Inconveniente llegada");
+        //$sino2 = $this->rankingTransvipData('adata_tra_cond', $datafilters, $dateIni, $dateEnd, 'sino1', 'Compra equipaje WEB');
+        $sino2 = $this->rankingTransvipData('adata_tra_cond', $datafilters, $dateIni, $dateEnd, 'sino1', 'Compra equipaje WEB');
+        $sino3 = $this->rankingTransvipData('adata_tra_cond', $datafilters, $dateIni, $dateEnd, 'sino1', 'Notificación itinerario vuelo');
+        $sino4 = $this->rankingTransvipData('adata_tra_cond', $datafilters, $dateIni, $dateEnd, 'sino1', 'Atención Contact Center');
+
+        foreach ($sino2 as $key => $value) {
+            if($value['text'] == 'Si'){
+                $value['text'] = 'Compra equipaje WEB';
+                $values[] = $value;
+            }
+        }
+
+        foreach ($sino3 as $key => $value) {
+            if($value['text'] == 'Si'){
+                $value['text'] = 'Notificación itinerario vuelo';
+                $values[] = $value;
+            }
+        }
+
+        foreach ($sino4 as $key => $value) {
+            if($value['text'] == 'Si'){
+                $value['text'] = 'Atención Contact Center';
+                $values[] = $value;
+            }
+        }
+
+        $standarStruct = [
+            [
+                "text" => "Nombres",
+                "key" => "text",
+                "cellColor" => "#17C784",
+                "textAlign" => "left"
+            ],
+            [
+                "text" => "Cant. Resp.",
+                "key" => "cant",
+                "cellColor" => "#17C784",
+                "textAlign" => "center"
+            ],
+            [
+                "text" => "Porcentaje",
+                "key" => "porcentaje",
+                "cellColor" => "#17C784",
+                "textAlign" => "center"
+            ]
+        ];
+
+        return [
+            "height" =>  $height,
+            "width" =>  $width,
+            "type" =>  "tables",
+            "props" =>  [
+                "icon" => "arrow-right",
+                "text" => $text,
+                "tables" => [
+                    [
+                        "columns" => [
+                            $standarStruct[0],
+                            $standarStruct[1],
+                            $standarStruct[2],
+                        ],
+                        "values" => $values,
+                    ],
+                ]
+            ]
+        ];
+        
+    }
 
 
     //Fin funciones para Transvip
@@ -4283,28 +4365,16 @@ class Dashboard extends Generic
                       ROUND(COUNT(if($csatInDb between  9 and  10 , $csatInDb, NULL))* 100/COUNT(if($csatInDb !=99,1,NULL ))) AS CSAT
                       FROM $this->_dbSelected.$db as a
                       LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token
-                      WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' and $fieldFilter != 0 and nps!= 99 and csat!= 99  $datafilters
-                      GROUP BY $fieldFilter";
+                      WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' and $fieldFilter != 0 and nps!= 99 and csat!= 99  $datafilters";
 
         $data = $data = DB::select($query);
-        //echo $text;exit;
-        if($data){
+
                 $resp = [
                     "text"      => $text,
-                    "nps"       => ROUND($data->NPS) . " %",
-                    "csat"      => ROUND($data->CSAT) . " %",
-                    "quantity"  => $data->Total,
+                    "nps"       => !$data[0]->NPS ? 'N/A' : ROUND($data[0]->NPS) . " %",
+                    "csat"      => !$data[0]->CSAT ? 'N/A' : ROUND($data[0]->CSAT) . " %",
+                    "quantity"  => $data[0]->Total,
                 ];
-        }
-
-        if(!$data){
-            $resp = [
-                "text"      => $text,
-                "nps"       => 'N/A',
-                "csat"      => 'N/A',
-                "quantity"  => 'N/A',
-            ];
-        }
 
         return $resp;
     }
@@ -6930,7 +7000,7 @@ class Dashboard extends Generic
             $box19              = substr($request->survey, 3, 3) == 'con' ? $frecCon : null;
             $box20              = substr($request->survey, 3, 3) == 'con' ? $contactoEmpresas : null;
             $box21              = substr($request->survey, 3, 3) == 'con' ? $atrImport : null;
-            $box22              = $this->traking($db, $startDateFilterMonth, $endDateFilterMonth); //substr($request->survey, 3, 3) == 'via' ? $this->traking($db, $startDateFilterMonth, $endDateFilterMonth) : null;
+            $box22              = null;//$this->traking($db, $startDateFilterMonth, $endDateFilterMonth); //substr($request->survey, 3, 3) == 'via' ? $this->traking($db, $startDateFilterMonth, $endDateFilterMonth) : null;
             $npsBan             = $this->cxIntelligence($request);
         }
 
@@ -6966,9 +7036,9 @@ class Dashboard extends Generic
             $box15              = substr($db, 10, 3) != 'via' ? $this->GraphCSATAtributos($db, trim($request->survey), 'csat6',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters) : null;
             $box16              = substr($db, 10, 3) == 'vue' ? $this->GraphCSATAtributos($db, trim($request->survey), 'csat7',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters) : null;
             $box17              = substr($db, 10, 3) == 'com' ? $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc_1', "Ingreso", 2, 4) : (substr($db, 10, 3) == 'vue' ? $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc_1', "Motivo de Vuelo", 4, 4): null);
-            $box18              = substr($db, 10, 3) == 'vue' ? $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Motivo de Vuelo", 4, 4) : null;
-            $box19              = substr($db, 10, 3) == 'vue' ? $this->statsJetSmartResp($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, $datafilters) : null;
-            $box20              = null;
+            $box18              = substr($db, 10, 3) == 'vue' ? $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Inconveniente llegada", 2, 4) : null;
+            $box19              = substr($db, 10, 3) == 'vue' ? $this->rankingInconvLlegada($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Inconvenientes", 2, 4) : null;
+            $box20              = substr($db, 10, 3) == 'vue' ? $this->statsJetSmartResp($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, $datafilters) : null;
             $box21              = $aerolineas;
             $box22              = $brandAwareness;
             $npsBan             = null;
