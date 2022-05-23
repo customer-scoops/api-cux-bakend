@@ -420,9 +420,13 @@ class Suite
     }
 
     private function sendedmail($nombre,$mail,$hash,$encuesta){
+        $endpoint = 'sendmail.php';
+        if(substr($encuesta,0,3) == 'vid'){
+            $endpoint = 'sendmail2.php';
+        }
         $curl = curl_init();
         curl_setopt_array($curl, array(
-        CURLOPT_URL =>'https://customerscoops.com/srv/suitemail/sendmail.php',
+        CURLOPT_URL =>'https://customerscoops.com/srv/suitemail/'.$endpoint,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => '',
         CURLOPT_MAXREDIRS => 10,
