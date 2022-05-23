@@ -1217,7 +1217,7 @@ class DashboardMutual extends Dashboard
             $dataCsat2Graph       = $this->graphCsatMutual($db, 'csat2', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
             $dataCsat3Graph       = $this->graphCsatMutual($db, 'csat3', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
             $dataCsat4Graph       = $this->graphCsatMutual($db, 'csat4', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
-            $dataCsat5Graph       = $this->graphCsatMutual($db, 'csat5', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
+            $dataCsat5Graph       = substr($request->survey, 3, 3) != 'red'? $this->graphCsatMutual($db, 'csat5', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group) : null;;
             $dataIsn              = $this->graphCsatMutual($db, 'csat', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
             $dataIsnP             = $this->graphInsMutual($db, 'csat',  $endDateFilterMonth, $startDateFilterMonth, 'all',  $datafilters);
             $graphCSATDrivers     = $this->GraphCSATDriversMutual($db, trim($request->survey),  $endDateFilterMonth, $startDateFilterMonth, 'one', 'two', $datafilters);
