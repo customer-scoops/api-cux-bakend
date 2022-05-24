@@ -923,17 +923,6 @@ class Dashboard extends Generic
             {
                 $datafilters = str_replace(' AND fechaservicio between date_sub(NOW(), interval 9 week) and NOW()', '', $datafilters);
 
-                echo "SELECT COUNT(CASE WHEN a.csat!=99 THEN 1 END) as Total, 
-                ROUND(((COUNT(CASE WHEN a.csat BETWEEN 6 AND 7 THEN 1 END) - COUNT(CASE WHEN a.csat BETWEEN 1 AND 4 THEN 1 END)) / (COUNT(CASE WHEN a.csat!=99 THEN 1 END)) * 100),1) AS INS,
-                ROUND(((COUNT(CASE WHEN nps BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - COUNT(CASE WHEN nps BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
-                (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1) AS NPS,
-                MONTH(fechaservicio) as mes, YEAR(fechaservicio) as annio, fechaservicio, WEEK(date_survey) AS week
-                from $this->_dbSelected.$table as a
-                left join $this->_dbSelected." . $table . "_start as b
-                on a.token = b.token
-                WHERE fechaservicio between '$dateIni' and '$dateEnd' $datafilters AND etapaencuesta = 'P2'
-                ORDER by fechaservicio ASC";exit;
-
                 $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN csat BETWEEN 6 AND 7 THEN 1 END) -
                                     COUNT(CASE WHEN csat BETWEEN 1 AND 4 THEN 1 END)) /
                                     (COUNT(CASE WHEN csat != 99 THEN csat END)) * 100),1) AS INS,
