@@ -159,7 +159,7 @@ class PeriodCompare
             $fieldBd = $dash->getFielInDbCsat($survey);
             $query = "";
 
-            if(substr($db, 6, 7) != 'jet_via')
+            if(substr($db, 6, 7) != 'jet_via' && substr($db, 6, 7) != 'tra_via')
             {
                 for ($i=1; $i <= $endCsat; $i++) 
                 {
@@ -183,19 +183,6 @@ class PeriodCompare
 
             if(substr($db, 6, 7) == 'jet_via')
             {
-                $where = " fechaservicio BETWEEN '$dateIni' AND '$dateEnd'";
-
-                if($request->filterWeeks !== null ){
-                    $interval = is_numeric($request->filterWeeks)? $request->filterWeeks : 10;
-                    //if($datafilters !== null){
-                        $where= ' fechaservicio between date_sub(NOW(), interval 10 week) and NOW() ';
-                        $group = " week ";
-                        $current = 2;
-                        $but = ["text"=>"Semanal", "key"=>"filterWeeks", "value"=>"10"];
-                    //}
-                }
-                
-
                 for ($i=1; $i <= $endCsat; $i++) 
                 {
                     if ($i != $endCsat) 
@@ -215,22 +202,46 @@ class PeriodCompare
                     }
                 }
             }
-            echo "SELECT $query,date_survey, mes,  WEEK(date_survey) AS week
-            FROM $dbSelected.$db 
-            WHERE $where AND etapaencuesta = 'P2' 
-            GROUP BY $group
-            ORDER BY date_survey"; exit;
-            $data = DB::select("SELECT $query,date_survey, mes,  WEEK(date_survey) AS week
-                                FROM $dbSelected.$db 
+
+            if(substr($db, 6, 7) == 'tra_via')
+            {
+                $where = " fechaservicio BETWEEN '$dateIni' AND '$dateEnd'";
+
+                if($request->filterWeeks !== null ){
+                    $interval = is_numeric($request->filterWeeks)? $request->filterWeeks : 10;
+                    //if($datafilters !== null){
+                        $where= ' fechaservicio between date_sub(NOW(), interval 10 week) and NOW() ';
+                        $group = " week ";
+                        $current = 2;
+                        $but = ["text"=>"Semanal", "key"=>"filterWeeks", "value"=>"10"];
+                    //}
+                }
+                
+
+                for ($i=1; $i <= $endCsat; $i++) 
+                {
+                    if ($i != $endCsat) 
+                    {
+                        $query .= " ROUND((COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL ))) AS  $fieldBd$i, ";
+                    }
+
+                    if ($i == $endCsat) 
+                    {
+                        $query .= " ROUND((COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL ))) AS  $fieldBd$i ";
+                    }
+                }
+            }
+
+            $data = DB::select("SELECT $query, fechaservicio, MONTH(fechaservicio) as mes,  WEEK(fechaservicio) AS week
+                                FROM $dbSelected.$db as a
+                                LEFT JOIN  $dbSelected." . $db . "_start as b
+                                on a.token = b.token
                                 WHERE $where AND etapaencuesta = 'P2' 
                                 GROUP BY $group
-                                ORDER BY date_survey");
-            // echo "SELECT $query,date_survey, mes,  WEEK(date_survey) AS week
-            // FROM $dbSelected.$db 
-            // WHERE $where AND etapaencuesta = 'P2' 
-            // GROUP BY $group
-            // ORDER BY date_survey";
+                                ORDER BY fechaservicio");
         }
+
+        
 
         $indexData = count($data);
         $suite = new Suite($jwt);

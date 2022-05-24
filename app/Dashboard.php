@@ -3726,12 +3726,7 @@ class Dashboard extends Generic
 
         if(substr($db, 10, 3) == 'via')
         {
-            echo "SELECT $query, fechaservicio, MONTH(fechaservicio) as mes, YEAR(fechaservicio) as annio
-            FROM $this->_dbSelected.$db as A
-            LEFT JOIN $this->_dbSelected." . $db . "_start as b
-            on A.token = b.token 
-            WHERE fechaservicio  BETWEEN '$dateEnd' AND  '$dateIni'  $activeP2 $datafilters 
-            group by MONTH(fechaservicio), YEAR(fechaservicio) ORDER BY fechaservicio";exit;
+
             $data = DB::select("SELECT $query, fechaservicio, MONTH(fechaservicio) as mes, YEAR(fechaservicio) as annio
                                 FROM $this->_dbSelected.$db as A
                                 LEFT JOIN $this->_dbSelected." . $db . "_start as b
