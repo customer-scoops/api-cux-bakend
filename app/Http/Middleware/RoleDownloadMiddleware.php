@@ -36,7 +36,7 @@ class RoleDownloadMiddleware
     {
 
         try {
-            if($request->dataJwt[env('AUTH0_AUD')]->client == 'BAN001'){
+            if($request->dataJwt[env('AUTH0_AUD')]->client == 'BAN001' || $request->dataJwt[env('AUTH0_AUD')]->client == 'MUT001'){
                 if(!in_array('Downloader',$request->dataJwt[env('AUTH0_AUD')]->roles)){
                     return  $this->generic(['datas'=>'Unauthorized'], Response::HTTP_UNAUTHORIZED);
                 }
