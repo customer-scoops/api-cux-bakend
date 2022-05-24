@@ -81,13 +81,7 @@ class Suite
     }
     public function getSurvey($request,$jwt)
     {   
-        // echo $this->_dbSelected;
-    //    try {
-    //     DB::connection()->getPdo();
-    // } catch (\Throwable $th) {
-    //     echo $th->getMessage();
-    // }
-    // exit;
+
         try{
             //$codCustomer = ($jwt[env('AUTH0_AUD')]->client === null) ? 'BAN001' : $jwt[env('AUTH0_AUD')]->client;
             $codCustomer = $jwt[env('AUTH0_AUD')]->client;
@@ -244,7 +238,7 @@ class Suite
             }
             
             $survey = ($request->get('survey') === null) ? $jwt[env('AUTH0_AUD')]->survey: $request->get('survey');
-            //echo $survey;
+            //echo $jwt[env('AUTH0_AUD')]->email;exit;
             $survey = $this->buildSurvey($survey,$client);
             $dbQuery = DB::table($this->_dbSelected.'.'.$client.'_'.$survey);
             //echo $this->_dbSelected.'.'.$client.'_'.$survey;
@@ -254,6 +248,10 @@ class Suite
             if($client != 'BAN001' && $client != 'VID001')
                 $dbQuery->whereBetween('nps', [$this->_startMinNps,$this->_startMaxNps]);
             $dbQuery->where('date','>=', $this->_dateStartClient);
+            
+            if($client == 'BAN001' || $client == 'VID001')
+                $dbQuery->where('ejecutivo', $jwt[env('AUTH0_AUD')]->email);
+            
             //$dbQuery = DB::table('dataSuite_banmedica');
             
             // Filtramos
