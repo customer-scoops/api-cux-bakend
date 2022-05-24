@@ -891,6 +891,7 @@ class Dashboard extends Generic
     private function npsPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $datafilters)
     {
         $datafilters = str_replace(' AND date_survey between date_sub(NOW(), interval 9 week) and NOW()', '', $datafilters);
+
         $monthAntEnd = date('m') - 1;
         $annio = date('Y');
         $monthActualEnd= substr($dateIni, 5,2); 
@@ -922,6 +923,17 @@ class Dashboard extends Generic
             {
                 $datafilters = str_replace(' AND fechaservicio between date_sub(NOW(), interval 9 week) and NOW()', '', $datafilters);
 
+                echo "SELECT COUNT(CASE WHEN a.csat!=99 THEN 1 END) as Total, 
+                ROUND(((COUNT(CASE WHEN a.csat BETWEEN 6 AND 7 THEN 1 END) - COUNT(CASE WHEN a.csat BETWEEN 1 AND 4 THEN 1 END)) / (COUNT(CASE WHEN a.csat!=99 THEN 1 END)) * 100),1) AS INS,
+                ROUND(((COUNT(CASE WHEN nps BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - COUNT(CASE WHEN nps BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
+                (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1) AS NPS,
+                MONTH(fechaservicio) as mes, YEAR(fechaservicio) as annio, fechaservicio, WEEK(date_survey) AS week
+                from $this->_dbSelected.$table as a
+                left join $this->_dbSelected." . $table . "_start as b
+                on a.token = b.token
+                WHERE fechaservicio between '$dateIni' and '$dateEnd' $datafilters AND etapaencuesta = 'P2'
+                ORDER by fechaservicio ASC";exit;
+
                 $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN csat BETWEEN 6 AND 7 THEN 1 END) -
                                     COUNT(CASE WHEN csat BETWEEN 1 AND 4 THEN 1 END)) /
                                     (COUNT(CASE WHEN csat != 99 THEN csat END)) * 100),1) AS INS,
@@ -941,8 +953,7 @@ class Dashboard extends Generic
                                     from $this->_dbSelected.$table as a
                                     left join $this->_dbSelected." . $table . "_start as b
                                     on a.token = b.token
-                                    WHERE MONTH(fechaservicio) = $monthActualEnd and YEAR(fechaservicio) = $annio $datafilters AND etapaencuesta = 'P2'
-                                    GROUP by MONTH(fechaservicio), YEAR(fechaservicio)
+                                    WHERE fechaservicio between '$dateIni' and '$dateEnd' $datafilters AND etapaencuesta = 'P2'
                                     ORDER by fechaservicio ASC");
             }
 
@@ -1380,7 +1391,7 @@ class Dashboard extends Generic
                                     INNER JOIN $this->_dbSelected." . $table . "_start as b ON a.token = b.token 
                                     WHERE  fechaservicio BETWEEN '$dateEnd' AND '$dateIni' $activeP2 $datafilters 
                                     GROUP BY MONTH(fechaservicio), YEAR(fechaservicio)
-                                    ORDER BY MONTH(fechaservicio), YEAR(fechaservicio) ASC");
+                                    ORDER BY YEAR(fechaservicio), MONTH(fechaservicio) ASC");
             }
 
             if(substr($table, 6, 7) != 'tra_via')
