@@ -183,6 +183,19 @@ class PeriodCompare
 
             if(substr($db, 6, 7) == 'jet_via')
             {
+                $where = " fechaservicio BETWEEN '$dateIni' AND '$dateEnd'";
+
+                if($request->filterWeeks !== null ){
+                    $interval = is_numeric($request->filterWeeks)? $request->filterWeeks : 10;
+                    //if($datafilters !== null){
+                        $where= ' fechaservicio between date_sub(NOW(), interval 10 week) and NOW() ';
+                        $group = " week ";
+                        $current = 2;
+                        $but = ["text"=>"Semanal", "key"=>"filterWeeks", "value"=>"10"];
+                    //}
+                }
+                
+
                 for ($i=1; $i <= $endCsat; $i++) 
                 {
                     if ($i != $endCsat) 
@@ -202,7 +215,11 @@ class PeriodCompare
                     }
                 }
             }
-            
+            echo "SELECT $query,date_survey, mes,  WEEK(date_survey) AS week
+            FROM $dbSelected.$db 
+            WHERE $where AND etapaencuesta = 'P2' 
+            GROUP BY $group
+            ORDER BY date_survey"; exit;
             $data = DB::select("SELECT $query,date_survey, mes,  WEEK(date_survey) AS week
                                 FROM $dbSelected.$db 
                                 WHERE $where AND etapaencuesta = 'P2' 
