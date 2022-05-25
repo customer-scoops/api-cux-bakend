@@ -81,13 +81,7 @@ class Suite
     }
     public function getSurvey($request,$jwt)
     {   
-        // echo $this->_dbSelected;
-    //    try {
-    //     DB::connection()->getPdo();
-    // } catch (\Throwable $th) {
-    //     echo $th->getMessage();
-    // }
-    // exit;
+
         try{
             //$codCustomer = ($jwt[env('AUTH0_AUD')]->client === null) ? 'BAN001' : $jwt[env('AUTH0_AUD')]->client;
             $codCustomer = $jwt[env('AUTH0_AUD')]->client;
@@ -244,7 +238,7 @@ class Suite
             }
             
             $survey = ($request->get('survey') === null) ? $jwt[env('AUTH0_AUD')]->survey: $request->get('survey');
-            //echo $survey;
+            //echo $jwt[env('AUTH0_AUD')]->email;exit;
             $survey = $this->buildSurvey($survey,$client);
             $dbQuery = DB::table($this->_dbSelected.'.'.$client.'_'.$survey);
             //echo $this->_dbSelected.'.'.$client.'_'.$survey;
@@ -254,6 +248,10 @@ class Suite
             if($client != 'BAN001' && $client != 'VID001')
                 $dbQuery->whereBetween('nps', [$this->_startMinNps,$this->_startMaxNps]);
             $dbQuery->where('date','>=', $this->_dateStartClient);
+            
+            if($client == 'BAN001' || $client == 'VID001')
+                $dbQuery->where('ejecutivo', $jwt[env('AUTH0_AUD')]->email);
+            
             //$dbQuery = DB::table('dataSuite_banmedica');
             
             // Filtramos
@@ -361,10 +359,10 @@ class Suite
                     "tableName" =>$value->tableName,
                     "visita"    => $value->visita,
                     "estapaEncuesta"=> $value->etapaencuesta,
-                    "subStatus1" => substr($client, 0, 3) == 'BAN' ? $value->field_1 : '',
-                    "subStatus2" =>substr($client, 0, 3) == 'BAN' ? $value->field_2 : '',
-                    "caso" => substr($client, 0, 3) == 'BAN' ? $value->field_3 : '',
-                    "cliente_det_close"=> substr($client, 0, 3) == 'BAN' ? $value->cliente_det_close : '',
+                    "subStatus1" => (isset($value->field_1)) ? $value->field_1 : '',
+                    "subStatus2" => (isset($value->field_2)) ? $value->field_2 : '',
+                    "caso"       => (isset($value->field_3)) ? $value->field_3 : '',
+                    "cliente_det_close"=> (isset($value->cliente_det_close)) ? $value->cliente_det_close : '',
                     "comentarios" => array(
                         'date'      => $value->fechacarga, 
                         'content'   => $value->contenido,
@@ -420,9 +418,13 @@ class Suite
     }
 
     private function sendedmail($nombre,$mail,$hash,$encuesta){
+        $endpoint = 'sendmail.php';
+        if(substr($encuesta,0,3) == 'vid'){
+            $endpoint = 'sendmail2.php';
+        }
         $curl = curl_init();
         curl_setopt_array($curl, array(
-        CURLOPT_URL =>'https://customerscoops.com/srv/suitemail/sendmail.php',
+        CURLOPT_URL =>'https://customerscoops.com/srv/suitemail/'.$endpoint,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => '',
         CURLOPT_MAXREDIRS => 10,
@@ -603,6 +605,17 @@ class Suite
             "mutimg_csat3" => "Amabilidad personal clínico",
             "mutimg_csat4" => "Comodidad recepción",
             "mutimg_csat5" => "Claridad información entregada",
+
+            "mutcet_csat1" => "csat1",
+            "mutcet_csat2" => "csat2",
+            "mutcet_csat3" => "csat3",
+            "mutcet_csat4" => "csat4",
+            "mutcet_csat5" => "csat5",
+
+            "mutred_csat1" => "csat1",
+            "mutred_csat2" => "csat2",
+            "mutred_csat3" => "csat3",
+            "mutred_csat4" => "csat4",
             
             //TRANSVIP
             "travia_csat1" => "Creación reserva",
