@@ -55,12 +55,6 @@ class Dashboard extends Generic
     private $_valueMinAnomaliasText = -20;
     private $_valueMaxAnomaliasText = 30;
     private $_valueAnomaliasPorcentajeText = 30;
-    private $_minCsatAtr;
-    private $_maxCsatAtr;
-    private $_minMediumCsatAtr;
-    private $_maxMediumCsatAtr;
-    private $_minMaxCsatAtr;
-    private $_maxMaxCsatAtr;
 
     /* Función para saber el dia */
 
@@ -3728,13 +3722,13 @@ class Dashboard extends Generic
             for ($i = 1; $i <= $endCsat; $i++) {
 
                 if ($i != $endCsat) {
-                    $query .= " ((COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minMaxCsat AND  $this->_maxMaxCsat THEN 1 END) - COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minCsat AND  $this->_maxCsat THEN 1 END))* 100)/COUNT(if($fieldBd$i !=99,1,NULL )) AS  $fieldBd$i, ";
+                    $query .= " ((COUNT(if($fieldBd$i = $this->_minMaxCsat OR $fieldBd$i = $this->_maxMaxCsat, $fieldBd$i, NULL)) - COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minCsat AND  $this->_maxCsat THEN 1 END))* 100)/COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minCsat AND  $this->_maxMaxCsat THEN 1 END) AS  $fieldBd$i, ";
                 }
                 if ($i == $endCsat) {
-                    $query .= " ((COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minMaxCsat AND  $this->_maxMaxCsat THEN 1 END) - COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minCsat AND  $this->_maxCsat THEN 1 END))* 100)/COUNT(if($fieldBd$i !=99,1,NULL )) AS  $fieldBd$i ";
+                    $query .= " ((COUNT(if($fieldBd$i = $this->_minMaxCsat OR $fieldBd$i = $this->_maxMaxCsat, $fieldBd$i, NULL)) - COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minCsat AND  $this->_maxCsat THEN 1 END))* 100)/COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minCsat AND  $this->_maxMaxCsat THEN 1 END) AS  $fieldBd$i ";
                 }
             }
-            
+
             $data = DB::select("SELECT $query, fechaservicio, MONTH(fechaservicio) as mes, YEAR(fechaservicio) as annio
                                 FROM $this->_dbSelected.$db as A
                                 LEFT JOIN $this->_dbSelected." . $db . "_start as b
@@ -3753,7 +3747,6 @@ class Dashboard extends Generic
                     $r   = 'csat' . $i;
                     $csat = $value->$r;
                     $values = array_merge($values, [$r  => round($csat)]);
-                    //}
                 }
 
                 $graphCSAT[] = [
@@ -4234,7 +4227,7 @@ class Dashboard extends Generic
                           [
                               "type" => "total",
                               "key" => "csat",
-                              "text" => "CSAT",
+                              "text" => "",
                           ],
                       ],
                       "values" => $graphCSATDrivers
@@ -4258,10 +4251,10 @@ class Dashboard extends Generic
         if ($datafilters)
             $datafilters = " AND $datafilters";
         
-        $query = "(COUNT(if( $indicatorCSAT = $this->_minMaxCsatAtr OR $indicatorCSAT = $this->_maxMaxCsatAtr, $indicatorCSAT, NULL))* 100)/COUNT(if($indicatorCSAT !=99,1,NULL )) AS  $indicatorCSAT, 
-                  ((count(if($indicatorCSAT between $this->_minCsatAtr and $this->_maxCsatAtr,  $indicatorCSAT, NULL))*100)/count(case when $indicatorCSAT != 99 THEN  $indicatorCSAT END)) as detractor, 
-                  ((count(if($indicatorCSAT  = $this->_minMaxCsatAtr  OR $indicatorCSAT = $this->_maxMaxCsatAtr,  $indicatorCSAT, NULL))*100)/count(if($indicatorCSAT !=99,1,NULL ))) as promotor, 
-                  ((count(if($indicatorCSAT = $this->_maxMediumCsatAtr  or $indicatorCSAT = $this->_minMediumCsatAtr,  $indicatorCSAT, NULL))*100)/count(case when  $indicatorCSAT != 99 THEN   $indicatorCSAT END)) as neutral,";
+        $query = "(COUNT(if($indicatorCSAT = $this->_minMaxCsatAtr OR $indicatorCSAT = $this->_maxMaxCsatAtr, $indicatorCSAT, NULL))* 100)/COUNT(if($indicatorCSAT !=99,1,NULL )) AS  $indicatorCSAT, 
+                 ((count(if($indicatorCSAT between $this->_minCsatAtr and $this->_maxCsatAtr,  $indicatorCSAT, NULL))*100)/count(case when $indicatorCSAT != 99 THEN  $indicatorCSAT END)) as detractor, 
+                 ((count(if($indicatorCSAT  = $this->_minMaxCsatAtr  OR $indicatorCSAT = $this->_maxMaxCsatAtr,  $indicatorCSAT, NULL))*100)/count(if($indicatorCSAT !=99,1,NULL ))) as promotor, 
+                 ((count(if($indicatorCSAT = $this->_maxMediumCsatAtr  or $indicatorCSAT = $this->_minMediumCsatAtr,  $indicatorCSAT, NULL))*100)/count(case when  $indicatorCSAT != 99 THEN   $indicatorCSAT END)) as neutral,";
 
         for ($i = 1; $i <= $endCsatAtr["end"]; $i++) {
             if(substr($db, 6, 3) == 'jet' && substr($db, 10, 3) == 'com')
@@ -4274,16 +4267,16 @@ class Dashboard extends Generic
             }
             
             if ($i != $endCsatAtr["end"]) {
-                $query .= " (COUNT(if( $indAtrib = $this->_minMaxCsatAtr OR $indAtrib = $this->_maxMaxCsatAtr, $indAtrib, NULL))* 100)/COUNT(if($indAtrib !=99,1,NULL )) AS  $indAtrib, 
-                            ((count(if($indAtrib between $this->_minCsatAtr and $this->_maxCsatAtr, $indAtrib, NULL))*100)/count(case when $indAtrib != 99 THEN  $indAtrib END)) as detractor$i, 
-                            ((count(if($indAtrib  = $this->_minMaxCsatAtr  OR $indAtrib = $this->_maxMaxCsatAtr,  $indAtrib, NULL))*100)/count(if($indAtrib !=99,1,NULL ))) as promotor$i, 
-                            ((count(if($indAtrib = $this->_maxMediumCsatAtr  or $indAtrib = $this->_minMediumCsatAtr,  $indAtrib, NULL))*100)/count(case when  $indAtrib != 99 THEN $indAtrib END)) as neutral$i,";
+                $query .= " (COUNT(if($indAtrib = $this->_maxMaxCes, 1, NULL))* 100)/COUNT(if($indAtrib !=99, 1, NULL)) AS  $indAtrib, 
+                           ((count(if($indAtrib between $this->_minCsatAtr and $this->_maxCsatAtr, $indAtrib, NULL))*100)/count(case when $indAtrib != 99 THEN  $indAtrib END)) as detractor$i, 
+                           ((count(if($indAtrib  = $this->_minMaxCsatAtr  OR $indAtrib = $this->_maxMaxCsatAtr,  $indAtrib, NULL))*100)/count(if($indAtrib !=99,1,NULL ))) as promotor$i, 
+                           ((count(if($indAtrib = $this->_maxMediumCsatAtr  or $indAtrib = $this->_minMediumCsatAtr,  $indAtrib, NULL))*100)/count(case when  $indAtrib != 99 THEN $indAtrib END)) as neutral$i,";
             }
             if ($i == $endCsatAtr["end"]) {
-                $query .= " (COUNT(if( $indAtrib = $this->_minMaxCsatAtr OR $indAtrib = $this->_maxMaxCsatAtr, $indAtrib, NULL))* 100)/COUNT(if($indAtrib !=99,1,NULL )) AS  $indAtrib, 
-                            ((count(if($indAtrib between $this->_minCsatAtr and $this->_maxCsatAtr,  $indAtrib, NULL))*100)/count(case when $indAtrib != 99 THEN  $indAtrib END)) as detractor$i, 
-                            ((count(if($indAtrib  = $this->_minMaxCsatAtr  OR $indAtrib = $this->_maxMaxCsatAtr,  $indAtrib, NULL))*100)/count(if($indAtrib !=99,1,NULL ))) as promotor$i, 
-                            ((count(if($indAtrib = $this->_maxMediumCsatAtr  or $indAtrib = $this->_minMediumCsatAtr,  $indAtrib, NULL))*100)/count(case when  $indAtrib != 99 THEN  $indAtrib END)) as neutral$i ";
+                $query .= " (COUNT(if($indAtrib = $this->_maxMaxCes, 1, NULL))* 100)/COUNT(if($indAtrib !=99, 1, NULL)) AS  $indAtrib, 
+                           ((count(if($indAtrib between $this->_minCsatAtr and $this->_maxCsatAtr,  $indAtrib, NULL))*100)/count(case when $indAtrib != 99 THEN  $indAtrib END)) as detractor$i, 
+                           ((count(if($indAtrib  = $this->_minMaxCsatAtr  OR $indAtrib = $this->_maxMaxCsatAtr,  $indAtrib, NULL))*100)/count(if($indAtrib !=99,1,NULL ))) as promotor$i, 
+                           ((count(if($indAtrib = $this->_maxMediumCsatAtr  or $indAtrib = $this->_minMediumCsatAtr,  $indAtrib, NULL))*100)/count(case when  $indAtrib != 99 THEN  $indAtrib END)) as neutral$i ";
             }
         }
 
@@ -4297,7 +4290,7 @@ class Dashboard extends Generic
         if ($data[0]->$indicatorCSAT != null) 
         {
             $graphCSAT[] = [
-                'xLegend'  => $endCsatAtr["name"],
+                'xLegend'  => $endCsatAtr["name"] . " - CSAT",
                 'values' =>
                 [
                     "promoters"     => round($data[0]->$indicatorCSAT),
@@ -4314,7 +4307,7 @@ class Dashboard extends Generic
                 $det = 'detractor' . $i;
 
                 $graphCSAT[] = [
-                    'xLegend'  => $endCsatAtr["names"][$i],
+                    'xLegend'  => $endCsatAtr["names"][$i] . " - ACSAT",
                     'values' =>
                     [
                         "promoters"     => round($data[0]->$pro),
@@ -4329,7 +4322,7 @@ class Dashboard extends Generic
 
         if ($data[0]->$indicatorCSAT == null) {
             $graphCSAT[] = [
-                'xLegend'  => $endCsatAtr["name"],
+                'xLegend'  => $endCsatAtr["name"] . " - CSAT",
                 'values' =>
                 [
                     "promoters"     => 0,
@@ -4342,7 +4335,7 @@ class Dashboard extends Generic
             for ($i = 1; $i <= $endCsatAtr["end"]; $i++) {
 
                 $graphCSAT[] = [
-                    'xLegend'  => $endCsatAtr["names"][$i],
+                    'xLegend'  => $endCsatAtr["names"][$i] . " - ACSAT",
                     'values' =>
                     [
                         "promoters"     => 0,
@@ -7237,12 +7230,6 @@ class Dashboard extends Generic
            $this->_minMediumCes        = 3;
            $this->_minMaxCes           = 4;
            $this->_maxMaxCes           = 5;
-           $this->_minCsatAtr          = 1;
-           $this->_maxCsatAtr          = 2;
-           $this->_minMediumCsatAtr    = 3;
-           $this->_maxMediumCsatAtr    = 3;
-           $this->_minMaxCsatAtr       = 4;
-           $this->_maxMaxCsatAtr       = 5;
         }
     }
 
