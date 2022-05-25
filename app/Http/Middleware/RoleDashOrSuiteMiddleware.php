@@ -45,7 +45,7 @@ class RoleDashOrSuiteMiddleware
         catch(InvalidTokenException $e) {
             //echo $e->getMessage();
             return $this->generic([$e->getMessage()], Response::HTTP_UNAUTHORIZED);
-            return response()->json('No token provided', 401);
+            return response()->json('No token provided', 403);
             //throw $e;
         };
     }
