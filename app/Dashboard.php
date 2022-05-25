@@ -4227,7 +4227,6 @@ class Dashboard extends Generic
                               "type" => "total",
                               "key" => "csat",
                               "text" => "CSAT",
-                              "text2" => "acsat",
                           ],
                       ],
                       "values" => $graphCSATDrivers
