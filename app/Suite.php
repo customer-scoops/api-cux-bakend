@@ -683,7 +683,7 @@ class Suite
             $this->_dbSelected   = 'customer_banmedica';
             $this->_startMinNps = 0;
             $this->_startMaxNps = 6;
-            $this->_daysActiveSurvey = -7;
+            $this->_daysActiveSurvey = -15;
             if($client == 'VID001'){
                 $this->_nameClient = 'Vida Tres';
             }
