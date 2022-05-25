@@ -69,6 +69,8 @@ $app->singleton(
 $app->routeMiddleware([
     'auth'      => App\Http\Middleware\Auth0Middleware::class,
     'throttle'  => App\Http\Middleware\ThrottleMiddleware::class,
+    'download'  => App\Http\Middleware\RoleDownloadMiddleware::class,
+    'access'    => App\Http\Middleware\RoleDashOrSuiteMiddleware::class,
 ]);
 
 $app->middleware([

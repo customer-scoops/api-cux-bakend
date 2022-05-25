@@ -250,9 +250,9 @@ class Suite
             $dbQuery->where('date','>=', $this->_dateStartClient);
             
             if($client == 'BAN001' || $client == 'VID001')
-                $dbQuery->where('ejecutivo', $jwt[env('AUTH0_AUD')]->email);
-            
-            //$dbQuery = DB::table('dataSuite_banmedica');
+                if(in_array('Loyalty',$jwt[env('AUTH0_AUD')]->roles)){
+                    $dbQuery->where('ejecutivo', $jwt[env('AUTH0_AUD')]->email);
+                }
             
             // Filtramos
             if($request->get('filters') !== null) {
