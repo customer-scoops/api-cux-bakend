@@ -36,7 +36,7 @@ class RoleDashOrSuiteMiddleware
     {
         try {
             if($request->dataJwt[env('AUTH0_AUD')]->client == 'BAN001'){
-                if(in_array('Executive',$request->dataJwt[env('AUTH0_AUD')]->roles)){
+                if(in_array('Loyalty',$request->dataJwt[env('AUTH0_AUD')]->roles)){
                     return  $this->generic(['datas'=>'Unauthorized'], Response::HTTP_UNAUTHORIZED);
                 }
             } 
