@@ -391,9 +391,9 @@ class Dashboard extends Generic
         ]);
         
         $survey = $request->get('survey');
-        //$value  = \Cache::get('cx' . $survey . $request->get('startDate') . $request->get('endDate'));
+        $value  = \Cache::get('cx' . $survey . $request->get('startDate') . $request->get('endDate'));
         //$value = \Cache::pull('cx'.$survey.$request->get('startDate').$request->get('endDate'));
-        //if ($value){return $value;}
+        if ($value){return $value;}
         
         $dataMatriz = $this->matriz($request);
        //print_r($dataMatriz);exit;
