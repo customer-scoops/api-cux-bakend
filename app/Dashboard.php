@@ -3703,18 +3703,17 @@ class Dashboard extends Generic
         $query = "";
         //$endCsat = 11;
 
-        for ($i = 1; $i <= $endCsat; $i++) {
-
-            if ($i != $endCsat) {
-                $query .= " (COUNT(if( $fieldBd$i = $this->_minMaxCsat OR $fieldBd$i = $this->_maxMaxCsat, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL )) AS  $fieldBd$i, ";
-            }
-            if ($i == $endCsat) {
-                $query .= " (COUNT(if( $fieldBd$i = $this->_minMaxCsat OR $fieldBd$i = $this->_maxMaxCsat, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL )) AS  $fieldBd$i ";
-            }
-        }
-
         if(substr($db, 10, 3) != 'via')
         {
+            for ($i = 1; $i <= $endCsat; $i++) {
+
+                if ($i != $endCsat) {
+                    $query .= " (COUNT(if( $fieldBd$i = $this->_minMaxCsat OR $fieldBd$i = $this->_maxMaxCsat, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL )) AS  $fieldBd$i, ";
+                }
+                if ($i == $endCsat) {
+                    $query .= " (COUNT(if( $fieldBd$i = $this->_minMaxCsat OR $fieldBd$i = $this->_maxMaxCsat, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL )) AS  $fieldBd$i ";
+                }
+            }
 
             $data = DB::select("SELECT $query, date_survey, A.mes, A.annio
                                 FROM $this->_dbSelected.$db as A
@@ -3726,7 +3725,16 @@ class Dashboard extends Generic
 
         if(substr($db, 10, 3) == 'via')
         {
+            for ($i = 1; $i <= $endCsat; $i++) {
 
+                if ($i != $endCsat) {
+                    $query .= " ((COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minMaxCsat AND  $this->_maxMaxCsat THEN 1 END) - COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minCsat AND  $this->_maxCsat THEN 1 END))* 100)/COUNT(if($fieldBd$i !=99,1,NULL )) AS  $fieldBd$i, ";
+                }
+                if ($i == $endCsat) {
+                    $query .= " ((COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minMaxCsat AND  $this->_maxMaxCsat THEN 1 END) - COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minCsat AND  $this->_maxCsat THEN 1 END))* 100)/COUNT(if($fieldBd$i !=99,1,NULL )) AS  $fieldBd$i ";
+                }
+            }
+            
             $data = DB::select("SELECT $query, fechaservicio, MONTH(fechaservicio) as mes, YEAR(fechaservicio) as annio
                                 FROM $this->_dbSelected.$db as A
                                 LEFT JOIN $this->_dbSelected." . $db . "_start as b
