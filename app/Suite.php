@@ -250,7 +250,7 @@ class Suite
             $dbQuery->where('date','>=', $this->_dateStartClient);
             
             if($client == 'BAN001' || $client == 'VID001')
-                if($jwt[env('AUTH0_AUD')]->roles == 'Excecutive'){
+                if($jwt[env('AUTH0_AUD')]->roles == 'Executive'){
                     $dbQuery->where('ejecutivo', $jwt[env('AUTH0_AUD')]->email);
                 }
             
