@@ -7006,7 +7006,7 @@ class Dashboard extends Generic
             $box19              = substr($request->survey, 3, 3) == 'con' ? $frecCon : null;
             $box20              = substr($request->survey, 3, 3) == 'con' ? $contactoEmpresas : null;
             $box21              = substr($request->survey, 3, 3) == 'con' ? $atrImport : null;
-            $box22              = null;//$this->traking($db, $startDateFilterMonth, $endDateFilterMonth); //substr($request->survey, 3, 3) == 'via' ? $this->traking($db, $startDateFilterMonth, $endDateFilterMonth) : null;
+            $box22              = $this->traking($db, $startDateFilterMonth, $endDateFilterMonth); //substr($request->survey, 3, 3) == 'via' ? $this->traking($db, $startDateFilterMonth, $endDateFilterMonth) : null;
             $npsBan             = $this->cxIntelligence($request);
         }
 
