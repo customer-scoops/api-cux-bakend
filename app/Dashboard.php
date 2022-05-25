@@ -1917,9 +1917,9 @@ class Dashboard extends Generic
         $graphCBI = [];
         $activeP2 ='';
 
-        $activeP2 ='';
-        if(substr($table, 10, 3) == 'con' || substr($table, 10, 3) == 'via')
-            $activeP2 = " AND etapaencuesta = 'P2' ";
+        $activeP2 = " AND etapaencuesta = 'P2' ";
+        if(substr($table, 6, 3) == 'ban' || substr($table, 6, 3) == 'vid')
+            $activeP2 ='';
 
         $data = DB::select("SELECT COUNT(if( $indicador between 4 and 5, $indicador, NULL))/COUNT(CASE WHEN $indicador != 99 THEN $indicador END)*100 AS cbi,
                             COUNT(CASE WHEN $indicador != 99 THEN $indicador END) as total,
@@ -4029,13 +4029,13 @@ class Dashboard extends Generic
                 "csat1" => 
                 [
                     "end" => "4",
-                    "name" => "Utilizar el sitio web",
+                    "name" => "Experiencia en sitio web",
                     "names" => 
                     [
                         "1"=> "Velocidad de carga",
                         "2"=> "Sitio rápido/ágil",
-                        "3"=> "Compra en pocos pasos",
-                        "4"=> "Facilidad de uso",
+                        "3"=> "Facilidad para comprar",
+                        "4"=> "Facilidad para navegar",
                     ]
                 ],
                 "csat2" => 
@@ -4227,6 +4227,7 @@ class Dashboard extends Generic
                               "type" => "total",
                               "key" => "csat",
                               "text" => "CSAT",
+                              "text2" => "acsat",
                           ],
                       ],
                       "values" => $graphCSATDrivers
@@ -4251,9 +4252,9 @@ class Dashboard extends Generic
             $datafilters = " AND $datafilters";
         
         $query = "(COUNT(if( $indicatorCSAT = $this->_minMaxCsatAtr OR $indicatorCSAT = $this->_maxMaxCsatAtr, $indicatorCSAT, NULL))* 100)/COUNT(if($indicatorCSAT !=99,1,NULL )) AS  $indicatorCSAT, 
-        ((count(if($indicatorCSAT between $this->_minCsatAtr and $this->_maxCsatAtr,  $indicatorCSAT, NULL))*100)/count(case when $indicatorCSAT != 99 THEN  $indicatorCSAT END)) as detractor, 
-        ((count(if($indicatorCSAT  = $this->_minMaxCsatAtr  OR $indicatorCSAT = $this->_maxMaxCsatAtr,  $indicatorCSAT, NULL))*100)/count(if($indicatorCSAT !=99,1,NULL ))) as promotor, 
-        ((count(if($indicatorCSAT = $this->_maxMediumCsatAtr  or $indicatorCSAT = $this->_minMediumCsatAtr,  $indicatorCSAT, NULL))*100)/count(case when  $indicatorCSAT != 99 THEN   $indicatorCSAT END)) as neutral,";
+                  ((count(if($indicatorCSAT between $this->_minCsatAtr and $this->_maxCsatAtr,  $indicatorCSAT, NULL))*100)/count(case when $indicatorCSAT != 99 THEN  $indicatorCSAT END)) as detractor, 
+                  ((count(if($indicatorCSAT  = $this->_minMaxCsatAtr  OR $indicatorCSAT = $this->_maxMaxCsatAtr,  $indicatorCSAT, NULL))*100)/count(if($indicatorCSAT !=99,1,NULL ))) as promotor, 
+                  ((count(if($indicatorCSAT = $this->_maxMediumCsatAtr  or $indicatorCSAT = $this->_minMediumCsatAtr,  $indicatorCSAT, NULL))*100)/count(case when  $indicatorCSAT != 99 THEN   $indicatorCSAT END)) as neutral,";
 
         for ($i = 1; $i <= $endCsatAtr["end"]; $i++) {
             if(substr($db, 6, 3) == 'jet' && substr($db, 10, 3) == 'com')
@@ -6305,21 +6306,25 @@ class Dashboard extends Generic
                                 "name"    => $dataCbi != '' ? $dataCbi['name'] : 'CBI',
                                 "value"   => $dataCbi != '' ? $dataCbi['value'] : 'N/A',
                                 "m2m"     => $dataCbi != '' ? (int)round($dataCbi['percentage']) : 'N/A',
+                                "color"   => $dataCbi != '' ? ($dataCbi['value'] != 'N/A' ? ($dataCbi['value'] > 80 ? "#17C784" : ($dataCbi['value'] < 60 ? "#fe4560" : "#FFC700")) : "#000000" ) : "#000000",
                             ],
                             [
                                 "name"    => $dataNps['name'],
                                 "value"   => $dataNps['value'],
                                 "m2m"     => (int)round($dataNps['percentage']),
+                                "color"   => $dataNps['value'] != 'N/A' ? ($dataNps['value'] > 50 ? "#17C784" : ($dataNps['value'] < 40 ? "#fe4560" : "#FFC700")) : "#000000",
                             ],
                             [
                                 "name"    => $dataCsat['name'],
                                 "value"   => $dataCsat['value'],
                                 "m2m"     => (int)round($dataCsat['percentage']),
+                                "color"   => $dataCsat['value'] != 'N/A' ? ($dataCsat['value'] > 50 ? "#17C784" : ($dataCsat['value'] < 40 ? "#fe4560" : "#FFC700")) : "#000000", 
                             ],
                             [
                                 "name"    => $dataCes['name'],
                                 "value"   => $dataCes['value'],
                                 "m2m"     => (int)round($dataCes['percentage']),
+                                "color"   => $dataCes['value'] != 'N/A' ? ($dataCes['value'] > 80 ? "#17C784" : ($dataCes['value'] < 60 ? "#fe4560" : "#FFC700")) : "#000000", 
                             ]
                         ];
             }
@@ -6328,22 +6333,22 @@ class Dashboard extends Generic
 
                 $resp = [
                             [
-                                // "name"    => $dataCbi['name'],
-                                // "value"   => $dataCbi['value'],
-                                // "m2m"     => (int)round($dataCbi['percentage']),
                                 "name"    => $dataCbi != '' ? $dataCbi['name'] : 'CBI',
                                 "value"   => $dataCbi != '' ? $dataCbi['value'] : 'N/A',
                                 "m2m"     => $dataCbi != '' ? (int)round($dataCbi['percentage']) : 'N/A',
+                                "color"   => $dataCbi != '' ? ($dataCbi['value'] != 'N/A' ? ($dataCbi['value'] > 80 ? "#17C784" : ($dataCbi['value'] < 60 ? "#fe4560" : "#FFC700")) : "#000000" ) : "#000000",
                             ],
                             [
                                 "name"    => $dataNps['name'],
                                 "value"   => $dataNps['value'],
                                 "m2m"     => (int)round($dataNps['percentage']),
+                                "color"   => $dataNps['value'] != 'N/A' ? ($dataNps['value'] > 50 ? "#17C784" : ($dataNps['value'] < 40 ? "#fe4560" : "#FFC700")) : "#000000",
                             ],
                             [
                                 "name"    =>  substr($survey, 0, 3) == 'mut'? 'ISN' : $dataCsat['name'],
                                 "value"   => $dataCsat['value'] != 'N/A' ? round($dataCsat['value']) : 'N/A',
                                 "m2m"     => $dataCsat['value'] != 'N/A' ? (int)round($dataCsat['percentage']) : 'N/A',
+                                "color"   => $dataCes['value'] != 'N/A' ? ($dataCes['value'] > 80 ? "#17C784" : ($dataCes['value'] < 60 ? "#fe4560" : "#FFC700")) : "#000000",
                             ],
                         ];
             }
@@ -6434,7 +6439,7 @@ class Dashboard extends Generic
                         [
                             "type" => "stacked-bar",
                             "key" => "detractors",
-                            "text" => $indicador === 'NPS' ? "Detractores" : ($indicador === 'CSAT' ? "Insatisfechos" : "Dificil"),
+                            "text" => $indicador === 'NPS' ? "Detractores" : ($indicador === 'CSAT' ? "Insatisfechos" : "Difícil"),
                             "bgColor" => "#fe4560",
                         ],
 
@@ -6447,7 +6452,7 @@ class Dashboard extends Generic
                         [
                             "type" => "stacked-bar",
                             "key" => "promoters",
-                            "text" => $indicador === 'NPS' ? "Promotores" : ($indicador === 'CSAT' ? "Satisfechos" : "Dificil"),
+                            "text" => $indicador === 'NPS' ? "Promotores" : ($indicador === 'CSAT' ? "Satisfechos" : "Fácil"),
                             "bgColor" => "#17C784",
                         ],
                         [
