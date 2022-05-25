@@ -24,7 +24,8 @@ $router->group(['prefix' => 'api', 'middleware' => ['auth','throttle:10,1']], fu
   });
 // RUTAS API DASHBOARD
 $router->group(['prefix' => 'dashboard', 'middleware' => ['auth','throttle:10,1']], function () use ($router) {
-    $router->get('/general-resumen', 'DashboardController@index');
+    $router->get('/general-resumen', ['middleware' => 'access',
+                  'uses' => 'DashboardController@index']);
     $router->get('/general-resumen-back-cards', 'DashboardController@indexBackCards');
     $router->get('/details-dashboard', 'DashboardController@detailsDash');
     $router->get('/text-mining', 'DashboardController@textMining');
