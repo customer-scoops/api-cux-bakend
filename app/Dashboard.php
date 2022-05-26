@@ -55,12 +55,6 @@ class Dashboard extends Generic
     private $_valueMinAnomaliasText = -20;
     private $_valueMaxAnomaliasText = 30;
     private $_valueAnomaliasPorcentajeText = 30;
-    private $_minCsatAtr;
-    private $_maxCsatAtr;
-    private $_minMediumCsatAtr;
-    private $_maxMediumCsatAtr;
-    private $_minMaxCsatAtr;
-    private $_maxMaxCsatAtr;
 
     /* Función para saber el dia */
 
@@ -871,6 +865,7 @@ class Dashboard extends Generic
     private function npsPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $datafilters)
     {
         $datafilters = str_replace(' AND date_survey between date_sub(NOW(), interval 9 week) and NOW()', '', $datafilters);
+
         $monthAntEnd = date('m') - 1;
         $annio = date('Y');
         $monthActualEnd= substr($dateIni, 5,2); 
@@ -921,8 +916,7 @@ class Dashboard extends Generic
                                     from $this->_dbSelected.$table as a
                                     left join $this->_dbSelected." . $table . "_start as b
                                     on a.token = b.token
-                                    WHERE MONTH(fechaservicio) = $monthActualEnd and YEAR(fechaservicio) = $annio $datafilters AND etapaencuesta = 'P2'
-                                    GROUP by MONTH(fechaservicio), YEAR(fechaservicio)
+                                    WHERE fechaservicio between '$dateIni' and '$dateEnd' $datafilters AND etapaencuesta = 'P2'
                                     ORDER by fechaservicio ASC");
             }
 
@@ -1360,7 +1354,7 @@ class Dashboard extends Generic
                                     INNER JOIN $this->_dbSelected." . $table . "_start as b ON a.token = b.token 
                                     WHERE  fechaservicio BETWEEN '$dateEnd' AND '$dateIni' $activeP2 $datafilters 
                                     GROUP BY MONTH(fechaservicio), YEAR(fechaservicio)
-                                    ORDER BY MONTH(fechaservicio), YEAR(fechaservicio) ASC");
+                                    ORDER BY YEAR(fechaservicio), MONTH(fechaservicio) ASC");
             }
 
             if(substr($table, 6, 7) != 'tra_via')
@@ -1607,15 +1601,8 @@ class Dashboard extends Generic
                                 on a.token = b.token
                                 WHERE a.mes = $mes AND a.annio = $annio $datafilters ) AS A");
         }
-        // echo 'no hay data';
-        // print_r($data);
-        // if($data[0]->CSAT){
-        //     echo 'hay data';
+
             return $data[0]->CSAT;
-        // }
-        // if(!$data){
-        //     return 0;
-        // }
     }
 
     //OKK
@@ -1904,9 +1891,9 @@ class Dashboard extends Generic
         $graphCBI = [];
         $activeP2 ='';
 
-        $activeP2 ='';
-        if(substr($table, 10, 3) == 'con' || substr($table, 10, 3) == 'via')
-            $activeP2 = " AND etapaencuesta = 'P2' ";
+        $activeP2 = " AND etapaencuesta = 'P2' ";
+        if(substr($table, 6, 3) == 'ban' || substr($table, 6, 3) == 'vid')
+            $activeP2 ='';
 
         $data = DB::select("SELECT COUNT(if( $indicador between 4 and 5, $indicador, NULL))/COUNT(CASE WHEN $indicador != 99 THEN $indicador END)*100 AS cbi,
                             COUNT(CASE WHEN $indicador != 99 THEN $indicador END) as total,
@@ -3690,18 +3677,17 @@ class Dashboard extends Generic
         $query = "";
         //$endCsat = 11;
 
-        for ($i = 1; $i <= $endCsat; $i++) {
-
-            if ($i != $endCsat) {
-                $query .= " (COUNT(if( $fieldBd$i = $this->_minMaxCsat OR $fieldBd$i = $this->_maxMaxCsat, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL )) AS  $fieldBd$i, ";
-            }
-            if ($i == $endCsat) {
-                $query .= " (COUNT(if( $fieldBd$i = $this->_minMaxCsat OR $fieldBd$i = $this->_maxMaxCsat, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL )) AS  $fieldBd$i ";
-            }
-        }
-
         if(substr($db, 10, 3) != 'via')
         {
+            for ($i = 1; $i <= $endCsat; $i++) {
+
+                if ($i != $endCsat) {
+                    $query .= " (COUNT(if( $fieldBd$i = $this->_minMaxCsat OR $fieldBd$i = $this->_maxMaxCsat, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL )) AS  $fieldBd$i, ";
+                }
+                if ($i == $endCsat) {
+                    $query .= " (COUNT(if( $fieldBd$i = $this->_minMaxCsat OR $fieldBd$i = $this->_maxMaxCsat, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL )) AS  $fieldBd$i ";
+                }
+            }
 
             $data = DB::select("SELECT $query, date_survey, A.mes, A.annio
                                 FROM $this->_dbSelected.$db as A
@@ -3713,6 +3699,15 @@ class Dashboard extends Generic
 
         if(substr($db, 10, 3) == 'via')
         {
+            for ($i = 1; $i <= $endCsat; $i++) {
+
+                if ($i != $endCsat) {
+                    $query .= " ((COUNT(if($fieldBd$i = $this->_minMaxCsat OR $fieldBd$i = $this->_maxMaxCsat, $fieldBd$i, NULL)) - COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minCsat AND  $this->_maxCsat THEN 1 END))* 100)/COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minCsat AND  $this->_maxMaxCsat THEN 1 END) AS  $fieldBd$i, ";
+                }
+                if ($i == $endCsat) {
+                    $query .= " ((COUNT(if($fieldBd$i = $this->_minMaxCsat OR $fieldBd$i = $this->_maxMaxCsat, $fieldBd$i, NULL)) - COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minCsat AND  $this->_maxCsat THEN 1 END))* 100)/COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minCsat AND  $this->_maxMaxCsat THEN 1 END) AS  $fieldBd$i ";
+                }
+            }
 
             $data = DB::select("SELECT $query, fechaservicio, MONTH(fechaservicio) as mes, YEAR(fechaservicio) as annio
                                 FROM $this->_dbSelected.$db as A
@@ -3732,7 +3727,6 @@ class Dashboard extends Generic
                     $r   = 'csat' . $i;
                     $csat = $value->$r;
                     $values = array_merge($values, [$r  => round($csat)]);
-                    //}
                 }
 
                 $graphCSAT[] = [
@@ -3898,16 +3892,16 @@ class Dashboard extends Generic
                 for ($i = 1; $i <= $endCsat; $i++) {
 
                     if ($i != $endCsat) {
-                        $query .= " (COUNT(if( $fieldBd$i = $this->_minMaxCsatAtr OR $fieldBd$i = $this->_maxMaxCsatAtr, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL )) AS  $fieldBd$i, 
-                                    ((count(if(csat$i between $this->_minCsatAtr and $this->_maxCsatAtr,  $fieldBd$i, NULL))*100)/count(case when csat$i != 99 THEN  csat$i END)) as detractor$i, 
-                                    ((count(if(csat$i  = $this->_minMaxCsatAtr OR csat$i = $this->_maxMaxCsatAtr,  $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL ))) as promotor$i, 
-                                    ((count(if(csat$i = $this->_maxMediumCsatAtr or csat$i = $this->_minMediumCsatAtr,  $fieldBd$i, NULL))*100)/count(case when  $fieldBd$i != 99 THEN   $fieldBd$i END)) as neutral$i,";
+                        $query .= " (COUNT(if( $fieldBd$i = $this->_minMaxCes OR $fieldBd$i = $this->_maxMaxCes, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL )) AS  $fieldBd$i, 
+                                    ((count(if(csat$i between $this->_minCes and $this->_maxCes, $fieldBd$i, NULL))*100)/count(case when csat$i != 99 THEN  csat$i END)) as detractor$i, 
+                                    ((count(if(csat$i  = $this->_minMaxCes OR csat$i = $this->_maxMaxCes, $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL ))) as promotor$i, 
+                                    ((count(if(csat$i = $this->_minMediumCes or csat$i = $this->_minMediumCes,  $fieldBd$i, NULL))*100)/count(case when  $fieldBd$i != 99 THEN   $fieldBd$i END)) as neutral$i,";
                     }
                     if ($i == $endCsat) {
-                        $query .= " (COUNT(if( $fieldBd$i = $this->_minMaxCsatAtr OR $fieldBd$i = $this->_maxMaxCsatAtr, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL )) AS  $fieldBd$i, 
-                                    ((count(if(csat$i between $this->_minCsatAtr and $this->_maxCsatAtr,  $fieldBd$i, NULL))*100)/count(case when csat$i != 99 THEN  csat$i END)) as detractor$i, 
-                                    ((count(if(csat$i  = $this->_minMaxCsatAtr OR csat$i = $this->_maxMaxCsatAtr,  $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL ))) as promotor$i, 
-                                    ((count(if(csat$i = $this->_maxMediumCsatAtr or csat$i = $this->_minMediumCsatAtr,  $fieldBd$i, NULL))*100)/count(case when  $fieldBd$i != 99 THEN  $fieldBd$i END)) as neutral$i ";
+                        $query .= " (COUNT(if( $fieldBd$i = $this->_minMaxCes OR $fieldBd$i = $this->_maxMaxCes, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL )) AS  $fieldBd$i, 
+                                    ((count(if(csat$i between $this->_minCes and $this->_maxCes, $fieldBd$i, NULL))*100)/count(case when csat$i != 99 THEN  csat$i END)) as detractor$i, 
+                                    ((count(if(csat$i  = $this->_minMaxCes OR csat$i = $this->_maxMaxCes, $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL ))) as promotor$i, 
+                                    ((count(if(csat$i = $this->_minMediumCes or csat$i = $this->_minMediumCes,  $fieldBd$i, NULL))*100)/count(case when  $fieldBd$i != 99 THEN  $fieldBd$i END)) as neutral$i ";
                     }
                 }
             }
@@ -4016,13 +4010,13 @@ class Dashboard extends Generic
                 "csat1" => 
                 [
                     "end" => "4",
-                    "name" => "Utilizar el sitio web",
+                    "name" => "Experiencia en sitio web",
                     "names" => 
                     [
                         "1"=> "Velocidad de carga",
                         "2"=> "Sitio rápido/ágil",
-                        "3"=> "Compra en pocos pasos",
-                        "4"=> "Facilidad de uso",
+                        "3"=> "Facilidad para comprar",
+                        "4"=> "Facilidad para navegar",
                     ]
                 ],
                 "csat2" => 
@@ -4213,7 +4207,7 @@ class Dashboard extends Generic
                           [
                               "type" => "total",
                               "key" => "csat",
-                              "text" => "CSAT",
+                              "text" => "",
                           ],
                       ],
                       "values" => $graphCSATDrivers
@@ -4237,10 +4231,10 @@ class Dashboard extends Generic
         if ($datafilters)
             $datafilters = " AND $datafilters";
         
-        $query = "(COUNT(if( $indicatorCSAT = $this->_minMaxCsatAtr OR $indicatorCSAT = $this->_maxMaxCsatAtr, $indicatorCSAT, NULL))* 100)/COUNT(if($indicatorCSAT !=99,1,NULL )) AS  $indicatorCSAT, 
-        ((count(if($indicatorCSAT between $this->_minCsatAtr and $this->_maxCsatAtr,  $indicatorCSAT, NULL))*100)/count(case when $indicatorCSAT != 99 THEN  $indicatorCSAT END)) as detractor, 
-        ((count(if($indicatorCSAT  = $this->_minMaxCsatAtr  OR $indicatorCSAT = $this->_maxMaxCsatAtr,  $indicatorCSAT, NULL))*100)/count(if($indicatorCSAT !=99,1,NULL ))) as promotor, 
-        ((count(if($indicatorCSAT = $this->_maxMediumCsatAtr  or $indicatorCSAT = $this->_minMediumCsatAtr,  $indicatorCSAT, NULL))*100)/count(case when  $indicatorCSAT != 99 THEN   $indicatorCSAT END)) as neutral,";
+        $query = "(COUNT(if($indicatorCSAT = $this->_maxMaxCes, $indicatorCSAT, NULL))* 100)/COUNT(if($indicatorCSAT !=99,1,NULL )) AS  $indicatorCSAT, 
+                 ((count(if($indicatorCSAT between $this->_minCes and $this->_minMediumCes,  $indicatorCSAT, NULL))*100)/count(case when $indicatorCSAT != 99 THEN  $indicatorCSAT END)) as detractor, 
+                 ((count(if($indicatorCSAT = $this->_maxMaxCes, $indicatorCSAT, NULL))*100)/count(if($indicatorCSAT !=99,1,NULL ))) as promotor, 
+                 ((count(if($indicatorCSAT = $this->_minMaxCes  or $indicatorCSAT = $this->_minMaxCes,  $indicatorCSAT, NULL))*100)/count(case when  $indicatorCSAT != 99 THEN   $indicatorCSAT END)) as neutral,";
 
         for ($i = 1; $i <= $endCsatAtr["end"]; $i++) {
             if(substr($db, 6, 3) == 'jet' && substr($db, 10, 3) == 'com')
@@ -4253,16 +4247,16 @@ class Dashboard extends Generic
             }
             
             if ($i != $endCsatAtr["end"]) {
-                $query .= " (COUNT(if( $indAtrib = $this->_minMaxCsatAtr OR $indAtrib = $this->_maxMaxCsatAtr, $indAtrib, NULL))* 100)/COUNT(if($indAtrib !=99,1,NULL )) AS  $indAtrib, 
-                            ((count(if($indAtrib between $this->_minCsatAtr and $this->_maxCsatAtr, $indAtrib, NULL))*100)/count(case when $indAtrib != 99 THEN  $indAtrib END)) as detractor$i, 
-                            ((count(if($indAtrib  = $this->_minMaxCsatAtr  OR $indAtrib = $this->_maxMaxCsatAtr,  $indAtrib, NULL))*100)/count(if($indAtrib !=99,1,NULL ))) as promotor$i, 
-                            ((count(if($indAtrib = $this->_maxMediumCsatAtr  or $indAtrib = $this->_minMediumCsatAtr,  $indAtrib, NULL))*100)/count(case when  $indAtrib != 99 THEN $indAtrib END)) as neutral$i,";
+                $query .= " (COUNT(if($indAtrib = $this->_maxMaxCes, 1, NULL))* 100)/COUNT(if($indAtrib !=99, 1, NULL)) AS  $indAtrib, 
+                           ((count(if($indAtrib between $this->_minCes and $this->_minMediumCes,  $indAtrib, NULL))*100)/count(case when $indAtrib != 99 THEN  $indAtrib END)) as detractor$i, 
+                           ((count(if($indAtrib = $this->_maxMaxCes, $indAtrib, NULL))*100)/count(if($indAtrib !=99,1,NULL ))) as promotor$i, 
+                           ((count(if($indAtrib = $this->_minMaxCes  or $indAtrib = $this->_minMaxCes,  $indAtrib, NULL))*100)/count(case when  $indAtrib != 99 THEN $indAtrib END)) as neutral$i,";
             }
             if ($i == $endCsatAtr["end"]) {
-                $query .= " (COUNT(if( $indAtrib = $this->_minMaxCsatAtr OR $indAtrib = $this->_maxMaxCsatAtr, $indAtrib, NULL))* 100)/COUNT(if($indAtrib !=99,1,NULL )) AS  $indAtrib, 
-                            ((count(if($indAtrib between $this->_minCsatAtr and $this->_maxCsatAtr,  $indAtrib, NULL))*100)/count(case when $indAtrib != 99 THEN  $indAtrib END)) as detractor$i, 
-                            ((count(if($indAtrib  = $this->_minMaxCsatAtr  OR $indAtrib = $this->_maxMaxCsatAtr,  $indAtrib, NULL))*100)/count(if($indAtrib !=99,1,NULL ))) as promotor$i, 
-                            ((count(if($indAtrib = $this->_maxMediumCsatAtr  or $indAtrib = $this->_minMediumCsatAtr,  $indAtrib, NULL))*100)/count(case when  $indAtrib != 99 THEN  $indAtrib END)) as neutral$i ";
+                $query .= " (COUNT(if($indAtrib = $this->_maxMaxCes, 1, NULL))* 100)/COUNT(if($indAtrib !=99, 1, NULL)) AS  $indAtrib, 
+                           ((count(if($indAtrib between $this->_minCes and $this->_minMediumCes,  $indAtrib, NULL))*100)/count(case when $indAtrib != 99 THEN  $indAtrib END)) as detractor$i, 
+                           ((count(if($indAtrib = $this->_maxMaxCes, $indAtrib, NULL))*100)/count(if($indAtrib !=99,1,NULL ))) as promotor$i, 
+                           ((count(if($indAtrib = $this->_minMaxCes  or $indAtrib = $this->_minMaxCes,  $indAtrib, NULL))*100)/count(case when  $indAtrib != 99 THEN  $indAtrib END)) as neutral$i ";
             }
         }
 
@@ -4276,7 +4270,7 @@ class Dashboard extends Generic
         if ($data[0]->$indicatorCSAT != null) 
         {
             $graphCSAT[] = [
-                'xLegend'  => $endCsatAtr["name"],
+                'xLegend'  => $endCsatAtr["name"] . " - CSAT",
                 'values' =>
                 [
                     "promoters"     => round($data[0]->$indicatorCSAT),
@@ -4293,7 +4287,7 @@ class Dashboard extends Generic
                 $det = 'detractor' . $i;
 
                 $graphCSAT[] = [
-                    'xLegend'  => $endCsatAtr["names"][$i],
+                    'xLegend'  => $endCsatAtr["names"][$i] . " - ACSAT",
                     'values' =>
                     [
                         "promoters"     => round($data[0]->$pro),
@@ -4308,7 +4302,7 @@ class Dashboard extends Generic
 
         if ($data[0]->$indicatorCSAT == null) {
             $graphCSAT[] = [
-                'xLegend'  => $endCsatAtr["name"],
+                'xLegend'  => $endCsatAtr["name"] . " - CSAT",
                 'values' =>
                 [
                     "promoters"     => 0,
@@ -4321,7 +4315,7 @@ class Dashboard extends Generic
             for ($i = 1; $i <= $endCsatAtr["end"]; $i++) {
 
                 $graphCSAT[] = [
-                    'xLegend'  => $endCsatAtr["names"][$i],
+                    'xLegend'  => $endCsatAtr["names"][$i] . " - ACSAT",
                     'values' =>
                     [
                         "promoters"     => 0,
@@ -6292,21 +6286,25 @@ class Dashboard extends Generic
                                 "name"    => $dataCbi != '' ? $dataCbi['name'] : 'CBI',
                                 "value"   => $dataCbi != '' ? $dataCbi['value'] : 'N/A',
                                 "m2m"     => $dataCbi != '' ? (int)round($dataCbi['percentage']) : 'N/A',
+                                "color"   => $dataCbi != '' ? ($dataCbi['value'] != 'N/A' ? ($dataCbi['value'] > 80 ? "#17C784" : ($dataCbi['value'] < 60 ? "#fe4560" : "#FFC700")) : "#DFDEDE" ) : "#DFDEDE",
                             ],
                             [
                                 "name"    => $dataNps['name'],
                                 "value"   => $dataNps['value'],
                                 "m2m"     => (int)round($dataNps['percentage']),
+                                "color"   => $dataNps['value'] != 'N/A' ? ($dataNps['value'] > 50 ? "#17C784" : ($dataNps['value'] < 40 ? "#fe4560" : "#FFC700")) : "#DFDEDE",
                             ],
                             [
                                 "name"    => $dataCsat['name'],
                                 "value"   => $dataCsat['value'],
                                 "m2m"     => (int)round($dataCsat['percentage']),
+                                "color"   => $dataCsat['value'] != 'N/A' ? ($dataCsat['value'] > 50 ? "#17C784" : ($dataCsat['value'] < 40 ? "#fe4560" : "#FFC700")) : "#DFDEDE", 
                             ],
                             [
                                 "name"    => $dataCes['name'],
                                 "value"   => $dataCes['value'],
                                 "m2m"     => (int)round($dataCes['percentage']),
+                                "color"   => $dataCes['value'] != 'N/A' ? ($dataCes['value'] > 80 ? "#17C784" : ($dataCes['value'] < 60 ? "#fe4560" : "#FFC700")) : "#DFDEDE", 
                             ]
                         ];
             }
@@ -6315,22 +6313,22 @@ class Dashboard extends Generic
 
                 $resp = [
                             [
-                                // "name"    => $dataCbi['name'],
-                                // "value"   => $dataCbi['value'],
-                                // "m2m"     => (int)round($dataCbi['percentage']),
                                 "name"    => $dataCbi != '' ? $dataCbi['name'] : 'CBI',
                                 "value"   => $dataCbi != '' ? $dataCbi['value'] : 'N/A',
                                 "m2m"     => $dataCbi != '' ? (int)round($dataCbi['percentage']) : 'N/A',
+                                "color"   => $dataCbi != '' ? ($dataCbi['value'] != 'N/A' ? ($dataCbi['value'] > 80 ? "#17C784" : ($dataCbi['value'] < 60 ? "#fe4560" : "#FFC700")) : "#DFDEDE" ) : "#DFDEDE",
                             ],
                             [
                                 "name"    => $dataNps['name'],
                                 "value"   => $dataNps['value'],
                                 "m2m"     => (int)round($dataNps['percentage']),
+                                "color"   => $dataNps['value'] != 'N/A' ? ($dataNps['value'] > 50 ? "#17C784" : ($dataNps['value'] < 40 ? "#fe4560" : "#FFC700")) : "#DFDEDE",
                             ],
                             [
                                 "name"    =>  substr($survey, 0, 3) == 'mut'? 'ISN' : $dataCsat['name'],
                                 "value"   => $dataCsat['value'] != 'N/A' ? round($dataCsat['value']) : 'N/A',
                                 "m2m"     => $dataCsat['value'] != 'N/A' ? (int)round($dataCsat['percentage']) : 'N/A',
+                                "color"   => $dataCes['value'] != 'N/A' ? ($dataCes['value'] > 80 ? "#17C784" : ($dataCes['value'] < 60 ? "#fe4560" : "#FFC700")) : "#DFDEDE",
                             ],
                         ];
             }
@@ -6421,7 +6419,7 @@ class Dashboard extends Generic
                         [
                             "type" => "stacked-bar",
                             "key" => "detractors",
-                            "text" => $indicador === 'NPS' ? "Detractores" : ($indicador === 'CSAT' ? "Insatisfechos" : "Dificil"),
+                            "text" => $indicador === 'NPS' ? "Detractores" : ($indicador === 'CSAT' ? "Insatisfechos" : "Difícil"),
                             "bgColor" => "#fe4560",
                         ],
 
@@ -6434,7 +6432,7 @@ class Dashboard extends Generic
                         [
                             "type" => "stacked-bar",
                             "key" => "promoters",
-                            "text" => $indicador === 'NPS' ? "Promotores" : ($indicador === 'CSAT' ? "Satisfechos" : "Dificil"),
+                            "text" => $indicador === 'NPS' ? "Promotores" : ($indicador === 'CSAT' ? "Satisfechos" : "Fácil"),
                             "bgColor" => "#17C784",
                         ],
                         [
@@ -6988,7 +6986,7 @@ class Dashboard extends Generic
             $box19              = substr($request->survey, 3, 3) == 'con' ? $frecCon : null;
             $box20              = substr($request->survey, 3, 3) == 'con' ? $contactoEmpresas : null;
             $box21              = substr($request->survey, 3, 3) == 'con' ? $atrImport : null;
-            $box22              = null;//$this->traking($db, $startDateFilterMonth, $endDateFilterMonth); //substr($request->survey, 3, 3) == 'via' ? $this->traking($db, $startDateFilterMonth, $endDateFilterMonth) : null;
+            $box22              = $this->traking($db, $startDateFilterMonth, $endDateFilterMonth); //substr($request->survey, 3, 3) == 'via' ? $this->traking($db, $startDateFilterMonth, $endDateFilterMonth) : null;
             $npsBan             = $this->cxIntelligence($request);
         }
 
@@ -7212,12 +7210,6 @@ class Dashboard extends Generic
            $this->_minMediumCes        = 3;
            $this->_minMaxCes           = 4;
            $this->_maxMaxCes           = 5;
-           $this->_minCsatAtr          = 1;
-           $this->_maxCsatAtr          = 2;
-           $this->_minMediumCsatAtr    = 3;
-           $this->_maxMediumCsatAtr    = 3;
-           $this->_minMaxCsatAtr       = 4;
-           $this->_maxMaxCsatAtr       = 5;
         }
     }
 
