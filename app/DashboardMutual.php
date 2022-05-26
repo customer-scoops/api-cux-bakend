@@ -694,10 +694,11 @@ class DashboardMutual extends Dashboard
         }
     
         if ($data != null && $data[0]->ISN != null){
+            $data2[0]->ISN == null?$data2 = 0 : $data2 = $data2[0]->ISN;
             return[
                 "name"              => "isn",
                 "value"             => round($data[0]->ISN),
-                "percentage"        => round($data[0]->ISN - $data2[0]->ISN),
+                "percentage"        => round($data[0]->ISN - $data2),
             ];
         }
 
@@ -940,7 +941,7 @@ class DashboardMutual extends Dashboard
             $AreaAten = ['filter' => 'Area_Atencion', 'datas' => $this->contentfilter($data, 'aatencion')];
         }
 
-        if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img'|| $dbC == 'con') {
+        if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
             if(isset($jwt[env('AUTH0_AUD')]->zona)){
                 $ZonaHos = ['filter' => 'Zona', 'datas' => ''];
             }
