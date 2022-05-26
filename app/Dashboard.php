@@ -115,8 +115,6 @@ class Dashboard extends Generic
     protected function contentfilter($data, $type)
     {
         $content = [];
-        $count = count($data);
-
         foreach ($data as $key => $value) {
             $namefilters = $this->textsfilters($type . $value->$type);
             $content[($namefilters !== false) ? $namefilters : $value->$type] = $value->$type;
@@ -6181,7 +6179,7 @@ class Dashboard extends Generic
         ];
     }
 
-    protected function structfilter($request, $fieldbd, $fieldurl, $where)
+    private function structfilter($request, $fieldbd, $fieldurl, $where)
     {
         if ($request->get($fieldurl) === null)
             return '';
