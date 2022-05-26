@@ -752,7 +752,7 @@ class DashboardMutual extends Dashboard
                     'xLegend'  =>(trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('d',strtotime($value->mondayWeek)). '-' .date('m',strtotime($value->mondayWeek)) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                     'values' => [
                         "satisfechos"       => round($value->promotor),
-                        "neutrals"          => ((round($value->promotor) == 0) && (round($value->detractor) == 0)) ? round($value->neutral) : 100 - (round($value->detractor) + round($value->promotor)),
+                        "neutrals"          => ((round($value->promotor) == 0) && (round($value->detractor) == 0)) ? round($value->neutral) : 100 - round(($value->detractor) + ($value->promotor)),
                         "insatisfechos"     => round($value->detractor),
                         "csat"              => round($value->ISN)
                     ],
