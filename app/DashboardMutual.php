@@ -692,13 +692,13 @@ class DashboardMutual extends Dashboard
                                 GROUP BY  a.mes, a.annio 
                                 ORDER BY date_survey ASC");
         }
-    
+
         if ($data != null && $data[0]->ISN != null){
-            $data2[0]->ISN == null?$data2 = 0 : $data2 = $data2[0]->ISN;
+            $data2 == null? $datas = 0 : $datas = $data2[0]->ISN;
             return[
                 "name"              => "isn",
                 "value"             => round($data[0]->ISN),
-                "percentage"        => round($data[0]->ISN - $data2),
+                "percentage"        => round($data[0]->ISN - $datas),
             ];
         }
 
