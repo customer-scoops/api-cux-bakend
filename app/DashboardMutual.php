@@ -885,7 +885,7 @@ class DashboardMutual extends Dashboard
             $tipAtencion = ['filter' => 'Tipo_Atencion', 'datas' => $this->contentfilter($data, 'tatencion')];
         }
 
-        if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh'|| $dbC == 'img'|| $dbC == 'con') {
+        if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh'|| $dbC == 'img' || $dbC == 'con') {
             $cond = '';
             if ($datafilters != null && strpos($datafilters,'zonal') != false)
             {
