@@ -363,7 +363,7 @@ class DashboardMutual extends Dashboard
 
             return [
                 "name"              => "nps",
-                "value"             => round($npsActive),
+                "value"             => round($data[0]->NPS),
                 "percentageGraph"   => true,
                 "promotors"         => round($data[0]->promotor),
                 "neutrals"          => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - round(($data[0]->detractor) + ($data[0]->promotor)),
