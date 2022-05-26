@@ -294,6 +294,7 @@ class DashboardMutual extends Dashboard
         WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'  $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ."
         GROUP BY a.mes, a.annio
         ORDER BY date_survey ASC";
+        //echo $query;
         $data = DB::select($query);
 
         return $data;
@@ -365,7 +366,7 @@ class DashboardMutual extends Dashboard
                 "value"             => round($npsActive),
                 "percentageGraph"   => true,
                 "promotors"         => round($data[0]->promotor),
-                "neutrals"          => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - (round($data[0]->detractor) + round($data[0]->promotor)),
+                "neutrals"          => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - round(($data[0]->detractor) + ($data[0]->promotor)),
                 "detractors"        => round($data[0]->detractor),
                 "percentage"        => '0',
                 "smAvg"             => '0',
