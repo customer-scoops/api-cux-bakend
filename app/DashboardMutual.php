@@ -367,7 +367,7 @@ class DashboardMutual extends Dashboard
                 "percentageGraph"   => true,
                 "promotors"         => round($data[0]->promotor,1),
                 "neutrals"          => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - round(($data[0]->detractor) + ($data[0]->promotor)),
-                "detractors"        => round($data[0]->detractor,1),
+                "detractors"        => round($data[0]->detractor),
                 "percentage"        => '0',
                 "smAvg"             => '0',
                 'NPSPReV'           => $npsPreviousPeriod,
@@ -752,7 +752,7 @@ class DashboardMutual extends Dashboard
                     'xLegend'  =>(trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('d',strtotime($value->mondayWeek)). '-' .date('m',strtotime($value->mondayWeek)) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                     'values' => [
                         "satisfechos"       => round($value->promotor),
-                        "neutrals"          => ($value->promotor != null && $value->detractor != null)? 100 - (round($value->promotor)+ round($value->detractor)):  round($value->neutral),
+                        "neutrals"          => ((round($value->promotor) == 0) && (round($value->detractor) == 0)) ? round($value->neutral) : 100 - (round($value->detractor) + round($value->promotor)),
                         "insatisfechos"     => round($value->detractor),
                         "csat"              => round($value->ISN)
                     ],
