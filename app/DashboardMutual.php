@@ -727,6 +727,22 @@ class DashboardMutual extends Dashboard
         $graphCsatM  = [];
 
         if ($filter != 'all') {
+            // echo "SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
+            //                     COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minCsat')." AND ".$this->getValueParams('_maxCsat')." THEN 1 END)) / 
+            //                     (COUNT(CASE WHEN $indicador!=99 THEN 1 END)) * 100),1) AS CSAT, 
+            //                     count(if($indicador < ".$this->getValueParams('_minMediumCsat').", $indicador, NULL)) as Cdet,
+			// 		            count(if($indicador = ".$this->getValueParams('_minMaxCsat')." OR $indicador = ".$this->getValueParams('_maxMaxCsat').", $indicador, NULL)) as Cpro,
+			// 		            count(if($indicador = ".$this->getValueParams('_maxMediumCsat')." OR $indicador = ".$this->getValueParams('_minMediumCsat').", $indicador, NULL)) as Cneu,              
+            //                     COUNT(CASE WHEN $indicador!=99 THEN 1 END) as total, 
+            //                     ((count(if($indicador < ".$this->getValueParams('_minMediumCsat').", $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as detractor, 
+            //                     ((count(if($indicador = ".$this->getValueParams('_minMaxCsat')." OR $indicador = ".$this->getValueParams('_maxMaxCsat').", $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as promotor, 
+            //                     ((count(if($indicador = ".$this->getValueParams('_maxMediumCsat')." OR $indicador =".$this->getValueParams('_minMediumCsat').", $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as neutral,              
+            //                     a.mes, a.annio, WEEK(date_survey) AS week, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek,".$this->getValueParams('_fieldSelectInQuery')."  
+            //                     FROM ".$this->getValueParams('_dbSelected').".$table as a
+            //                     INNER JOIN ".$this->getValueParams('_dbSelected')."." . $table . "_start as b ON a.token = b.token 
+            //                     WHERE  $where AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." ". $this->filterCentro." ".$this->whereCons ."
+            //                     GROUP BY $group
+            //                     ORDER BY date_survey ASC",exit;
             $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
                                 COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minCsat')." AND ".$this->getValueParams('_maxCsat')." THEN 1 END)) / 
                                 (COUNT(CASE WHEN $indicador!=99 THEN 1 END)) * 100),1) AS CSAT, 
@@ -753,13 +769,38 @@ class DashboardMutual extends Dashboard
                         "satisfechos"       => round($value->promotor),
                         "neutrals"          => ($value->promotor != null && $value->detractor != null)? 100 - (round($value->promotor)+ round($value->detractor)):  round($value->neutral),
                         "insatisfechos"     => round($value->detractor),
-                        "csat"              => round($value->CSAT)
+                        "csat"              => round(round($value->promotor)-round($value->detractor))
                     ],
                 ];
             }
         }
         return $graphCsatM;
     }   
+
+    private function structfilter($request, $fieldbd, $fieldurl, $where)
+    {
+        if ($request->get($fieldurl) === null)
+            return '';
+        if ($request->get($fieldurl)) {
+            if ($where != '' ) {
+                if($fieldbd == 'catencion'){
+                $where = " AND $fieldbd in( '" . $request->get($fieldurl) ."')";
+                }
+                if($fieldbd != 'catencion'){
+                $where = " AND $fieldbd = '" . $request->get($fieldurl) . "'";
+                }
+            }
+            if ($where == '') {
+                if($fieldbd == 'catencion'){
+                $where = " $fieldbd in ( '" . $request->get($fieldurl) . "')";
+                }
+                if($fieldbd != 'catencion'){
+                    $where = " $fieldbd = '" . $request->get($fieldurl) . "'";
+                }
+            }
+        }
+        return $where;
+    }
 
     private function infofilters($request)
     {
@@ -865,7 +906,21 @@ class DashboardMutual extends Dashboard
             }
 
             if(isset($jwt[env('AUTH0_AUD')]->centros)){
-                $CenAtencionn = ['filter' => 'Centro_Atencion', 'datas' => ''];
+                $long = sizeof($jwt[env('AUTH0_AUD')]->centros);
+                //print_r($jwt[env('AUTH0_AUD')]->centros);exit;
+    
+                if($long == 1){ 
+                    $obj = array([$jwt[env('AUTH0_AUD')]->centros[0] =>  $jwt[env('AUTH0_AUD')]->centros[0]]);
+                }
+                
+                if($long > 1){
+                    $obj = array($jwt[env('AUTH0_AUD')]->centros[0] =>  $jwt[env('AUTH0_AUD')]->centros[0]);
+                    for($i=1; $i<$long; $i++){
+                        $obj = array_merge($obj,array($jwt[env('AUTH0_AUD')]->centros[$i] =>  $jwt[env('AUTH0_AUD')]->centros[$i]));
+                    }
+                }
+
+                $CenAtencionn = ['filter' => 'Centro_Atencion', 'datas' => $obj];
             }
 
             if(empty($jwt[env('AUTH0_AUD')]->centros)){
@@ -1060,8 +1115,13 @@ class DashboardMutual extends Dashboard
     //DETAILS DASH
     public function detailsDash($request, $jwt)
     {
-        if(isset($jwt[env('AUTH0_AUD')]->centros)){
-            $request->merge(['Centro_Atencion'=>$jwt[env('AUTH0_AUD')]->centros[0]]);
+        if(!isset($request->Centro_Atencion)){
+            $centros=$this->setFilterCentro($jwt, $request);
+            //echo $centros;
+            if(isset($jwt[env('AUTH0_AUD')]->centros)){
+                $request->merge(['Centro_Atencion'=>$centros]);
+            }
+            //echo '----'.$request->Centro_Atencion;
         }
 
         if( $request->survey == 'mutcon' )
