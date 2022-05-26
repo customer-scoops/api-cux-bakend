@@ -336,7 +336,7 @@ class DashboardMutual extends Dashboard
             $datafilters = " AND $datafilters";
         
         $data = $this->dbResumenNps1($table,$indicador,$dateIni,$dateEnd, '', $datafilters);
-
+    
         if (($data == null) || $data[0]->total == null || $data[0]->total == 0) {
             $npsActive = (isset($data[0]->NPS)) ? $data[0]->NPS : 0;
             $npsPreviousPeriod = $this->npsPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $datafilters);
@@ -360,10 +360,10 @@ class DashboardMutual extends Dashboard
             if ($npsPreviousPeriod  === null) {
                 $npsPreviousPeriod = 0;
             }
-
+           
             return [
                 "name"              => "nps",
-                "value"             => round($data[0]->NPS),
+                "value"             => round($npsActive),
                 "percentageGraph"   => true,
                 "promotors"         => round($data[0]->promotor),
                 "neutrals"          => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - round(($data[0]->detractor) + ($data[0]->promotor)),
