@@ -941,7 +941,7 @@ class DashboardMutual extends Dashboard
             $AreaAten = ['filter' => 'Area_Atencion', 'datas' => $this->contentfilter($data, 'aatencion')];
         }
 
-        if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
+        if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img'|| $dbC == 'con') {
             if(isset($jwt[env('AUTH0_AUD')]->zona)){
                 $ZonaHos = ['filter' => 'Zona', 'datas' => ''];
             }
