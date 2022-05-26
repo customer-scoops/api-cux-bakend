@@ -5693,7 +5693,7 @@ class Dashboard extends Generic
                 $data = DB::select($dataTop);   
                 if($data){
                     foreach ($data as $key => $value){
-                        $arrayTop[]= $value-> $indicator.' NPS->'.$value->NPS.'% '.'ISN->'.$value->ISN.'% ('. $value->total.')';   
+                        $arrayTop[]= $value-> $indicator.' NPS-> '.$value->NPS.'% '.'ISN-> '.$value->ISN.'% ('. $value->total.')';   
                     }
             }   
             

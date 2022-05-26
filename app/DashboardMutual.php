@@ -884,7 +884,7 @@ class DashboardMutual extends Dashboard
             $tipAtencion = ['filter' => 'Tipo_Atencion', 'datas' => $this->contentfilter($data, 'tatencion')];
         }
 
-        if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh'|| $dbC == 'img') {
+        if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh'|| $dbC == 'img'|| $dbC == 'con') {
             $cond = '';
             if ($datafilters != null && strpos($datafilters,'zonal') != false)
             {
@@ -940,7 +940,7 @@ class DashboardMutual extends Dashboard
             $AreaAten = ['filter' => 'Area_Atencion', 'datas' => $this->contentfilter($data, 'aatencion')];
         }
 
-        if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
+        if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img'|| $dbC == 'con') {
             if(isset($jwt[env('AUTH0_AUD')]->zona)){
                 $ZonaHos = ['filter' => 'Zona', 'datas' => ''];
             }
@@ -1192,12 +1192,12 @@ class DashboardMutual extends Dashboard
             if ($db == 'adata_mut_urg'){
                 $nameCsat3 = "Amabilidad personal médico";
                 $nameCsat4 = "Claridad información entregada";
-                $nameCsat5 = "Instalaciones y quipamiento para atención";
+                $nameCsat5 = "Instalaciones y equipamiento para atención";
             }
 
             if ($db == 'adata_mut_reh'){
                 $nameCsat3 = "Claridad información entregada";
-                $nameCsat4 = "Instalaciones y quipamiento para atención";
+                $nameCsat4 = "Instalaciones y equipamiento para atención";
                 $nameCsat5 = "Resultados obtenidos con rehabilitación";
             }
 
