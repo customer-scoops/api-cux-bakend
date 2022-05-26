@@ -336,7 +336,7 @@ class DashboardMutual extends Dashboard
             $datafilters = " AND $datafilters";
         
         $data = $this->dbResumenNps1($table,$indicador,$dateIni,$dateEnd, '', $datafilters);
-
+    
         if (($data == null) || $data[0]->total == null || $data[0]->total == 0) {
             $npsActive = (isset($data[0]->NPS)) ? $data[0]->NPS : 0;
             $npsPreviousPeriod = $this->npsPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $datafilters);
@@ -360,10 +360,10 @@ class DashboardMutual extends Dashboard
             if ($npsPreviousPeriod  === null) {
                 $npsPreviousPeriod = 0;
             }
-
+           
             return [
                 "name"              => "nps",
-                "value"             => round($data[0]->NPS),
+                "value"             => round($npsActive),
                 "percentageGraph"   => true,
                 "promotors"         => round($data[0]->promotor),
                 "neutrals"          => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - round(($data[0]->detractor) + ($data[0]->promotor)),
@@ -884,7 +884,7 @@ class DashboardMutual extends Dashboard
             $tipAtencion = ['filter' => 'Tipo_Atencion', 'datas' => $this->contentfilter($data, 'tatencion')];
         }
 
-        if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh'|| $dbC == 'img') {
+        if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh'|| $dbC == 'img'|| $dbC == 'con') {
             $cond = '';
             if ($datafilters != null && strpos($datafilters,'zonal') != false)
             {
@@ -940,7 +940,7 @@ class DashboardMutual extends Dashboard
             $AreaAten = ['filter' => 'Area_Atencion', 'datas' => $this->contentfilter($data, 'aatencion')];
         }
 
-        if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
+        if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img'|| $dbC == 'con') {
             if(isset($jwt[env('AUTH0_AUD')]->zona)){
                 $ZonaHos = ['filter' => 'Zona', 'datas' => ''];
             }
@@ -1192,12 +1192,12 @@ class DashboardMutual extends Dashboard
             if ($db == 'adata_mut_urg'){
                 $nameCsat3 = "Amabilidad personal médico";
                 $nameCsat4 = "Claridad información entregada";
-                $nameCsat5 = "Instalaciones y quipamiento para atención";
+                $nameCsat5 = "Instalaciones y equipamiento para atención";
             }
 
             if ($db == 'adata_mut_reh'){
                 $nameCsat3 = "Claridad información entregada";
-                $nameCsat4 = "Instalaciones y quipamiento para atención";
+                $nameCsat4 = "Instalaciones y equipamiento para atención";
                 $nameCsat5 = "Resultados obtenidos con rehabilitación";
             }
 
