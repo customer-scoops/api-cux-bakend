@@ -365,7 +365,7 @@ class DashboardMutual extends Dashboard
                 "name"              => "nps",
                 "value"             => round($npsActive),
                 "percentageGraph"   => true,
-                "promotors"         => round($data[0]->promotor,1),
+                "promotors"         => round($data[0]->promotor),
                 "neutrals"          => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - round(($data[0]->detractor) + ($data[0]->promotor)),
                 "detractors"        => round($data[0]->detractor),
                 "percentage"        => '0',
@@ -748,6 +748,7 @@ class DashboardMutual extends Dashboard
        
         foreach ($data as $key => $value) {
             if ($struct != 'one') {
+                //echo (round(($value->detractor) + ($value->promotor)));exit;
                 $graphCsatM[] = [
                     'xLegend'  =>(trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('d',strtotime($value->mondayWeek)). '-' .date('m',strtotime($value->mondayWeek)) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                     'values' => [
