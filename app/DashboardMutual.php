@@ -287,7 +287,7 @@ class DashboardMutual extends Dashboard
         AVG(nps) as promedio,
         ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) - 
         COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) / 
-        (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1) AS NPS,  ".$this->getValueParams('_fieldSelectInQuery')."
+        (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),0) AS NPS,  ".$this->getValueParams('_fieldSelectInQuery')."
         FROM ".$this->getValueParams('_dbSelected').".$table as a
         LEFT JOIN ".$this->getValueParams('_dbSelected')."." . $table . "_start as b
         on a.token = b.token
