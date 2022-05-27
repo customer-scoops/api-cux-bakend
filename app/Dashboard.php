@@ -1051,48 +1051,53 @@ class Dashboard extends Generic
     }
 
     private function AVGLast6MonthNPS($table,$table2,$dateIni,$dateEnd,$indicador, $filter){
+
+        $activeP2 = " etapaencuesta = 'P2' AND ";
+        if(substr($table, 6, 3) == 'ban' || substr($table, 6, 3) == 'vid')
+            $activeP2 ='';
+
         if($filter == 'all'){              
 
             $data = DB::select("SELECT sum(NPSS) as total, COUNT(distinct mes) as meses from (SELECT round(SUM(NPS)) AS NPSS, mes FROM 
-            (SELECT ROUND(((COUNT(CASE WHEN $indicador  BETWEEN 9 AND 10 THEN 1 END) -
-                                COUNT(CASE WHEN $indicador  BETWEEN 0 AND 6 THEN 1 END)) /
-                                (COUNT($indicador ) - COUNT(CASE WHEN $indicador =99 THEN 1 END)) * 100),1)*$this->_porcentageBan AS NPS, mes, annio
-                                FROM $this->_dbSelected.$table
-                                WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni'
-                                group by annio, mes
-                                union
-                                SELECT ROUND(((COUNT(CASE WHEN $indicador  BETWEEN 9 AND 10 THEN 1 END) -
-                                COUNT(CASE WHEN $indicador  BETWEEN 0 AND 6 THEN 1 END)) /
-                                (COUNT($indicador ) - COUNT(CASE WHEN $indicador =99 THEN 1 END)) * 100),1)*$this->_porcentageVid AS NPS, mes, annio
-                                FROM $this->_dbSelected.$table2
-                                WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni'
-                                group by annio, mes) AS A
-                                group by annio, mes) as b");
+                               (SELECT ROUND(((COUNT(CASE WHEN $indicador  BETWEEN 9 AND 10 THEN 1 END) -
+                               COUNT(CASE WHEN $indicador  BETWEEN 0 AND 6 THEN 1 END)) * 100 /
+                               COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxMaxNps THEN 1 END))*$this->_porcentageBan) AS NPS, mes, annio
+                               FROM $this->_dbSelected.$table
+                               WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni'
+                               group by annio, mes
+                               union
+                               SELECT ROUND(((COUNT(CASE WHEN $indicador  BETWEEN 9 AND 10 THEN 1 END) -
+                               COUNT(CASE WHEN $indicador  BETWEEN 0 AND 6 THEN 1 END)) * 100/
+                               COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxMaxNps THEN 1 END))*$this->_porcentageVid) AS NPS, mes, annio
+                               FROM $this->_dbSelected.$table2
+                               WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni'
+                               group by annio, mes) AS A
+                               group by annio, mes) as b");
         }
 
         if ($filter != 'all') {
 
             if(substr($table, 6, 7) != 'tra_via')
             {
-            $data = DB::select("SELECT sum(NPS) as total, COUNT(distinct mes) as meses from (SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
-                                COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
-                                (COUNT($indicador) - COUNT(CASE WHEN $indicador=99 THEN 1 END)) * 100),1) AS NPS, mes, annio
-                                FROM $this->_dbSelected.$table 
-                                WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' 
-                                GROUP BY annio, mes) as a");
+                $data = DB::select("SELECT sum(NPS) as total, COUNT(distinct mes) as meses from (SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
+                                    COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
+                                    (COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxMaxNps THEN 1 END)) * 100),1) AS NPS, mes, annio
+                                    FROM $this->_dbSelected.$table 
+                                    WHERE $activeP2 date_survey BETWEEN '$dateEnd' AND '$dateIni' 
+                                    GROUP BY annio, mes) as a"); //Qury revisada con tra_cond OK
             }
 
             if(substr($table, 6, 7) == 'tra_via')
             {
-
                 $data = DB::select("SELECT sum(NPS) as total, COUNT(distinct mes) as meses from (SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
-                                    COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
-                                    (COUNT($indicador) - COUNT(CASE WHEN $indicador=99 THEN 1 END)) * 100),1) AS NPS, MONTH(fechaservicio) as mes, YEAR(fechaservicio)
+                                    COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) *100 /
+                                    COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxMaxNps THEN 1 END))) AS NPS, MONTH(fechaservicio) as mes, YEAR(fechaservicio)
                                     FROM $this->_dbSelected.$table as c
                                     LEFT JOIN $this->_dbSelected." . $table . "_start as b
                                     on c.token = b.token
-                                    WHERE fechaservicio BETWEEN '$dateEnd' AND '$dateIni' 
-                                    GROUP BY MONTH(fechaservicio), YEAR(fechaservicio)) as a");
+                                    WHERE $activeP2 fechaservicio BETWEEN '$dateEnd' AND '$dateIni'
+                                    GROUP BY MONTH(fechaservicio), YEAR(fechaservicio)) as a"); //Query revisada con tra_via OK
+                                    
             }
         }
         
@@ -1164,7 +1169,7 @@ class Dashboard extends Generic
         $activeP2 = " AND etapaencuesta = 'P2' ";
         if(substr($table, 6, 3) == 'ban' || substr($table, 6, 3) == 'vid')
             $activeP2 ='';
-
+       // echo $filter;exit;
         // $dateSurvey = 'date_survey';
         // $groupBy = ' GROUP BY a.mes, a.annio ';
         // if(substr($table, 6, 3) == 'tra' && substr($table, 10, 3) == 'via')
@@ -1215,7 +1220,19 @@ class Dashboard extends Generic
           
             if(substr($table, 6, 7) == 'tra_via')
             {
-
+                // echo "SELECT count(*) as total, 
+                // ((count(if($indicador <= $this->_maxNps, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador !=99 THEN 1 END)) as detractor, 
+                // ((count(if($indicador = $this->_minMaxNps or  $indicador = $this->_maxMaxNps , $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)) as promotor,
+                // ((count(if($indicador =  $this->_maxMediumNps OR $indicador = $this->_minMediumNps, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)) as neutral,
+                // AVG($indicador) as promedio,
+                // ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
+                // COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) / 
+                // (COUNT(CASE WHEN $indicador != 99 THEN $indicador END)) * 100),1) AS NPS,  $this->_fieldSelectInQuery
+                // FROM $this->_dbSelected.$table as a
+                // LEFT JOIN $this->_dbSelected." . $table . "_start as b
+                // on a.token = b.token
+                // WHERE fechaservicio BETWEEN '$dateIni' AND '$dateEnd' $datafilters $activeP2
+                // ORDER BY MONTH(fechaservicio), YEAR(fechaservicio) ASC";
                 $data = DB::select("SELECT count(*) as total, 
                                 ((count(if($indicador <= $this->_maxNps, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador !=99 THEN 1 END)) as detractor, 
                                 ((count(if($indicador = $this->_minMaxNps or  $indicador = $this->_maxMaxNps , $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)) as promotor,
@@ -2296,9 +2313,8 @@ class Dashboard extends Generic
 
         $endCsat = $this->getEndCsat($survey);
         $fieldBd = $this->getFielInDbCsat($survey);
-        $fieldBd2 = $this->getFielInDbCsat($survey);
 
-        $activeP2 = " AND etapaencuesta = 'P2' ";
+        $activeP2 = " etapaencuesta = 'P2' AND ";
         if(substr($db, 6, 3) == 'ban' || substr($db, 6, 3) == 'vid')
             $activeP2 ='';
 
@@ -2312,38 +2328,37 @@ class Dashboard extends Generic
         for ($i = 1; $i <= $endCsat; $i++) {
 
             if ($i != $endCsat) {
-                $query .= " ((COUNT(if( $fieldBd$i = $this->_minMaxCsat OR $fieldBd$i = $this->_maxMaxCsat, $fieldBd$i, NULL)) - COUNT(if( $fieldBd$i <= $this->_maxCsat , $fieldBd$i, NULL)))* 100)/COUNT(if($fieldBd$i !=99,1,NULL )) AS  $fieldBd$i, 
-                            ((count(if(csat$i between $this->_minCsat and $this->_maxCsat,  $fieldBd$i, NULL))*100)/count(case when csat$i != 99 THEN  csat$i END)) as detractor$i, 
-                            ((count(if(csat$i  = $this->_minMaxCsat  OR csat$i = $this->_maxMaxCsat,  $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL ))) as promotor$i, 
-                            ((count(if(csat$i = $this->_maxMediumCsat  or csat$i = $this->_minMediumCsat,  $fieldBd$i, NULL))*100)/count(case when  $fieldBd$i != 99 THEN   $fieldBd$i END)) as neutral$i,";
+                $query .= " ((COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN 1 END) - COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minCsat AND $this->_maxCsat THEN 1 END)) * 100) / COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minCsat AND $this->_maxMaxCsat THEN 1 END) AS  $fieldBd$i, 
+                            ((COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minCsat AND $this->_maxCsat THEN 1 END) * 100) / COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minCsat AND $this->_maxMaxCsat THEN 1 END)) AS detractor$i, 
+                            ((COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN 1 END) * 100) / COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minCsat AND $this->_maxMaxCsat THEN 1 END)) AS promotor$i, 
+                            ((COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_maxMediumCsat  AND $this->_minMediumCsat THEN 1 END) * 100) / COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minCsat AND $this->_maxMaxCsat THEN 1 END)) AS neutral$i,";
             }
             if ($i == $endCsat) {
-                $query .= " ((COUNT(if( $fieldBd$i = $this->_minMaxCsat OR $fieldBd$i = $this->_maxMaxCsat, $fieldBd$i, NULL)) - COUNT(if( $fieldBd$i <= $this->_maxCsat , $fieldBd$i, NULL)))* 100)/COUNT(if($fieldBd$i !=99,1,NULL )) AS  $fieldBd$i, 
-                            ((count(if(csat$i between $this->_minCsat and $this->_maxCsat,  $fieldBd$i, NULL))*100)/count(case when csat$i != 99 THEN  csat$i END)) as detractor$i, 
-                            ((count(if(csat$i  = $this->_minMaxCsat  OR csat$i = $this->_maxMaxCsat,  $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL ))) as promotor$i, 
-                            ((count(if(csat$i = $this->_maxMediumCsat  or csat$i = $this->_minMediumCsat,  $fieldBd$i, NULL))*100)/count(case when  $fieldBd$i != 99 THEN  $fieldBd$i END)) as neutral$i ";
+                $query .= " ((COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN 1 END) - COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minCsat AND $this->_maxCsat THEN 1 END)) * 100) / COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minCsat AND $this->_maxMaxCsat THEN 1 END) AS  $fieldBd$i, 
+                            ((COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minCsat AND $this->_maxCsat THEN 1 END) * 100) / COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minCsat AND $this->_maxMaxCsat THEN 1 END)) AS detractor$i, 
+                            ((COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN 1 END) * 100) / COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minCsat AND $this->_maxMaxCsat THEN 1 END)) AS promotor$i, 
+                            ((COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_maxMediumCsat  AND $this->_minMediumCsat THEN 1 END) * 100) / COUNT(CASE WHEN $fieldBd$i BETWEEN $this->_minCsat AND $this->_maxMaxCsat THEN 1 END)) AS neutral$i ";
             }
         }
        
         if(substr($db, 6, 7) != 'tra_via')
         {   
-            
-            $data = DB::select("SELECT $query,date_survey
-                FROM $this->_dbSelected.$db as A
-                LEFT JOIN $this->_dbSelected." . $db . "_start as b
-                on A.token = b.token 
-                WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' $activeP2  $datafilters
-                ORDER BY date_survey" );
+            $data = DB::select("SELECT $query, date_survey
+                                FROM $this->_dbSelected.$db AS a
+                                LEFT JOIN $this->_dbSelected." . $db . "_start AS b
+                                ON a.token = b.token 
+                                WHERE $activeP2 date_survey BETWEEN '$dateIni' AND '$dateEnd' $datafilters
+                                ORDER BY date_survey" );
         }
 
         if(substr($db, 6, 7) == 'tra_via')
         {   
             $data = DB::select("SELECT $query, fechaservicio
-                FROM $this->_dbSelected.$db as A
-                LEFT JOIN $this->_dbSelected." . $db . "_start as b
-                on A.token = b.token 
-                WHERE fechaservicio BETWEEN '$dateIni' AND '$dateEnd' $activeP2  $datafilters
-                ORDER BY fechaservicio" );
+                                FROM $this->_dbSelected.$db AS a
+                                LEFT JOIN $this->_dbSelected." . $db . "_start AS b
+                                ON a.token = b.token 
+                                WHERE  $activeP2 fechaservicio BETWEEN '$dateIni' AND '$dateEnd' $datafilters
+                                ORDER BY fechaservicio" );
         }
 
         $suite = new Suite($this->_jwt);
@@ -2363,7 +2378,7 @@ class Dashboard extends Generic
                             'values' =>
                             [
                                 "promoters"     => round($value->$pro),
-                                "neutrals"      => ($value->$pro == 0 && $value->$det == 0) ? round(round($value->$neu)) : round(100 - (round($value->$det) + round($value->$pro))),//(int)round(100 - (round($value->$det) + round($value->$pro))),
+                                "neutrals"      => ($value->$pro == 0 && $value->$det == 0) ? round($value->$neu) : 100 - (round($value->$det) + round($value->$pro)),
                                 "detractors"    => round($value->$det),
                                 "csat"          => round($csat)
                             ]
@@ -2415,8 +2430,8 @@ class Dashboard extends Generic
         }
       
         return $graphCSAT;
-    
     }
+
     private function rankingTransvipData($db, $datafilters, $dateIni, $dateEnd, $indicador, $text)
     {
         $values = [];
@@ -2429,15 +2444,14 @@ class Dashboard extends Generic
 
         if($text != "Atributos más importantes")
         {
-            $query = "SELECT $indicador as nombre, count(case when $indicador != 99 and $indicador != '' then 1 end) as total
-                      from $this->_dbSelected.$db as a
-                      left join $this->_dbSelected." . $db . "_start as b 
-                      on a.token = b.token 
-                      WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters AND $indicador != 99 AND $indicador != '' 
-                      AND etapaencuesta = 'P2'
-                      group by  $indicador
-                      order by total DESC";
-        
+            $query = "SELECT $indicador AS nombre, COUNT(CASE WHEN $indicador != 99 AND $indicador != '' THEN 1 END) AS total
+                      FROM $this->_dbSelected.$db AS a
+                      LEFT JOIN $this->_dbSelected." . $db . "_start AS b 
+                      ON a.token = b.token 
+                      WHERE etapaencuesta = 'P2' AND date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters AND $indicador != 99 AND $indicador != '' 
+                      GROUP BY  $indicador
+                      ORDER BY total DESC";
+         
             $data = DB::select($query);
 
             $totalAcum = 0;
@@ -2447,19 +2461,19 @@ class Dashboard extends Generic
             }
     
             foreach ($data as $key => $value) {
+                $values[] = [
+                    'text'  => $value->nombre == "0" ? "No" : ($value->nombre == "1" ? "Si" : str_replace("u00f3", "ó", str_replace("&nt", "ños", html_entity_decode(str_replace("&amp;","&",$value->nombre))))),
+                    'cant'   => $value->total,
+                    'porcentaje'   => ROUND($value->total * 100 / $totalAcum) . " %",
+                    ];
             
-            $values[] = [
-                'text'  => $value->nombre == "0" ? "No" : ($value->nombre == "1" ? "Si" : str_replace("u00f3", "ó", str_replace("&nt", "ños", html_entity_decode(str_replace("&amp;","&",$value->nombre))))),
-                'cant'   => $value->total,
-                'porcentaje'   => ROUND($value->total * 100 / $totalAcum) . " %",
-                ];
-        
             }
         }
         
         if($text == "Atributos más importantes")
         {
             $query = '';
+
             $fields = [
                 'calidApp' => 'Calidad y funcionamiento de la App Conductores', 
                 'cantServ' => 'Cantidad de servicios ofrecidos', 
@@ -2469,23 +2483,25 @@ class Dashboard extends Generic
                 'flexHor' =>'Flexibilidad de horario', 
                 'tipoClient' =>'Tipo de Cliente'
             ];
+
             $count = 0; 
+
             foreach ($fields as $key => $value) {
                 if($count == (count($fields)-1))
                 {
-                    $query .= " count(CASE WHEN json_contains(`mult1`, '" . '"'. $value . '"'. "', '$') THEN 1 END) as " . $key ." ";
-                } else
+                    $query .= " COUNT(CASE WHEN json_contains(`mult1`, '" . '"'. $value . '"'. "', '$') THEN 1 END) AS " . $key ." ";
+                } 
+                else
                 {
-                    $query .= " count(CASE WHEN json_contains(`mult1`, '" . '"'. $value . '"'. "', '$') THEN 1 END) as " . $key .",";
+                    $query .= " COUNT(CASE WHEN json_contains(`mult1`, '" . '"'. $value . '"'. "', '$') THEN 1 END) AS " . $key .",";
                 }
                 $count++;
             }
             $query = "SELECT $query
-                      from $this->_dbSelected.$db as a
-                      left join $this->_dbSelected." . $db . "_start as b 
-                      on a.token = b.token 
-                      WHERE date_survey  BETWEEN '$dateEnd' AND '$dateIni' $datafilters AND $indicador != 99 AND $indicador != '' 
-                      AND etapaencuesta = 'P2'";
+                      FROM $this->_dbSelected.$db AS a
+                      LEFT JOIN $this->_dbSelected." . $db . "_start as b 
+                      ON a.token = b.token 
+                      WHERE etapaencuesta = 'P2' AND date_survey  BETWEEN '$dateEnd' AND '$dateIni' $datafilters AND $indicador != 99 AND $indicador != ''";
 
             $data = DB::select($query);
             $totalAcum = 0;
@@ -2512,9 +2528,8 @@ class Dashboard extends Generic
                 $values = [];
             } 
         }
-        //print_r($values);exit;
+
         return $values;
-        
     }
 
     private function rankingTransvip($db, $datafilters, $dateIni, $dateEnd, $indicador, $text, $height, $width)
@@ -2636,11 +2651,14 @@ class Dashboard extends Generic
         
     }
 
-
     //Fin funciones para Transvip
 
     private function cbiResp($db, $datafilters, $dateIni, $dateEnd)
     {
+        $activeP2 = " etapaencuesta = 'P2' AND ";
+        if(substr($db, 6, 3) == 'ban' || substr($db, 6, 3) == 'vid')
+            $activeP2 ='';
+
         if (substr($datafilters, 30, 3) == 'NOW') {
             $datafilters = '';
         }
@@ -2652,25 +2670,24 @@ class Dashboard extends Generic
         if(substr($db, 6, 7) != 'tra_via' && substr($db,6,3) != 'jet')
         {
 
-            $data = DB::select("SELECT count(case when cbi between 4 and 5 then 1 end)*100/count(case when cbi != 99 then 1 end) as cbi,
-                                count(case when cbi != 99 then 1 end) as Total, a.mes, a.annio, date_survey 
-                                from $this->_dbSelected.$db as a
-                                left join $this->_dbSelected." . $db . "_start as b 
-                                on a.token = b.token 
-                                WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters
-                                GROUP BY a.mes, a.annio order by a.annio, a.mes asc");
+            $data = DB::select("SELECT COUNT(CASE WHEN cbi BETWEEN 4 AND 5 THEN 1 END)*100/COUNT(CASE WHEN cbi BETWEEN 1 AND 5 THEN 1 END) AS cbi,
+                                COUNT(CASE WHEN cbi BETWEEN 1 AND 5 THEN 1 END) AS Total, a.mes, a.annio, date_survey 
+                                FROM $this->_dbSelected.$db AS a
+                                LEFT JOIN $this->_dbSelected." . $db . "_start AS b 
+                                ON a.token = b.token 
+                                WHERE $activeP2 cbi != 99 AND date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters
+                                GROUP BY a.mes, a.annio ORDER BY a.annio, a.mes ASC");
         }
 
         if(substr($db, 6, 7) == 'tra_via')
         {
-     
-            $data = DB::select("SELECT count(case when cbi between 4 and 5 then 1 end)*100/count(case when cbi != 99 then 1 end) as cbi,
-                                count(case when cbi != 99 then 1 end) as Total, MONTH(fechaservicio) as mes, YEAR(fechaservicio) as annio, fechaservicio 
-                                from $this->_dbSelected.$db as a
-                                left join $this->_dbSelected." . $db . "_start as b 
-                                on a.token = b.token 
-                                WHERE fechaservicio BETWEEN '$dateEnd' AND '$dateIni' $datafilters
-                                GROUP BY MONTH(fechaservicio), YEAR(fechaservicio) order by YEAR(fechaservicio), MONTH(fechaservicio) asc");
+            $data = DB::select("SELECT COUNT(CASE WHEN cbi BETWEEN 4 AND 5 THEN 1 END) * 100 / COUNT(CASE WHEN cbi BETWEEN 1 AND 5 THEN 1 END) AS cbi,
+                                COUNT(CASE WHEN cbi BETWEEN 1 AND 5 THEN 1 END) AS Total, MONTH(fechaservicio) AS mes, YEAR(fechaservicio) AS annio, fechaservicio 
+                                FROM $this->_dbSelected.$db AS a
+                                LEFT JOIN $this->_dbSelected." . $db . "_start as b 
+                                ON a.token = b.token 
+                                WHERE $activeP2 fechaservicio BETWEEN '$dateEnd' AND '$dateIni' $datafilters
+                                GROUP BY MONTH(fechaservicio), YEAR(fechaservicio) ORDER BY YEAR(fechaservicio), MONTH(fechaservicio) ASC");
         }
         
                         
@@ -2718,7 +2735,7 @@ class Dashboard extends Generic
                                     from $this->_dbSelected.$db as a
                                     left join $this->_dbSelected." . $db . "_start as b 
                                     on a.token = b.token  
-                                    WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND etapaencuesta = 'P2' $datafilters
+                                    WHERE $activeP2 date_survey BETWEEN '$dateEnd' AND '$dateIni' AND etapaencuesta = 'P2' $datafilters
                                     "); // Ver si group by a.mes, a.annio se agrega despues de $datafilters
 
             $cbiPreviousPeriod = $this->cbiPreviousPeriod($db, $dateIni, $dateEnd, 'cbi', $datafilters);
@@ -6944,49 +6961,68 @@ class Dashboard extends Generic
         }
 
         if ($this->_dbSelected  == 'customer_colmena'  && substr($request->survey, 0, 3) == 'tra') {
-            $proveedor= null;
-            if($db == 'adata_tra_cond'){
-                $proveedor = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'cbi', "Continuar Como Proveedor", 3, 4);
-                $frecCon = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc', "Frecuencia de conexión", 3, 4);
-                $contactoEmpresas = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Contacto otras empresas", 3, 4);
-                $atrImport = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'mult1', "Atributos más importantes", 3, 4);
-                $canalPref = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc2', "Canal Preferido", 3, 4);
-            }
-            $name = 'Transvip';
-            $dataCL             = $this->closedloopTransvip($datafilters, $dateIni, $dateEnd, $request->survey);
-            //REVISAR QUERYS SE DEMORAN 2 SEG DESDE ACA
-            $datasCbiResp       = $this->cbiResp($db,$datafilters, $dateIni, $dateEnd);
-            $drivers            = $this->csatsDriversTransvip($db, trim($request->survey), $dateIni, $dateEnd, $datafilters);
+            $proveedor      = $frecCon      = $contactoEmpresas = $atrImport        = $canalPref        = null;
+            $graphCbiResp   = $graphIsnResp = $globalSentido    = $graphClTra       = $globalesVehi     = null;
+            $globalesSuc    = $globalesServ = $globalesCliente  = $globalesReserva  = $rankingConvenio  = null;
+
             $graphCSATDrivers   = $this->GraphCSATDriversTransvip($db, trim($request->survey), $dateIni, $startDateFilterMonth, null, 'two', $datafilters);
+            
+            if($db == 'adata_tra_cond'){
+                $proveedor          = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'cbi', "Continuar Como Proveedor", 3, 4);
+                $frecCon            = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc', "Frecuencia de conexión", 3, 4);
+                $contactoEmpresas   = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Contacto otras empresas", 3, 4);
+                $atrImport          = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'mult1', "Atributos más importantes", 3, 4);
+                $canalPref          = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc2', "Canal Preferido", 3, 4);
+                $csatDriv           = $this->CSATDrivers($graphCSATDrivers);
+            }
+            
+            if($db == 'adata_tra_via'){
+                $datasCbiResp       = $this->cbiResp($db,$datafilters, $dateIni, $dateEnd);
+                $graphCbiResp       = $this->graphCbiResp($datasCbiResp);
+                $drivers            = $this->csatsDriversTransvip($db, trim($request->survey), $dateIni, $dateEnd, $datafilters);
+                $csatDriv           = $this->graphCsatTransvip($drivers, $request->survey);
+                $tiempoVehiculo     = $this->NpsIsnTransvip($db, $dateIni, $dateEnd, $npsInDb, 'csat2', $datafilters, null);
+                $coordAnden         = $this->NpsIsnTransvip($db, $dateIni, $dateEnd, $npsInDb, 'csat3', $datafilters, null);
+                $tiempoAeropuerto   = $this->NpsIsnTransvip($db, $dateIni,$dateEnd, $npsInDb, 'csat6', $datafilters, null);
+                $tiempoLlegadaAnden = $this->NpsIsnTransvip($db, $dateIni, $dateEnd, $npsInDb, 'csat5', $datafilters, null);
+                $graphIsnResp       = $this->graphINS($tiempoVehiculo, $coordAnden, $tiempoAeropuerto, $tiempoLlegadaAnden);
+                $globalSentido      = $this->globales($db, date('m'), date('Y'), 'sentido', 'Sentido', 'cbi', 'ins', 4, $datafilters);
+                $dataCL             = $this->closedloopTransvip($datafilters, $dateIni, $dateEnd, $request->survey);
+                $graphClTra         = $this->graphCLTransvip($dataCL);
+                $globalesVehi       = $this->globales($db, date('m'), date('Y'), 'tiposervicio', 'Vehículo', 'cbi', 'ins', 4, $datafilters);
+                $globalesSuc        = $this->globales($db, date('m'), date('Y'), 'sucursal', 'Sucursal', 'cbi', 'ins', 4, $datafilters);
+                $globalesServ       = $this->globales($db, date('m'), date('Y'), 'condicionservicio', 'Servicio', 'cbi', 'ins', 4, $datafilters);
+                $globalesCliente    = $this->globales($db, date('m'), date('Y'), 'tipocliente', 'Cliente', 'cbi', 'ins', 4, $datafilters);
+                $globalesReserva    = $this->globales($db, date('m'), date('Y'), 'tipoReserva', 'Reserva', 'cbi', 'ins', 4, $datafilters);
+                $rankingConvenio    = $this->ranking($db, 'convenio', 'Convenio', $endDateFilterMonth, $startDateFilterMonth, $filterClient,$datafilters, 6, 5);
+            }
+
+            $name = 'Transvip';         
             $dataisn            = $this->NpsIsnTransvip($db, $dateIni, $dateEnd, $npsInDb, $csatInDb, $datafilters, $group);
             $dataIsnPerf        = $this->npsPreviousPeriod($db,$dateIni,$dateEndIndicatorPrincipal,'isn','' );
-            $tiempoVehiculo     = $this->NpsIsnTransvip($db, $dateIni, $dateEnd, $npsInDb, 'csat2', $datafilters, null);
-            $coordAnden         = $this->NpsIsnTransvip($db, $dateIni, $dateEnd, $npsInDb, 'csat3', $datafilters, null);
-            //HASTA ACA
-            $tiempoAeropuerto   = $this->NpsIsnTransvip($db, $dateIni,$dateEnd, $npsInDb, 'csat6', $datafilters, null);
-            $tiempoLlegadaAnden = $this->NpsIsnTransvip($db, $dateIni, $dateEnd, $npsInDb, 'csat5', $datafilters, null);
+
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient, $request->survey, $db);
             $performance        = $this->cardsPerformace($dataNps, $dataIsnPerf, $dateEnd, $dateIni, $request->survey, $datafilters);
             $npsConsolidado     = $this->graphNpsIsn($dataisn, $this->ButFilterWeeks);
-            $npsVid             = $this->wordCloud($request); //null;
+            $npsVid             = $this->wordCloud($request);
             $csatJourney        = $this->CSATJourney($graphCSATDrivers);
-            $csatDrivers        = substr($request->survey, 3, 3) == 'via' ? $this->graphCLTransvip($dataCL) : null;
-            $cx                 = substr($request->survey, 3, 3) == 'via' ? $this->graphCbiResp($datasCbiResp) : null;
-            $wordCloud          = substr($request->survey, 3, 3) == 'via' ? $this->globales($db, date('m'), date('Y'), 'sentido', 'Sentido', 'cbi', 'ins', 4, $datafilters) : null;
-            $closedLoop         = substr($request->survey, 3, 3) == 'via' ? $this->globales($db, date('m'), date('Y'), 'tiposervicio', 'Vehículo', 'cbi', 'ins', 4, $datafilters): null;
-            $detailGender       = substr($request->survey, 3, 3) == 'via' ? $this->globales($db, date('m'), date('Y'), 'sucursal', 'Sucursal', 'cbi', 'ins', 4, $datafilters) : null;
-            $detailGeneration   = substr($request->survey, 3, 3) == 'via' ? $this->globales($db, date('m'), date('Y'), 'condicionservicio', 'Servicio', 'cbi', 'ins', 4, $datafilters) : null;
-            $datasStatsByTaps   = substr($request->survey, 3, 3) == 'via' ? $this->globales($db, date('m'), date('Y'), 'tipocliente', 'Cliente', 'cbi', 'ins', 4, $datafilters) : null;
-            $detailsProcedencia = substr($request->survey, 3, 3) == 'via' ? $this->globales($db, date('m'), date('Y'), 'tipoReserva', 'Reserva', 'cbi', 'ins', 4, $datafilters) : null;
-            $box14              = substr($request->survey, 3, 3) == 'via' ? $this->ranking($db, 'convenio', 'Convenio', $endDateFilterMonth, $startDateFilterMonth, $filterClient,$datafilters, 6, 5) : null;
-            $box15              = substr($request->survey, 3, 3) == 'via' ? $this->graphINS($tiempoVehiculo, $coordAnden, $tiempoAeropuerto, $tiempoLlegadaAnden) : null;
-            $box16              = substr($request->survey, 3, 3) == 'con' ? $this->CSATDrivers($graphCSATDrivers) : $this->graphCsatTransvip($drivers, $request->survey);
-            $box17              = substr($request->survey, 3, 3) == 'con' ? $canalPref : null;
-            $box18              = substr($request->survey, 3, 3) == 'con' ? $proveedor : null;
-            $box19              = substr($request->survey, 3, 3) == 'con' ? $frecCon : null;
-            $box20              = substr($request->survey, 3, 3) == 'con' ? $contactoEmpresas : null;
-            $box21              = substr($request->survey, 3, 3) == 'con' ? $atrImport : null;
-            $box22              = $this->traking($db, $startDateFilterMonth, $endDateFilterMonth); //substr($request->survey, 3, 3) == 'via' ? $this->traking($db, $startDateFilterMonth, $endDateFilterMonth) : null;
+            $csatDrivers        = $graphClTra;
+            $cx                 = $graphCbiResp;
+            $wordCloud          = $globalSentido;
+            $closedLoop         = $globalesVehi;
+            $detailGender       = $globalesSuc;
+            $detailGeneration   = $globalesServ;
+            $datasStatsByTaps   = $globalesCliente;
+            $detailsProcedencia = $globalesReserva;
+            $box14              = $rankingConvenio;
+            $box15              = $graphIsnResp;
+            $box16              = $csatDriv;
+            $box17              = $canalPref;
+            $box18              = $proveedor;
+            $box19              = $frecCon;
+            $box20              = $contactoEmpresas;
+            $box21              = $atrImport;
+            $box22              = $this->traking($db, $startDateFilterMonth, $endDateFilterMonth);
             $npsBan             = $this->cxIntelligence($request);
         }
 
