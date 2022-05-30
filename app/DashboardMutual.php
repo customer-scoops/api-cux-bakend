@@ -764,7 +764,7 @@ class DashboardMutual extends Dashboard
         return $graphCsatM;
     }   
 
-    private function structfilter($request, $fieldbd, $fieldurl, $where)
+    private function structfilterM($request, $fieldbd, $fieldurl, $where)
     {
         if ($request->get($fieldurl) === null)
             return '';
@@ -794,15 +794,15 @@ class DashboardMutual extends Dashboard
         $where = '';
         
         if(substr($request->survey,0,3) == 'mut'){
-            $where .= $this->structfilter($request, 'macroseg',         'Macrosegmento',      $where);
-            $where .= $this->structfilter($request, 'tatencion',        'Modalidad_Atencion', $where);
-            $where .= $this->structfilter($request, 'tipcliente',       'Tipo_Cliente',       $where);
-            $where .= $this->structfilter($request, 'canal',            'Canal',              $where);
-            $where .= $this->structfilter($request, 'tatencion',        'Tipo_Atencion',      $where);
-            $where .= $this->structfilter($request, 'catencion',        'Centro_Atencion',    $where);
-            $where .= $this->structfilter($request, 'aatencion',        'Area_Atencion',      $where);
-            $where .= $this->structfilter($request, 'gerenciamedica',   'Gerencia_Medica',    $where);
-            $where .= $this->structfilter($request, 'zonal',             'Zona',              $where);
+            $where .= $this->structfilterM($request, 'macroseg',         'Macrosegmento',      $where);
+            $where .= $this->structfilterM($request, 'tatencion',        'Modalidad_Atencion', $where);
+            $where .= $this->structfilterM($request, 'tipcliente',       'Tipo_Cliente',       $where);
+            $where .= $this->structfilterM($request, 'canal',            'Canal',              $where);
+            $where .= $this->structfilterM($request, 'tatencion',        'Tipo_Atencion',      $where);
+            $where .= $this->structfilterM($request, 'catencion',        'Centro_Atencion',    $where);
+            $where .= $this->structfilterM($request, 'aatencion',        'Area_Atencion',      $where);
+            $where .= $this->structfilterM($request, 'gerenciamedica',   'Gerencia_Medica',    $where);
+            $where .= $this->structfilterM($request, 'zonal',             'Zona',              $where);
                 
             return $where;
         }
