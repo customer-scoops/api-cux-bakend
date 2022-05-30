@@ -144,10 +144,10 @@ class Dashboard extends Generic
             'sex1'      => 'masculino',
             'sex2'      => 'femenino',
             //Transvip Conductores
-            '1'         => 'Freelance',
-            '2'         => 'Leasing',
-            '3'         => 'Freelance Nuevo',
-            '4'         => 'Leasing Nuevo= 4'
+            'contrato1' => 'Freelance',
+            'contrato2' => 'Leasing',
+            'contrato3' => 'Freelance Nuevo',
+            'contrato4' => 'Leasing Nuevo'
         ];
 
         if (array_key_exists($cod, $arr)) {
@@ -305,14 +305,19 @@ class Dashboard extends Generic
 
             if(substr($survey, 3, 3) == 'con'){
 
+                $filtersInCache = \Cache::get('customer_colmena-cond');
+                if($filtersInCache){
+                    return $filtersInCache;
+                }
+
                 $data = DB::select("SELECT DISTINCT(contrato)
                 FROM $this->_dbSelected.adata_tra_cond_start
                 WHERE contrato != '' and contrato != '0' ");
-
+                
                 $contrato = ['filter' => 'Contrato', 'datas' => $this->contentfilter($data, 'contrato')];
 
                 $response = ['filters' => [(object)$contrato], 'status' => Response::HTTP_OK];
-                // \Cache::put('customer_colmena-tra', $response, $this->expiresAtCache);
+                \Cache::put('customer_colmena-cond', $response, $this->expiresAtCache);
             }
 
 
@@ -1356,16 +1361,20 @@ class Dashboard extends Generic
 
             if(substr($table, 6, 7) != 'tra_via')
             {
-                $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
+                $data = DB::select("SELECT ROUND(((
+                                    COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
                                     COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) / 
-                                    (COUNT($indicador) - COUNT(CASE WHEN $indicador=99 THEN 1 END)) * 100),1) AS NPS, 
-                                    count(if($indicador <= $this->_maxNps , $indicador, NULL)) as Cdet,
-                                    count(if($indicador = $this->_minMaxNps or $indicador =$this->_maxMaxNps, $indicador, NULL)) as Cpro,
-                                    count(if($indicador=$this->_maxMediumNps OR $indicador=$this->_minMediumNps, $indicador, NULL)) as Cneu,              
-                                    count(*) as total, 
-                                    ((count(if($indicador <= $this->_maxNps, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as detractor, 
-                                    ((count(if($indicador = $this->_minMaxNps OR $indicador =$this->_maxMaxNps, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as promotor, 
-                                    ((count(if($indicador=$this->_maxMediumNps OR $indicador=$this->_minMediumNps, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as neutral,              
+                                    (COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxMaxNps THEN 1 END)) * 100),1) AS NPS, 
+                                    COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END) as Cdet,
+                                    COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) as Cpro,
+                                    COUNT(CASE WHEN $indicador BETWEEN $this->_minMediumNps AND $this->_maxMediumNps THEN 1 END) as Cneu,              
+                                    COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxMaxNps THEN 1 END) as total, 
+                                    ((COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)*100)/
+                                    COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxMaxNps THEN 1 END)) as detractor, 
+                                    ((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END)*100)/
+                                    COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxMaxNps THEN 1 END)) as promotor, 
+                                    ((COUNT(CASE WHEN $indicador BETWEEN $this->_minMediumNps AND $this->_maxMediumNps THEN 1 END)*100)/
+                                    COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxMaxNps THEN 1 END)) as neutral,              
                                     a.mes, a.annio, WEEK(date_survey) AS week, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek, $this->_fieldSelectInQuery  
                                     FROM $this->_dbSelected.$table as a
                                     INNER JOIN $this->_dbSelected." . $table . "_start as b ON a.token = b.token 
@@ -1409,16 +1418,13 @@ class Dashboard extends Generic
                                 LEFT JOIN $this->_dbSelected." . $table2 . "_start as b ON a.token = b.token 
                                 WHERE $where $datafilters
                                 GROUP BY $group) AS A " . $group2 . "ORDER BY date_survey ASC");
-            //}
         }
 
-        //dd($data);exit;
         if ($data) {
             if ($data[0]->total === null) {
                 foreach ($data as $key => $value) {
                     if ($struct != 'one') {
                         $graphNPS[] = [
-                            //'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                             'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('d',strtotime($value->mondayWeek)). '-' .date('m',strtotime($value->mondayWeek)) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                             'values' => [
                                 "promoters"     => round($value->promotor),
@@ -1439,7 +1445,6 @@ class Dashboard extends Generic
                 foreach ($data as $key => $value) {
                     if ($struct != 'one') {
                         $graphNPS[] = [
-                            //'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                             'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('d',strtotime($value->mondayWeek)). '-' .date('m',strtotime($value->mondayWeek)) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                             'values' => [
                                 "promoters"     => round($value->promotor),
@@ -1461,7 +1466,6 @@ class Dashboard extends Generic
         if ($data === null) {
                 if ($struct != 'one') {
                     $graphNPS[] = [
-                        //'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (0)',
                         'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('d',strtotime($value->mondayWeek)). '-' .date('m',strtotime($value->mondayWeek)) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                         'values' => [
                             "promoters"     => 0,
@@ -1892,14 +1896,14 @@ class Dashboard extends Generic
         if(substr($table, 6, 3) == 'ban' || substr($table, 6, 3) == 'vid')
             $activeP2 ='';
 
-        $data = DB::select("SELECT COUNT(if( $indicador between 4 and 5, $indicador, NULL))/COUNT(CASE WHEN $indicador != 99 THEN $indicador END)*100 AS cbi,
-                            COUNT(CASE WHEN $indicador != 99 THEN $indicador END) as total,
-                            COUNT(CASE WHEN $indicador = 1 THEN $indicador END) as Cnretorna,
-                            COUNT(CASE WHEN $indicador = 2 OR $indicador = 3 THEN $indicador END) as Cnsabe,
-                            COUNT(CASE WHEN $indicador = 4 OR $indicador = 5 THEN $indicador END) as Cretorna,
-                            ROUND(COUNT(CASE WHEN $indicador = 1 THEN $indicador END)/COUNT(CASE WHEN $indicador != 99 THEN $indicador END)*100) as nretorna,
-                            ROUND(COUNT(CASE WHEN $indicador = 2 OR $indicador = 3 THEN $indicador END)/COUNT(CASE WHEN $indicador != 99 THEN $indicador END)*100) as nsabe,
-                            ROUND(COUNT(CASE WHEN $indicador = 4 OR $indicador = 5 THEN $indicador END)/COUNT(CASE WHEN $indicador != 99 THEN $indicador END)*100) as retorna,
+        $data = DB::select("SELECT COUNT(CASE WHEN $indicador = 4 OR $indicador = 5 THEN 1 END)/COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END)*100 AS cbi,
+                            COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END) as total,
+                            COUNT(CASE WHEN $indicador BETWEEN 1 AND 2 THEN 1 END) as Cnretorna,
+                            COUNT(CASE WHEN $indicador = 3 THEN 1 END) as Cnsabe,
+                            COUNT(CASE WHEN $indicador BETWEEN 4 AND 5 THEN 1 END) as Cretorna,
+                            ROUND(COUNT(CASE WHEN $indicador BETWEEN 1 AND 2 THEN 1 END)/COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END)*100) as nretorna,
+                            ROUND(COUNT(CASE WHEN $indicador = 3 THEN 1 END)/COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END)*100) as nsabe,
+                            ROUND(COUNT(CASE WHEN $indicador BETWEEN 4 AND 5 THEN 1 END)/COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END)*100) as retorna,
                             a.mes, a.annio, date_survey, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek, $this->_fieldSelectInQuery 
                             FROM $this->_dbSelected.$table as a
                             INNER JOIN $this->_dbSelected." . $table . "_start as b on a.token = b. token 
@@ -2075,13 +2079,29 @@ class Dashboard extends Generic
         if ($datafilters)
             $datafilters = " AND $datafilters";
 
-        $data = DB::select("SELECT COUNT(*) as Total,  
-                            ROUND(COUNT(CASE WHEN a.$indicatorCBI BETWEEN 4 AND 5 THEN 1 END)*100/count(CASE WHEN a.$indicatorCBI != 99 THEN 1 END)) AS CBI,
+        echo "SELECT COUNT(CASE WHEN a.$indicatorCBI BETWEEN 1 AND 5 THEN 1 END) as Total, 
+              ROUND(COUNT(CASE WHEN a.$indicatorCBI BETWEEN 4 AND 5 THEN 1 END) * 100 /
+              COUNT(CASE WHEN a.$indicatorCBI BETWEEN 1 AND 5 THEN 1 END)) AS CBI,
+              ROUND(((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
+              COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) / 
+              (COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minNps AND $this->_maxMaxNps THEN 1 END)) * 100),1) AS NPS, 
+              ROUND(COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxCsat AND $this->_minMaxCsat THEN 1 END) * 100 /
+              COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minCsat AND $this->_maxMaxCsat THEN 1 END)) AS CSAT, 
+              $indicatorGroup, $this->_fieldSelectInQuery
+              FROM $this->_dbSelected.$db as a 
+              LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token 
+              WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND $indicatorGroup != 99 AND etapaencuesta = 'P2' $datafilters
+              GROUP BY $indicatorGroup"; echo "*****";
+
+        $data = DB::select("SELECT COUNT(CASE WHEN a.$indicatorCBI BETWEEN 1 AND 5 THEN 1 END) as Total, 
+                            ROUND(COUNT(CASE WHEN a.$indicatorCBI BETWEEN 4 AND 5 THEN 1 END) * 100 /
+                            COUNT(CASE WHEN a.$indicatorCBI BETWEEN 1 AND 5 THEN 1 END)) AS CBI,
                             ROUND(((COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
-                            COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
-                            (COUNT(a.$indicatorNPS) - COUNT(CASE WHEN a.$indicatorNPS=99 THEN 1 END)) * 100),1) AS NPS, 
-                            ROUND(COUNT(if($indicatorCSAT between  9 and  10 , $indicatorCSAT, NULL))* 100/COUNT(if($indicatorCSAT !=99,1,NULL ))) AS CSAT, $indicatorGroup, 
-                            $this->_fieldSelectInQuery
+                            COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) / 
+                            (COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minNps AND $this->_maxMaxNps THEN 1 END)) * 100),1) AS NPS, 
+                            ROUND(COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minMaxCsat AND $this->_minMaxCsat THEN 1 END) * 100 /
+                            COUNT(CASE WHEN a.$indicatorNPS BETWEEN $this->_minCsat AND $this->_maxMaxCsat THEN 1 END)) AS CSAT, 
+                            $indicatorGroup, $this->_fieldSelectInQuery
                             FROM $this->_dbSelected.$db as a 
                             LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token 
                             WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND $indicatorGroup != 99 AND etapaencuesta = 'P2' $datafilters
@@ -6808,7 +6828,6 @@ class Dashboard extends Generic
         $jetNamesLab = [
             'title' => 'Situación Laboral',
             'data' => [
-                //$this->arrayPushToValues([],['Cesante','Empleado','Emprendedor','Estudiante','Ret/Jub'],'lab')
                 [
                     "icon" => "star",
                     "percentage" => 'Cesante',
