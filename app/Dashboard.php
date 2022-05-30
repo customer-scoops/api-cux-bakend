@@ -127,24 +127,29 @@ class Dashboard extends Generic
     private function textsfilters($cod)
     {
         $arr =  [
-            'region1' => 'Tarapacá',
-            'region2' => 'Antofagasta',
-            'region3' => 'Atacama',
-            'region4' => 'Coquimbo',
-            'region5' => 'Valparaíso',
-            'region6' => "O'Higgins",
-            'region7' => 'El Maule',
-            'region8' => 'El Bío Bío',
-            'region9' => 'La Araucanía',
-            'region10' => 'Los Lagos',
-            'region11' => 'Aysén',
-            'region12' => 'Magallanes y Antártica Chilena',
-            'region13' => 'Región Metropolitana de Santiago',
-            'region14' => 'Los Ríos',
-            'region15' => 'Arica y Parinacota',
-            'region16' => 'Nuble',
-            'sex1' => 'masculino',
-            'sex2' => 'femenino'
+            'region1'   => 'Tarapacá',
+            'region2'   => 'Antofagasta',
+            'region3'   => 'Atacama',
+            'region4'   => 'Coquimbo',
+            'region5'   => 'Valparaíso',
+            'region6'   => "O'Higgins",
+            'region7'   => 'El Maule',
+            'region8'   => 'El Bío Bío',
+            'region9'   => 'La Araucanía',
+            'region10'  => 'Los Lagos',
+            'region11'  => 'Aysén',
+            'region12'  => 'Magallanes y Antártica Chilena',
+            'region13'  => 'Región Metropolitana de Santiago',
+            'region14'  => 'Los Ríos',
+            'region15'  => 'Arica y Parinacota',
+            'region16'  => 'Nuble',
+            'sex1'      => 'masculino',
+            'sex2'      => 'femenino',
+            //Transvip Conductores
+            '1'         => 'Freelance',
+            '2'         => 'Leasing',
+            '3'         => 'Freelance Nuevo',
+            '4'         => 'Leasing Nuevo= 4'
         ];
 
         if (array_key_exists($cod, $arr)) {
@@ -252,7 +257,7 @@ class Dashboard extends Generic
                                     FROM $this->_dbSelected.adata_tra_via_start
                                     WHERE tipocliente != '' ");
 
-                $TipoClienteT = ['filter' => 'tipoCliente', 'datas' => $this->contentfilter($data, 'tipocliente')];
+                $TipoClienteT = ['filter' => 'TipoCliente', 'datas' => $this->contentfilter($data, 'tipocliente')];
 
                 $data = DB::select("SELECT DISTINCT(tiposervicio)
                                     FROM $this->_dbSelected.adata_tra_via_start
@@ -320,62 +325,62 @@ class Dashboard extends Generic
     }
 
 
-    public function detailsDashCxWord($request,$jwt)
-    {
-        $request->merge([
-            'startDate' => date('Y-m-d',strtotime(date('Y-m-01')."- $this->_periodCxWord month")),
-            'endDate'   => date('Y-m-d'),
-        ]);
-        //if(!isset($startDate)&& !isset($endDate) && !isset($survey)){return ['datas'=>'unauthorized', 'status'=>Response::HTTP_NOT_ACCEPTABLE];}
-        return ['datas'     => [$this->cxIntelligence($request),$this->wordCloud($request)],
-                'status'    => Response::HTTP_OK
-                ];
-    }
+    // public function detailsDashCxWord($request,$jwt)
+    // {
+    //     $request->merge([
+    //         'startDate' => date('Y-m-d',strtotime(date('Y-m-01')."- $this->_periodCxWord month")),
+    //         'endDate'   => date('Y-m-d'),
+    //     ]);
+    //     //if(!isset($startDate)&& !isset($endDate) && !isset($survey)){return ['datas'=>'unauthorized', 'status'=>Response::HTTP_NOT_ACCEPTABLE];}
+    //     return ['datas'     => [$this->cxIntelligence($request),$this->wordCloud($request)],
+    //             'status'    => Response::HTTP_OK
+    //             ];
+    // }
 
-    private function wordCloud($request)
-    {
-        $request->merge([
-            'startDate' => date('Y-m-d',strtotime(date('Y-m-01')."- $this->_periodCxWord month")),
-            'endDate'   => date('Y-m-d'),
-        ]);
-        $survey = $request->get('survey');
-        //print_r($survey);
-        $value = \Cache::get('word'.$survey.$request->get('startDate').$request->get('endDate'));
-        //$value = \Cache::pull('word'.$survey.$request->get('startDate').$request->get('endDate'));
-        if($value)
-            return $value;
+    // private function wordCloud($request)
+    // {
+    //     $request->merge([
+    //         'startDate' => date('Y-m-d',strtotime(date('Y-m-01')."- $this->_periodCxWord month")),
+    //         'endDate'   => date('Y-m-d'),
+    //     ]);
+    //     $survey = $request->get('survey');
 
-        $dataTextMining = $this->textMining($request);
+    //     $value = \Cache::get('word'.$survey.$request->get('startDate').$request->get('endDate'));
+    //     //$value = \Cache::pull('word'.$survey.$request->get('startDate').$request->get('endDate'));
+    //     if($value)
+    //         return $value;
 
-        if($survey != 'travia' && $survey != 'tracond'){
-        foreach ($dataTextMining['datas']->values as $value){
-            foreach($value as $key => $detail){
-                foreach($detail as $key1 => $index){
-                isset($index->percentaje3)?$this->setAnomaliasTextAnalitics( $index->percentaje3, $index->nps3, $index->word3, $index->group3): null ;
-                }
-            }
-        }
-        }
-        if($dataTextMining['datas'] == null ){
-            $wordCloud = '';
-        }
-        if($dataTextMining['datas'] !== null ){
-            $wordCloud = ($dataTextMining['datas']->wordCloud);
-        }
+    //     $dataTextMining = $this->textMining($request);
 
-        $resp = [
-            "height"=> 4,
-            "width"=> 4,
-            "type"=> "word-cloud",
-            "props"=> [
-              "text"=> "Word cloud",
-              "icon"=> "arrow-right",
-              "wordCloud"=> $wordCloud
-            ]
-        ];
-        \Cache::put('word'.$survey.$request->get('startDate').$request->get('endDate'), $resp, $this->expiresAtCache);
-        return $resp;
-    }
+    //     if($survey != 'travia' && $survey != 'tracond'){
+    //     foreach ($dataTextMining['datas']->values as $value){
+    //         foreach($value as $key => $detail){
+    //             foreach($detail as $key1 => $index){
+    //             isset($index->percentaje3)?$this->setAnomaliasTextAnalitics( $index->percentaje3, $index->nps3, $index->word3, $index->group3): null ;
+    //             }
+    //         }
+    //     }
+    //     }
+    //     if($dataTextMining['datas'] == null ){
+    //         $wordCloud = '';
+    //     }
+    //     if($dataTextMining['datas'] !== null ){
+    //         $wordCloud = ($dataTextMining['datas']->wordCloud);
+    //     }
+
+    //     $resp = [
+    //         "height"=> 4,
+    //         "width"=> 4,
+    //         "type"=> "word-cloud",
+    //         "props"=> [
+    //           "text"=> "Word cloud",
+    //           "icon"=> "arrow-right",
+    //           "wordCloud"=> $wordCloud
+    //         ]
+    //     ];
+    //     \Cache::put('word'.$survey.$request->get('startDate').$request->get('endDate'), $resp, $this->expiresAtCache);
+    //     return $resp;
+    // }
 
     private function cxIntelligence($request)
     {
@@ -416,12 +421,10 @@ class Dashboard extends Generic
                             ]
                         ];
                     }
-        //print_r($this->_anomaliasGain);   
-        //print_r($dataMatriz['datas']->cx->gainpoint);exit;             
+        
         if ($dataMatriz['datas']->cx->gainpoint != null) {
             $gainPoint = array_merge($dataMatriz['datas']->cx->gainpoint, $this->_anomaliasGain);
         }
-        //print_r($gainPoint);exit;
         if ($dataMatriz['datas']->cx->gainpoint == null || $dataMatriz['datas']->cx->gainpoint == 0) {
             $gainPoint =  $this->_anomaliasGain;
         }
@@ -431,8 +434,6 @@ class Dashboard extends Generic
         if ($dataMatriz['datas']->cx->painpoint == null || $dataMatriz['datas']->cx->painpoint == 0) {
             $painPoint = $this->_anomaliasPain;
         }
-
-        //print_r($painPoint);exit;
 
         $resp = [
             "height" => 4,
@@ -468,7 +469,7 @@ class Dashboard extends Generic
         $dataEmail  = $this->email('adata_' . substr($survey, 0, 3) . '_' . substr($survey, 3, 6), date('Y-m-01'), date('Y-m-d'), $this->_initialFilter);
         $data       = $this->infoClosedLoop('adata_' . substr($survey, 0, 3) . '_' . substr($survey, 3, 6), date('Y-m-01'), date('Y-m-d'), $npsInDb, $this->_initialFilter);
         $resp = [$dataEmail, $data];
-        //array_push($resp,$data);
+
         return [
 
             'datas'     => $resp,
@@ -510,7 +511,7 @@ class Dashboard extends Generic
                                 WHERE B.fechacarga BETWEEN '$dateIni' AND '$dateEnd' AND $fieldInBd IN (0,1,2,3,4,5,6) AND obs_nps != '' $datafilters) AS A");
         }
         $closedRate = 0;
-        //var_dump($data[0]->ticketCreated);
+
         if ($data[0]->ticketCreated != "0") {
             $closedRate = round(($data[0]->ticketClosed / $data[0]->ticketCreated) * 100, 3);
         }
@@ -735,17 +736,11 @@ class Dashboard extends Generic
     }
 
     private function traking($db,$dateIni,$dateEnd) {
-        //echo substr($db, 10, 4);exit;
-        // $dateSurvey = 'date_survey';
-        // if(substr($db, 6, 3) == 'tra' && substr($db, 10, 3) == 'via')
-        //     $dateSurvey = 'fechaservicio';
+
         $surveyName = substr($db, 10, 4);
         $dataT = DB::select("SELECT SUM(enviados) AS TOTAL 
                             FROM $this->_dbSelected.datasengrid_transvip 
                             WHERE tipo = 1 AND fechasend BETWEEN '$dateIni' AND '$dateEnd' and encuesta = '$surveyName'" );
-        // $dataT = DB::select("SELECT COUNT(*) AS TOTAL 
-        //                     FROM $this->_dbSelected.".$db."_start 
-        //                     WHERE mailsended = 1 AND fechacarga BETWEEN '$dateIni' AND '$dateEnd'" );
 
         if(substr($db, 10, 3) != 'via')    
         {
@@ -1169,7 +1164,7 @@ class Dashboard extends Generic
         $activeP2 = " AND etapaencuesta = 'P2' ";
         if(substr($table, 6, 3) == 'ban' || substr($table, 6, 3) == 'vid')
             $activeP2 ='';
-       // echo $filter;exit;
+
         // $dateSurvey = 'date_survey';
         // $groupBy = ' GROUP BY a.mes, a.annio ';
         // if(substr($table, 6, 3) == 'tra' && substr($table, 10, 3) == 'via')
@@ -1220,19 +1215,6 @@ class Dashboard extends Generic
           
             if(substr($table, 6, 7) == 'tra_via')
             {
-                // echo "SELECT count(*) as total, 
-                // ((count(if($indicador <= $this->_maxNps, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador !=99 THEN 1 END)) as detractor, 
-                // ((count(if($indicador = $this->_minMaxNps or  $indicador = $this->_maxMaxNps , $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)) as promotor,
-                // ((count(if($indicador =  $this->_maxMediumNps OR $indicador = $this->_minMediumNps, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)) as neutral,
-                // AVG($indicador) as promedio,
-                // ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
-                // COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) / 
-                // (COUNT(CASE WHEN $indicador != 99 THEN $indicador END)) * 100),1) AS NPS,  $this->_fieldSelectInQuery
-                // FROM $this->_dbSelected.$table as a
-                // LEFT JOIN $this->_dbSelected." . $table . "_start as b
-                // on a.token = b.token
-                // WHERE fechaservicio BETWEEN '$dateIni' AND '$dateEnd' $datafilters $activeP2
-                // ORDER BY MONTH(fechaservicio), YEAR(fechaservicio) ASC";
                 $data = DB::select("SELECT count(*) as total, 
                                 ((count(if($indicador <= $this->_maxNps, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador !=99 THEN 1 END)) as detractor, 
                                 ((count(if($indicador = $this->_minMaxNps or  $indicador = $this->_maxMaxNps , $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)) as promotor,
@@ -1657,7 +1639,7 @@ class Dashboard extends Generic
         if ($filter == 'all') {
             $table2 = $this->primaryTable($table);
             $indicador2 = $indicador;
-            //echo $datafilters; 
+
             $data = DB::select("SELECT SUM(total) AS total, SUM(csat) AS csat, $this->_fieldSelectInQuery
                                 FROM (  SELECT count(*) as total, date_survey, a.mes, a.annio,
                                 ((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN $indicador END)*100)/COUNT(CASE WHEN $indicador2 != 99 THEN $indicador2 END))*$this->_porcentageBan as csat, $this->_fieldSelectInQuery
@@ -3047,10 +3029,8 @@ class Dashboard extends Generic
                 if ($key == 0) {
                     $insPreviousPeriod = 0;
                 }
-                //echo 'Lun ' . date('m-d', strtotime($mondayWeek . "- $count week")) . ' (' . ($value->Total) . ')'; exit;
+               
                 $NpsInsTransvip[] = [
-                    //'xLegend'   => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Total) . ')' : 'Semana ' . $value->week . ' (' . ($value->Total) . ')',
-                    //'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Total) . ')' : 'Lun ' . date('m-d', strtotime($mondayWeek . "- $count week")) . ' (' . ($value->Total) . ')',
                     'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Total) . ')' : 'Lun ' . date('d',strtotime($value->mondayWeek)). '-' .date('m',strtotime($value->mondayWeek)) . ' (' . ($value->Total) . ')',
                     'values'    => [
                         "nps"           => Round($value->NPS),
@@ -3165,7 +3145,6 @@ class Dashboard extends Generic
         }
 
         foreach ($data as $key => $value) {
-            //echo ' pro '.round($value->promotor),' det '.round($value->detractor), ' neu '. (100-(round($value->promotor)+round($value->detractor)));
 
             $graphNPSBanVid[] = [
                 'xLegend'   => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
@@ -3676,7 +3655,6 @@ class Dashboard extends Generic
         ];
     }
 
-
     private function csatsDriversTransvip($db, $survey, $dateIni, $dateEnd, $datafilters)
     {
         if (substr($datafilters, 30, 3) == 'NOW') {
@@ -3809,7 +3787,6 @@ class Dashboard extends Generic
             ],
         ];
     }
-
 
     private function GraphCSATDrivers($db, $db2, $survey, $indicatorCSAT,  $dateEnd, $dateIni, $filter, $struct = 'two', $datafilters = null)
     {
@@ -5361,7 +5338,7 @@ class Dashboard extends Generic
         ];
     }
     
-     private function npsCsatbyIndicator($db,$endDate, $startDate, $indicatorBD, $indicatorName, $csat1, $csat2, $height, $filterClient){
+    private function npsCsatbyIndicator($db,$endDate, $startDate, $indicatorBD, $indicatorName, $csat1, $csat2, $height, $filterClient){
         $db2 = $this->primaryTable($db);
         if($filterClient != null){
             $queryBan = "SELECT  UPPER($indicatorBD) as $indicatorName,
@@ -5580,7 +5557,6 @@ class Dashboard extends Generic
         $sumCsat4 = 0;
         $countCsat4LY = 0;
         $sumCsat4LY = 0;
-        //}
         $numberToMonth = [
             1 => 'Ene',
             2 => 'Feb',
@@ -5627,6 +5603,7 @@ class Dashboard extends Generic
             ]
         ];
     }
+
     protected function ranking($db, $indicatordb, $indicator, $endDateFilterMonth, $startDateFilterMonth, $filterClient, $datafilters, $width){
         if ($datafilters)
             $datafilters = " AND $datafilters";            
@@ -5709,30 +5686,50 @@ class Dashboard extends Generic
                             order by total DESC
                             LIMIT 10 ";
 
-                $data = DB::select($dataTop);   
+                $data = DB::select($dataTop); 
+  
                 if($data){
-                    foreach ($data as $key => $value){
-                        $arrayTop[]= $value-> $indicator.' NPS->'.$value->NPS.'% '.'ISN->'.$value->ISN.'% ('. $value->total.')';   
+                    $pos = 1;
+                    foreach ($data as $key => $value) {
+                        $arrayTop[]= [
+                            'pos'   => $pos,
+                            'text'  => $value->CentroAtencion,
+                            'nps'   => $value->NPS . "%",
+                            'isn'   => $value->ISN . "%",
+                            'cant'  => $value-> total,
+                        ];
+                        $pos++;
                     }
-            }   
-            
-            return  [
-                "height" => 4,
-                "width" => $width,
-                "type" => "lists",
-                "props" => [
-                    "icon" => "arrow-right",
-                    "text" => "RANKING By Centro de atención",
-                    "lists" => [
-                                    [
-                                        "header" => "Top 10 ",
-                                        "color" => "#17C784",
-                                        "items" => $arrayTop,
-                                        "numbered" => true
-                                    ]
-                                ]
-                            ]
+                }   
+                $tableStruct = ["Posición", "Centro", "NPS", "ISN", "Cant. Resp."];
+                $tableKeys = ["pos", "text", "nps", "isn", "cant"];
+
+                for($i = 0; $i < count($tableStruct); $i++){
+                    $standarStruct[] =  [
+                        "text" => $tableStruct[$i],
+                        "key" => $tableKeys[$i],
+                        "cellColor" => "#17C784",
+                        "textAlign" => "left"
                     ];
+                }
+               
+                return [
+                    "height" =>  4,
+                    "width" =>  $width,
+                    "type" =>  "tables",
+                    "props" =>  [
+                        "icon" => "arrow-right",
+                        "text" => "RANKING By Centro de atención",
+                        "tables" => [
+                            [
+                                "title" => "Top Ten",
+                                "bgColor" => "#17C784",
+                                "columns" => $standarStruct,
+                                "values" => $arrayTop,
+                            ],
+                        ]
+                    ]
+                ];
             }
         }
 
@@ -5780,43 +5777,67 @@ class Dashboard extends Generic
                                 LIMIT 5";
         }
 
-       $dataTop = DB::select($querydataTop);
-       $dataBottom = DB::select($querydataBottom);
-       $arrayTop = [];
-       $arrayBottom = [];
+        $dataTop = DB::select($querydataTop);
+        $dataBottom = DB::select($querydataBottom);
+        $arrayTop = [];
+        $arrayBottom = [];
+        $pos = 1;
 
         if($dataTop){
-                foreach ($dataTop as $key => $value){
-                    $arrayTop[]= $value-> $indicator.' - '.$value->CNPS.'%';
-                }
-        }
-     
-        if ($dataBottom) {
-            foreach ($dataBottom as $key => $value) {
-                $arrayBottom[] = $value->$indicator . ' - ' . $value->CNPS . '%';
+            foreach ($dataTop as $key => $value) {
+                $arrayTop[]= [
+                    'pos'   => $pos,
+                    'text'  => $value->$indicator,
+                    'cnps'   => $value->CNPS . "%",
+                ];
+                $pos++;
             }
         }
 
-        return  [
-            "height" => 4,
-            "width" => $width,
-            "type" => "lists",
-            "props" => [
+        $pos = 0;
+        if ($dataBottom) {
+            foreach ($dataBottom as $key => $value) {
+                $arrayBottom[]= [
+                    'pos'   => $pos,
+                    'text'  => $value->$indicator,
+                    'cnps'   => $value->CNPS . "%",
+                ];
+                $pos++;
+            }
+        }
+
+        $tableStruct = ["Posición", $indicator, "CNPS"];
+        $tableKeys = ["pos", "text", "cnps"];
+
+        for($i = 0; $i < count($tableStruct); $i++){
+            $standarStruct[] =  [
+                "text" => $tableStruct[$i],
+                "key" => $tableKeys[$i],
+                "cellColor" => "#17C784",
+                "textAlign" => "left"
+            ];
+        }
+
+        return [
+            "height" =>  4,
+            "width" =>  $width,
+            "type" =>  "tables",
+            "props" =>  [
                 "icon" => "arrow-right",
                 "text" => "RANKING By $indicator",
-                "lists" => [
+                "tables" => [
                     [
-                        "header" => "Top Five ",
-                        "color" => "#17C784",
-                        "items" => $arrayTop,
-                        "numbered" => true
+                        "title" => "Top Five",
+                        "bgColor" => "#17C784",
+                        "columns" => $standarStruct,
+                        "values" => $arrayTop,
                     ],
                     [
-                        "header" => "Last Five",
-                        "color" => "#F07667",
-                        "items" => $arrayBottom,
-                        "numbered" => true
-                    ]
+                        "title" => "Last Five",
+                        "bgColor" => "#F07667",
+                        "columns" => $standarStruct,
+                        "values" => $arrayBottom,
+                    ],
                 ]
             ]
         ];
@@ -6199,7 +6220,7 @@ class Dashboard extends Generic
     }
 
     protected function structfilter($request, $fieldbd, $fieldurl, $where)
-    {
+    {   
         if ($request->get($fieldurl) === null)
             return '';
         if ($request->get($fieldurl)) {
@@ -6582,7 +6603,7 @@ class Dashboard extends Generic
                     //}
                 }
                 if ($this->_valueMaxAnomaliasText <= $value) {
-                    //echo 'hola';
+                    
                     //if(!in_array($group,$this->_anomaliasGain)){
                         //array_push($this->_anomaliasGain, $group);
                     //}
@@ -6678,6 +6699,7 @@ class Dashboard extends Generic
         }
 
         $datafilters = $this->infofilters($request);
+
         if ($request->filterWeeks !== null) {
             $interval = is_numeric($request->filterWeeks) ? $request->filterWeeks : 9;
             if ($datafilters != '') {
@@ -6946,7 +6968,7 @@ class Dashboard extends Generic
             $detailGender       = $this->detailsGender($db, $npsInDb, $csatInDb, $endDateFilterMonth, $startDateFilterMonth,  $filterClient, $datafilters, $indetifyClient);
             $detailGeneration   = $this->detailGeneration($db, $npsInDb, $csatInDb, $endDateFilterMonth, $startDateFilterMonth, $filterClient,  $datafilters, $indetifyClient);
             $datasStatsByTaps   = $this->statsByTaps($db, $db2, date('m'), date('Y'), $npsInDb, $csatInDb, $startDateFilterMonth, $endDateFilterMonth, $datafilters, $filterClient, $indetifyClient);
-            $wordCloud          = $this->wordCloud($request); //null; 
+            $wordCloud          = null; //$this->wordCloud($request); //null; 
             $detailsProcedencia = $super;
             $box14              = $venta;
             $box15              = $call;
@@ -7004,7 +7026,7 @@ class Dashboard extends Generic
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient, $request->survey, $db);
             $performance        = $this->cardsPerformace($dataNps, $dataIsnPerf, $dateEnd, $dateIni, $request->survey, $datafilters);
             $npsConsolidado     = $this->graphNpsIsn($dataisn, $this->ButFilterWeeks);
-            $npsVid             = $this->wordCloud($request);
+            $npsVid             = null; //$this->wordCloud($request);
             $csatJourney        = $this->CSATJourney($graphCSATDrivers);
             $csatDrivers        = $graphClTra;
             $cx                 = $graphCbiResp;
