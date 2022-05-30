@@ -943,7 +943,8 @@ class DashboardMutual extends Dashboard
 
         if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img'|| $dbC == 'con') {
             if(isset($jwt[env('AUTH0_AUD')]->zona)){
-                $ZonaHos = ['filter' => 'Zona', 'datas' => ''];
+                //$ZonaHos = ['filter' => 'Zona', 'datas' => ''];
+                $ZonaHos = null;
             }
 
             if(empty($jwt[env('AUTH0_AUD')]->zona)){
@@ -1095,6 +1096,14 @@ class DashboardMutual extends Dashboard
         return [
             'name'      => 'CONSOLIDADO',
             'base'      => 'mutcon',
+            'customer'  => 'MUT001',
+        ];
+    }
+
+    private function consolidateMutualPeso(){
+        return [
+            'name'      => 'CONSOLIDADO',
+            'base'      => 'mutcop',
             'customer'  => 'MUT001',
         ];
     }
