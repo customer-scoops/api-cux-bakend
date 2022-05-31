@@ -1309,10 +1309,6 @@ class Dashboard extends Generic
     {
         $graphNPS  = [];
 
-        if(substr($table, 6, 3) == 'mut'){
-            return $graphNPS;
-        }
-
         $activeP2 = " AND etapaencuesta = 'P2' ";
         if(substr($table, 6, 3) == 'ban' || substr($table, 6, 3) == 'vid')
             $activeP2 ='';
