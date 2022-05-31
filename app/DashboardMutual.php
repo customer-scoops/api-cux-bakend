@@ -39,7 +39,7 @@ class DashboardMutual extends Dashboard
                     array_push($surveys['datas'], $this->consolidateMutual());
                 }
             }
-            
+
             foreach ($surveys['datas'] as $key => $value) {
                 if ($value['base'] != 'mutredsms'){
                     $this->surveyFilterZona($value['base'], $jwt, $request);
@@ -55,7 +55,7 @@ class DashboardMutual extends Dashboard
                         "title"                 => ucwords(strtolower($value['name'])),
                         "identifier"            => $value['base'],
                         "principalIndicator"    => $infoNps,
-                        "journeyMap"            => $this->GraphCSATDriversMutual($db,$value['base'],date('Y-m-d'),date('Y-m-01'),$this->getInitialFilter(),$struct = 'one'),
+                        "journeyMap"            => $value['base'] == 'mutcon' || $value['base'] == 'mutcop'? null : $this->GraphCSATDriversMutual($db,$value['base'],date('Y-m-d'),date('Y-m-01'),$this->getInitialFilter(),$struct = 'one'),
                         "otherGraphs"           => $otherGraph
                     ];
                 }
@@ -65,6 +65,7 @@ class DashboardMutual extends Dashboard
             'datas'     => $data,
             'status'    => Response::HTTP_OK
         ];
+        unset($c);
     }
 
     private function whereConsolidado($base,$jwt){
@@ -1282,7 +1283,6 @@ class DashboardMutual extends Dashboard
                 $nameCsat3 = "Claridad información entregada";
                 $nameCsat4 = "Resolución problema salud";
                 $nameCsat5 = "Instalaciones y quipamiento para atención";
-
             }
 
             if ($db == 'adata_mut_img'){
@@ -1291,31 +1291,18 @@ class DashboardMutual extends Dashboard
                 $nameCsat5 = "Claridad información entregada";
             }
 
-            //$dataCes              = $this->ces($db,$dateIni, $dateEndIndicatorPrincipal, 'ces', $datafilters);
-            //if(substr($request->survey, 3, 3) != 'con' || substr($request->survey, 3, 3) != 'cop'){
+            if(substr($request->survey, 3, 3) != 'con' && substr($request->survey, 3, 3) != 'cop'){
                 $dataCsat1Graph       = $this->graphCsatMutual($db, 'csat1', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
                 $dataCsat2Graph       = $this->graphCsatMutual($db, 'csat2', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
                 $dataCsat3Graph       = $this->graphCsatMutual($db, 'csat3', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
                 $dataCsat4Graph       = $this->graphCsatMutual($db, 'csat4', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
-                $dataCsat5Graph       = substr($request->survey, 3, 3) != 'red'? $this->graphCsatMutual($db, 'csat5', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group) : null;;
-                $dataIsn              = $this->graphCsatMutual($db, 'csat', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
-                $dataIsnP             = $this->graphInsMutual($db, 'csat',  $endDateFilterMonth, $startDateFilterMonth, 'all',  $datafilters);
+                $dataCsat5Graph       = substr($request->survey, 3, 3) != 'red'? $this->graphCsatMutual($db, 'csat5', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group) : null;
                 $graphCSATDrivers     = $this->GraphCSATDriversMutual($db, trim($request->survey),  $endDateFilterMonth, $startDateFilterMonth, 'one', 'two', $datafilters);
-            //}
+            }
 
-            // if(substr($request->survey, 3, 3) != 'con' || substr($request->survey, 3, 3) != 'cop'){
-            //     $dataCsat1Graph = null;
-            //     $dataCsat2Graph = null;
-            //     $dataCsat3Graph = null;
-            //     $dataCsat4Graph = null;
-            //     $dataCsat5Graph = null;
-            //     $dataIsn = null;
-            //     $dataIsnP = null;
-            //     $graphCSATDrivers = null;
-
-            // }
+            $dataIsn     = $this->graphCsatMutual($db, 'csat', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
+            $dataIsnP    = $this->graphInsMutual($db, 'csat',  $endDateFilterMonth, $startDateFilterMonth, 'all',  $datafilters);
             $dataNPSGraph         = $this->graphNps($db, 'nps', $dateIni, '2022-04-18', 'one', 'two', $datafilters, $group);
-            
             
             $datasStatsByTaps     = null;
 
@@ -1333,7 +1320,8 @@ class DashboardMutual extends Dashboard
 
             if ($db == 'adata_mut_reh' || $db == 'adata_mut_amb' || $db == 'adata_mut_urg') {
                 $rankingSuc = $this->ranking($db, 'catencion', 'CentroAtencion', $endDateFilterMonth, $startDateFilterMonth, 'one',$datafilters, 6);
-            } 
+            }
+            
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient,$request->survey, $db);
             $performance        = $this->cardsPerformace($dataNps, $dataIsnP , $dateEnd, $dateIni, $request->survey, $datafilters);
             $npsConsolidado     = $this->cardCsatDriversMutual('ISN', $name, $dataIsn , $this->ButFilterWeeks, 12, 4);

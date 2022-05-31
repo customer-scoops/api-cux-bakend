@@ -4409,6 +4409,9 @@ class Dashboard extends Generic
         if($name== 'mutcon'){
             return 'Consolidado';
         }
+        if($name== 'mutcop'){
+            return 'Consolidado';
+        }
 
         $data = DB::select("SELECT nomSurvey FROM $this->_dbSelected.survey WHERE codDbase = '$name'");
         return $data[0]->nomSurvey;
