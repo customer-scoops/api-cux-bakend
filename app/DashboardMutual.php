@@ -1188,9 +1188,9 @@ class DashboardMutual extends Dashboard
                 }
         }
 
-        if($jwt[env('AUTH0_AUD')]->closedLoop == true){
-            $closedMutual = true;
-        }
+        // if($jwt[env('AUTH0_AUD')]->closedLoop == true){
+        //     $closedMutual = true;
+        // }
 
         if ($request->survey === null) {
             return [
