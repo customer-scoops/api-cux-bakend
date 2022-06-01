@@ -5777,7 +5777,7 @@ class Dashboard extends Generic
             }
         }
 
-        $pos = 0;
+        $pos = 1;
         if ($dataBottom) {
             foreach ($dataBottom as $key => $value) {
                 $arrayBottom[]= [
