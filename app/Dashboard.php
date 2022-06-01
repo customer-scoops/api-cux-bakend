@@ -2801,7 +2801,7 @@ class Dashboard extends Generic
     }
 
 
-    private function globales($db, $mes, $annio, $indicatorBD, $indicatorName, $indic1, $indic2, $height, $datafilters)
+    private function globales($db, $dateIni, $dateEnd, $indicatorBD, $indicatorName, $indic1, $indic2, $height, $datafilters)
     {
         if (substr($datafilters, 30, 3) == 'NOW') {
             $datafilters = '';
@@ -2821,7 +2821,7 @@ class Dashboard extends Generic
                     FROM $this->_dbSelected.$db as a
                     left join $this->_dbSelected." . $db . "_start as b
                     on a.token = b.token 
-                    where a.mes = '$mes' and a.annio = '$annio' and b.$indicatorBD != ''  $datafilters
+                    where datesurvey BETWEEN '$dateEnd' and '$dateIni' and b.$indicatorBD != ''  $datafilters
                     GROUP by $indicatorName
                     order by $indicatorName";
         }
@@ -2832,18 +2832,19 @@ class Dashboard extends Generic
             if($indicatorName == 'Reserva'){
                 $group = 'b.'.$indicatorBD;
             }
+
             $queryTra = "SELECT DISTINCT(b.$indicatorBD) as $indicatorName, 
-                    count(case when nps != 99 then 1 end) as Total, 
-                    round(((count(case when csat between 6 and 7 then 1 end) - count(case when csat between 1 and 5 then 1 end))*100)/count(case when csat != 99 then 1 end)) as $indic2,
-                    round((count(case when nps = 9 OR nps =10 then 1 end)-count(case when nps between  0 and  6 then 1 end)) / count(case when nps != 99 then 1 end) *100) as nps,
-                    count(case when $indic1 between 4 and 5 then 1 end)*100/count(case when $indic1 != 99 then 1 end) as $indic1,
-                    MONTH(fechaservicio) as mes, YEAR(fechaservicio) as annio
-                    FROM $this->_dbSelected.$db as a
-                    left join $this->_dbSelected." . $db . "_start as b
-                    on a.token = b.token 
-                    where  MONTH(fechaservicio) = '$mes' and YEAR(fechaservicio) = '$annio' and b.$indicatorBD != '' and etapaencuesta = 'P2' $datafilters
-                    GROUP by $group
-                    order by $indicatorName";
+                         count(case when nps != 99 then 1 end) as Total, 
+                         round(((count(case when csat between 6 and 7 then 1 end) - count(case when csat between 1 and 5 then 1 end))*100)/count(case when csat != 99 then 1 end)) as $indic2,
+                         round((count(case when nps = 9 OR nps =10 then 1 end)-count(case when nps between  0 and  6 then 1 end)) / count(case when nps != 99 then 1 end) *100) as nps,
+                         count(case when $indic1 between 4 and 5 then 1 end)*100/count(case when $indic1 != 99 then 1 end) as $indic1,
+                         MONTH(fechaservicio) as mes, YEAR(fechaservicio) as annio
+                         FROM $this->_dbSelected.$db as a
+                         left join $this->_dbSelected." . $db . "_start as b
+                         on a.token = b.token 
+                         where fechaservicio BETWEEN '$dateEnd' and '$dateIni' and b.$indicatorBD != '' and etapaencuesta = 'P2' $datafilters
+                         GROUP by $group
+                         order by $indicatorName";
         }
 
         $data = DB::select($queryTra);
@@ -3010,6 +3011,7 @@ class Dashboard extends Generic
     
             if ($group == null) {
                 $where = " fechaservicio BETWEEN '$dateEnd' AND '$dateIni' ";
+                $group = " MONTH(fechaservicio), YEAR(fechaservicio) ";
                 if (substr($datafilters, 30, 3) == 'NOW') {
                     $datafilters = '';
                 }
@@ -3023,7 +3025,7 @@ class Dashboard extends Generic
                                 left join $this->_dbSelected." . $table . "_start as b
                                 on a.token = b.token
                                 where $where $activeP2 $datafilters
-                                GROUP BY MONTH(fechaservicio), YEAR(fechaservicio)
+                                GROUP BY $group
                                 ORDER by fechaservicio ASC"); 
         }
 
@@ -7011,14 +7013,14 @@ class Dashboard extends Generic
                 $tiempoAeropuerto   = $this->NpsIsnTransvip($db, $dateIni,$dateEnd, $npsInDb, 'csat6', $datafilters, null);
                 $tiempoLlegadaAnden = $this->NpsIsnTransvip($db, $dateIni, $dateEnd, $npsInDb, 'csat5', $datafilters, null);
                 $graphIsnResp       = $this->graphINS($tiempoVehiculo, $coordAnden, $tiempoAeropuerto, $tiempoLlegadaAnden);
-                $globalSentido      = $this->globales($db, date('m'), date('Y'), 'sentido', 'Sentido', 'cbi', 'ins', 4, $datafilters);
+                $globalSentido      = $this->globales($db, $dateIni, $dateEnd, 'sentido', 'Sentido', 'cbi', 'ins', 4, $datafilters);
                 $dataCL             = $this->closedloopTransvip($datafilters, $dateIni, $dateEnd, $request->survey);
                 $graphClTra         = $this->graphCLTransvip($dataCL);
-                $globalesVehi       = $this->globales($db, date('m'), date('Y'), 'tiposervicio', 'Vehículo', 'cbi', 'ins', 4, $datafilters);
-                $globalesSuc        = $this->globales($db, date('m'), date('Y'), 'sucursal', 'Sucursal', 'cbi', 'ins', 4, $datafilters);
-                $globalesServ       = $this->globales($db, date('m'), date('Y'), 'condicionservicio', 'Servicio', 'cbi', 'ins', 4, $datafilters);
-                $globalesCliente    = $this->globales($db, date('m'), date('Y'), 'tipocliente', 'Cliente', 'cbi', 'ins', 4, $datafilters);
-                $globalesReserva    = $this->globales($db, date('m'), date('Y'), 'tipoReserva', 'Reserva', 'cbi', 'ins', 4, $datafilters);
+                $globalesVehi       = $this->globales($db, $dateIni, $dateEnd, 'tiposervicio', 'Vehículo', 'cbi', 'ins', 4, $datafilters);
+                $globalesSuc        = $this->globales($db, $dateIni, $dateEnd, 'sucursal', 'Sucursal', 'cbi', 'ins', 4, $datafilters);
+                $globalesServ       = $this->globales($db, $dateIni, $dateEnd, 'condicionservicio', 'Servicio', 'cbi', 'ins', 4, $datafilters);
+                $globalesCliente    = $this->globales($db, $dateIni, $dateEnd, 'tipocliente', 'Cliente', 'cbi', 'ins', 4, $datafilters);
+                $globalesReserva    = $this->globales($db, $dateIni, $dateEnd, 'tipoReserva', 'Reserva', 'cbi', 'ins', 4, $datafilters);
                 $rankingConvenio    = $this->ranking($db, 'convenio', 'Convenio', $endDateFilterMonth, $startDateFilterMonth, $filterClient,$datafilters, 6, 5);
             }
 
