@@ -159,58 +159,48 @@ class PeriodCompare
             $fieldBd = $dash->getFielInDbCsat($survey);
             $query = "";
 
-            if(substr($db, 6, 7) != 'tra_via')
+            if(substr($db, 6, 7) != 'jet_via' && substr($db, 6, 7) != 'tra_via')
             {
-                if(substr($db, 6, 7) != 'jet_via'){
-                    for ($i=1; $i <= $endCsat; $i++) 
-                    {
-                        if($i != $endCsat)
-                        {
-                            $query .= " (COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL))-count(if($fieldBd$i <=  $maxCsat, $fieldBd$i, NULL)))* 100/COUNT(if($fieldBd$i !=99,1,NULL )) AS csat$i, 
-                                        (count(if($fieldBd$i <= $maxCsat, csat$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )) as detractor$i, 
-                                        (count(if($fieldBd$i > $maxMediumCsat AND $fieldBd$i <= $maxMaxCsat, $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )) as promotor$i, 
-                                        (count(if($fieldBd$i <= $maxMediumCsat AND csat$i >= $minMediumCsat, $fieldBd$i, NULL))*100)/COUNT(if($fieldBd$i !=99,1,NULL)) as neutral$i,";
-                        }
-                        
-                        if($i == $endCsat)
-                        {
-                            $query .= " (COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL))-count(if($fieldBd$i <=  $maxCsat, $fieldBd$i, NULL)))* 100/COUNT(if($fieldBd$i !=99,1,NULL )) AS csat$i, 
-                                        (count(if($fieldBd$i <=  $maxCsat, $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )) as detractor$i, 
-                                        (count(if($fieldBd$i > $maxMediumCsat AND $fieldBd$i <= $maxMaxCsat, $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )) as promotor$i, 
-                                        (count(if($fieldBd$i <= $maxMediumCsat AND $fieldBd$i >= $minMediumCsat, $fieldBd$i, NULL))*100)/COUNT(if($fieldBd$i !=99,1,NULL )) as neutral$i ";
-                        }
-                    }
-                }
-
-            
-
-                if(substr($db, 6, 7) == 'jet_via')
+                for ($i=1; $i <= $endCsat; $i++) 
                 {
-                    for ($i=1; $i <= $endCsat; $i++) 
+                    if($i != $endCsat)
                     {
-                        if ($i != $endCsat) 
-                        {
-                            $query .= " ROUND((COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL ))) AS  $fieldBd$i, 
-                                        ROUND(((count(if(csat$i between $minCsat and $maxCsat,  $fieldBd$i, NULL))*100)/count(case when csat$i != 99 THEN  csat$i END))) as detractor$i, 
-                                        ROUND(((count(if(csat$i  = $minMaxCsat  OR csat$i = $maxMaxCsat,  $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )))) as promotor$i, 
-                                        ROUND(((count(if(csat$i = $maxMediumCsat  or csat$i = $minMediumCsat,  $fieldBd$i, NULL))*100)/count(case when  $fieldBd$i != 99 THEN   $fieldBd$i END))) as neutral$i,";
-                        }
-
-                        if ($i == $endCsat) 
-                        {
-                            $query .= " ROUND((COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL ))) AS  $fieldBd$i, 
-                                        ROUND(((count(if(csat$i between $minCsat and $maxCsat,  $fieldBd$i, NULL))*100)/count(case when csat$i != 99 THEN  csat$i END))) as detractor$i, 
-                                        ROUND(((count(if(csat$i  = $minMaxCsat  OR csat$i = $maxMaxCsat,  $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )))) as promotor$i, 
-                                        ROUND(((count(if(csat$i = $maxMediumCsat  or csat$i = $minMediumCsat,  $fieldBd$i, NULL))*100)/count(case when  $fieldBd$i != 99 THEN  $fieldBd$i END))) as neutral$i ";
-                        }
+                        $query .= " (COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL))-count(if($fieldBd$i <=  $maxCsat, $fieldBd$i, NULL)))* 100/COUNT(if($fieldBd$i !=99,1,NULL )) AS csat$i, 
+                                    (count(if($fieldBd$i <= $maxCsat, csat$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )) as detractor$i, 
+                                    (count(if($fieldBd$i > $maxMediumCsat AND $fieldBd$i <= $maxMaxCsat, $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )) as promotor$i, 
+                                    (count(if($fieldBd$i <= $maxMediumCsat AND csat$i >= $minMediumCsat, $fieldBd$i, NULL))*100)/COUNT(if($fieldBd$i !=99,1,NULL)) as neutral$i,";
+                    }
+                    
+                    if($i == $endCsat)
+                    {
+                        $query .= " (COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL))-count(if($fieldBd$i <=  $maxCsat, $fieldBd$i, NULL)))* 100/COUNT(if($fieldBd$i !=99,1,NULL )) AS csat$i, 
+                                    (count(if($fieldBd$i <=  $maxCsat, $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )) as detractor$i, 
+                                    (count(if($fieldBd$i > $maxMediumCsat AND $fieldBd$i <= $maxMaxCsat, $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )) as promotor$i, 
+                                    (count(if($fieldBd$i <= $maxMediumCsat AND $fieldBd$i >= $minMediumCsat, $fieldBd$i, NULL))*100)/COUNT(if($fieldBd$i !=99,1,NULL )) as neutral$i ";
                     }
                 }
+            }
 
-                $data = DB::select("SELECT $query,date_survey, mes,  WEEK(date_survey) AS week
-                                    FROM $dbSelected.$db 
-                                    WHERE $where AND etapaencuesta = 'P2' 
-                                    GROUP BY $group
-                                    ORDER BY date_survey");
+            if(substr($db, 6, 7) == 'jet_via')
+            {
+                for ($i=1; $i <= $endCsat; $i++) 
+                {
+                    if ($i != $endCsat) 
+                    {
+                        $query .= " ROUND((COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL ))) AS  $fieldBd$i, 
+                                    ROUND(((count(if(csat$i between $minCsat and $maxCsat,  $fieldBd$i, NULL))*100)/count(case when csat$i != 99 THEN  csat$i END))) as detractor$i, 
+                                    ROUND(((count(if(csat$i  = $minMaxCsat  OR csat$i = $maxMaxCsat,  $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )))) as promotor$i, 
+                                    ROUND(((count(if(csat$i = $maxMediumCsat  or csat$i = $minMediumCsat,  $fieldBd$i, NULL))*100)/count(case when  $fieldBd$i != 99 THEN   $fieldBd$i END))) as neutral$i,";
+                    }
+
+                    if ($i == $endCsat) 
+                    {
+                        $query .= " ROUND((COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL ))) AS  $fieldBd$i, 
+                                    ROUND(((count(if(csat$i between $minCsat and $maxCsat,  $fieldBd$i, NULL))*100)/count(case when csat$i != 99 THEN  csat$i END))) as detractor$i, 
+                                    ROUND(((count(if(csat$i  = $minMaxCsat  OR csat$i = $maxMaxCsat,  $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )))) as promotor$i, 
+                                    ROUND(((count(if(csat$i = $maxMediumCsat  or csat$i = $minMediumCsat,  $fieldBd$i, NULL))*100)/count(case when  $fieldBd$i != 99 THEN  $fieldBd$i END))) as neutral$i ";
+                    }
+                }
             }
 
             if(substr($db, 6, 7) == 'tra_via')
@@ -219,10 +209,12 @@ class PeriodCompare
 
                 if($request->filterWeeks !== null ){
                     $interval = is_numeric($request->filterWeeks)? $request->filterWeeks : 10;
+                    //if($datafilters !== null){
                         $where= ' fechaservicio between date_sub(NOW(), interval 10 week) and NOW() ';
                         $group = " week ";
                         $current = 2;
                         $but = ["text"=>"Semanal", "key"=>"filterWeeks", "value"=>"10"];
+                    //}
                 }
                 
 
@@ -238,15 +230,15 @@ class PeriodCompare
                         $query .= " ROUND((COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL ))) AS  $fieldBd$i ";
                     }
                 }
+            }
 
-                $data = DB::select("SELECT $query, fechaservicio, MONTH(fechaservicio) as mes,  WEEK(fechaservicio) AS week
+            $data = DB::select("SELECT $query, fechaservicio, MONTH(fechaservicio) as mes,  WEEK(fechaservicio) AS week
                                 FROM $dbSelected.$db as a
                                 LEFT JOIN  $dbSelected." . $db . "_start as b
                                 on a.token = b.token
                                 WHERE $where AND etapaencuesta = 'P2' 
                                 GROUP BY $group
                                 ORDER BY fechaservicio");
-            }
         }
 
         
