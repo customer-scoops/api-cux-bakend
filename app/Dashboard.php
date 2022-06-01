@@ -634,7 +634,6 @@ class Dashboard extends Generic
         $otherGraph = [];
         if ($surveys['status'] == 200) {
             foreach ($surveys['datas'] as $key => $value) {
-                if ($value['base'] != 'mutred'){
                     $db = 'adata_'.substr($value['base'],0,3).'_'.substr($value['base'],3,6);
                     $db2 = $this->primaryTable($db);
                     $npsInDb = 'nps';
@@ -675,8 +674,6 @@ class Dashboard extends Generic
                             "journeyMap"    => $this->GraphCSATDrivers($db,$db2,$value['base'],$csatInDb,date('Y-m-d'),date('Y-m-01'),$this->_initialFilter,'one'),
                             "otherGraphs"   => $otherGraph
                         ];
-                    
-                }
             }
         }
         return [
@@ -981,7 +978,8 @@ class Dashboard extends Generic
         }
 
         if ($this->_dbSelected == 'customer_banmedica') {
-            $data = DB::select("SELECT SUM(NPS) AS NPS FROM (SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
+            $data = DB::select("SELECT SUM(NPS) AS NPS FROM 
+            (SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
                     COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
                     (COUNT(CASE WHEN $indicador != 99 THEN $indicador END)) * 100),1)*$this->_porcentageBan AS NPS
                     FROM $this->_dbSelected.$table as a
@@ -1619,7 +1617,6 @@ class Dashboard extends Generic
         };
 
         if ($filter != 'all') {
-            if (substr($table, 6, 3) != 'mut') {
                 $data = DB::select("SELECT count(*) as total,
                                     ((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN $indicador END)*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as csat, 
                                     $this->_fieldSelectInQuery
@@ -1627,8 +1624,6 @@ class Dashboard extends Generic
                                     INNER JOIN $this->_dbSelected." . $table . "_start as b  ON a.token  =  b.token 
                                          WHERE " . $dateSurvey . " BETWEEN '$dateEnd' AND '$dateIni'  $activeP2 $datafilters
                                          " . $groupBy);
-     
-            }
         }
 
         if ($filter == 'all') {
@@ -6557,15 +6552,15 @@ class Dashboard extends Generic
     {
             if ($this->_valueAnomaliasPorcentajeText < $cant) {
                 if ($this->_valueMinAnomaliasText >= $value) {
-                    //if(!in_array($group,$this->_anomaliasPain)){
-                       // array_push($this->_anomaliasPain, $group);
-                    //}
+                    if(!in_array($group,$this->_anomaliasPain)){
+                       array_push($this->_anomaliasPain, $group);
+                    }
                 }
                 if ($this->_valueMaxAnomaliasText <= $value) {
                     //echo 'hola';
-                    //if(!in_array($group,$this->_anomaliasGain)){
-                        //array_push($this->_anomaliasGain, $group);
-                    //}
+                    if(!in_array($group,$this->_anomaliasGain)){
+                        array_push($this->_anomaliasGain, $group);
+                    }
                 }
             }    
     }
@@ -7125,7 +7120,6 @@ class Dashboard extends Generic
             $this->_maxMaxCsat          = 7;
             $this->_obsNps              = 'obs_csat';
             $this->_imageClient         = 'https://customerscoops.com/assets/companies-images/mutual_logo.png';
-            //$this->_nameClient          = 'Mutual';
             $this->ButFilterWeeks       = [["text" => "Anual", "key" => "filterWeeks", "value" => ""], ["text" => "Semanal", "key" => "filterWeeks", "value" => "10"]];
             $this->_minCes              = 1;
             $this->_maxCes              = 4;
@@ -7221,5 +7215,4 @@ class Dashboard extends Generic
     {
         $this->_nameClient = $value;
     }
-
 }

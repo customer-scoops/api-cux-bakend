@@ -9,6 +9,7 @@ class DashboardMutual extends Dashboard
 {
     private $filterZona = '';
     private $filterCentro = '';
+    private $filterGerencia = '';
     private $whereCons = '';
     private $_activeSurvey = 'mutamb';
     private $_suveysConsolidado = ['mutamb', 'muthos', 'muturg', 'mutreh', 'mutimg'];
@@ -44,20 +45,33 @@ class DashboardMutual extends Dashboard
                 if ($value['base'] != 'mutredsms'){
                     $this->surveyFilterZona($value['base'], $jwt, $request);
                     $this->surveyFilterCentro($value['base'], $jwt, $request);
+                    $this->surveyFilterGerencia($value['base'], $jwt, $request);
                     $this->whereConsolidado($value['base'],$jwt);
-                    
+                   // echo $value['base'].'---';
                     $db         = 'adata_'.substr($value['base'],0,3).'_'.substr($value['base'],3,6);
                     $infoNps    = [$this->infoNpsMutual($db, date('Y-m-d'),date('Y-m-01'),'nps',null,$this->getInitialFilter(), '')]; 
                     $otherGraph = [$this->infoISNMutual($db, date('Y-m-d'),date('Y-m-01'), 'csat',$this->getInitialFilter())];
-                      
-                    $data[] = [
-                        "client"                => $this->setNameClient('_nameClient'), 'clients'  => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
-                        "title"                 => ucwords(strtolower($value['name'])),
-                        "identifier"            => $value['base'],
-                        "principalIndicator"    => $infoNps,
-                        "journeyMap"            => $value['base'] == 'mutcon' || $value['base'] == 'mutcop'? null : $this->GraphCSATDriversMutual($db,$value['base'],date('Y-m-d'),date('Y-m-01'),$this->getInitialFilter(),$struct = 'one'),
-                        "otherGraphs"           => $otherGraph
-                    ];
+                    
+                    if($value['base'] == 'mutcon' || $value['base'] == 'mutcop'){
+                        $data[] = [
+                            "client"                => $this->setNameClient('_nameClient'), 'clients'  => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
+                            "title"                 => ucwords(strtolower($value['name'])),
+                            "identifier"            => $value['base'],
+                            "principalIndicator"    => $infoNps,
+                            "otherGraphs"           => $otherGraph
+                        ];
+                    }
+
+                    if($value['base'] != 'mutcon' && $value['base'] != 'mutcop'){
+                        $data[] = [
+                            "client"                => $this->setNameClient('_nameClient'), 'clients'  => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
+                            "title"                 => ucwords(strtolower($value['name'])),
+                            "identifier"            => $value['base'],
+                            "principalIndicator"    => $infoNps,
+                            "journeyMap"            => $this->GraphCSATDriversMutual($db,$value['base'],date('Y-m-d'),date('Y-m-01'),$this->getInitialFilter(),$struct = 'one'),
+                            "otherGraphs"           => $otherGraph
+                        ];
+                    }
                 }
             }
         }
@@ -105,6 +119,7 @@ class DashboardMutual extends Dashboard
     {
         $this->surveyFilterZona($request->get('survey'), $jwt, $request);
         $this->surveyFilterCentro($request->get('survey'), $jwt, $request);
+        $this->surveyFilterGerencia($request->get('survey'), $jwt, $request);
         $this->whereConsolidado($request->get('survey'),$jwt);
         if ($request->get('survey') != 'mutredsms'){
                     
@@ -134,7 +149,7 @@ class DashboardMutual extends Dashboard
                                 FROM ".$this->getValueParams('_dbSelected').".$db as A 
                                 INNER JOIN ".$this->getValueParams('_dbSelected')."." . $db . "_start as B ON (A.token = B.token) 
                                 WHERE B.fechacarga BETWEEN '$dateIni' AND '$dateEnd' AND $fieldInBd IN (0,1,2,3,4,5,6) AND  
-                                ".$this->getValueParams('_obsNps')." != '' $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ");                 
+                                ".$this->getValueParams('_obsNps')." != '' $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia." ");                 
         }
        
         $closedRate = 0;
@@ -173,7 +188,7 @@ class DashboardMutual extends Dashboard
                             left join ".$this->getValueParams('_dbSelected')."." . $db . "_start as b
                             on a.token = b.token
                             WHERE mailsended = 1 AND fechacarga BETWEEN '$dateIni' AND '$dateEnd' ".$this->filterZona." 
-                            ". $this->filterCentro." ".$this->whereCons ."  " );
+                            ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia." " );
 
         $EmailSend = $data[0]->TOTAL;
 
@@ -182,7 +197,7 @@ class DashboardMutual extends Dashboard
                             left join ".$this->getValueParams('_dbSelected')."." . $db . "_start as b
                              on a.token = b.token
                             WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' and nps!= 99 $activeP2  ".$this->filterZona." 
-                            ". $this->filterCentro." ".$this->whereCons ."");
+                            ". $this->filterCentro." ".$this->whereCons ."  ".$this->filterGerencia." ");
 
         $EmailRESP = $data2[0]->RESP;
         return [
@@ -230,7 +245,8 @@ class DashboardMutual extends Dashboard
                                     a.mes, a.annio, date_survey, ".$this->getValueParams('_fieldSelectInQuery')." 
                                     FROM ".$this->getValueParams('_dbSelected').".$table as a
                                     INNER JOIN ".$this->getValueParams('_dbSelected')."." . $table . "_start as b on a.token = b. token 
-                                    WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND etapaencuesta = 'P2' $datafilters  ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ."
+                                    WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND etapaencuesta = 'P2' $datafilters  ".$this->filterZona." ". $this->filterCentro." 
+                                    ".$this->whereCons ." ".$this->filterGerencia."
                                     GROUP BY a.mes, a.annio
                                     ORDER BY date_survey asc"); 
             }
@@ -265,7 +281,7 @@ class DashboardMutual extends Dashboard
                             ".$this->getValueParams('_fieldSelectInQuery')."
                             FROM ".$this->getValueParams('_dbSelected').".$table as a
                             INNER JOIN ".$this->getValueParams('_dbSelected')."." . $table . "_start as b ON a.token = b.token
-                            WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and etapaencuesta = 'P2'  ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ."");
+                            WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and etapaencuesta = 'P2'  ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia." ");
 
         $isnPreviousPeriod = $this->isnPreviousPeriod($table,$dateIni, $dateEnd, $indicador, $filter,  $datafilters);
 
@@ -305,10 +321,10 @@ class DashboardMutual extends Dashboard
         FROM ".$this->getValueParams('_dbSelected').".$table as a
         LEFT JOIN ".$this->getValueParams('_dbSelected')."." . $table . "_start as b
         on a.token = b.token
-        WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'  $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ."
+        WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'  $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
         GROUP BY a.mes, a.annio
         ORDER BY date_survey ASC";
-        //echo $query;
+        echo $query;
         $data = DB::select($query);
 
         return $data;
@@ -338,7 +354,7 @@ class DashboardMutual extends Dashboard
                                     FROM ".$this->getValueParams('_dbSelected').".$table as a
                                     LEFT JOIN ".$this->getValueParams('_dbSelected')."." . $table . "_start as b
                                     on a.token = b.token
-                                    WHERE a.mes = $mes AND a.annio = $annio AND etapaencuesta = 'P2'  ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ");
+                                    WHERE a.mes = $mes AND a.annio = $annio AND etapaencuesta = 'P2'  ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."");
         }
 
         return $data[0]->isn;
@@ -423,7 +439,7 @@ class DashboardMutual extends Dashboard
                                 a.mes, a.annio, WEEK(date_survey) AS week, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek,".$this->getValueParams('_fieldSelectInQuery')."  
                                 FROM ".$this->getValueParams('_dbSelected').".$table as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected').".".$table."_start as b ON a.token = b.token 
-                                WHERE  $where  $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ."
+                                WHERE  $where  $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
                                 GROUP BY $group2
                                 ORDER BY date_survey ASC");               
         }
@@ -502,7 +518,7 @@ class DashboardMutual extends Dashboard
                                 COUNT(CASE WHEN nps != 99 THEN 1 END) * 100),1) AS NPS, a.mes as mes, a.annio
                                 FROM ".$this->getValueParams('_dbSelected').".$table as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected').".".$table."_start as b ON a.token = b.token 
-                                WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' ". $this->filterZona." ". $this->filterCentro." ".$this->whereCons ."
+                                WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' ". $this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
                                 group by a.annio, a.mes) as a");
         }
         if($data[0]->meses == '0')
@@ -536,9 +552,13 @@ class DashboardMutual extends Dashboard
                             FROM ".$this->getValueParams('_dbSelected').".$table as a
                             left join ".$this->getValueParams('_dbSelected').".".$table."_start as b
                             on a.token = b.token
-                            WHERE a.mes = $mes and a.annio = $annio $datafilters ". $this->filterZona." ". $this->filterCentro." ".$this->whereCons ."");
+                            WHERE a.mes = $mes and a.annio = $annio $datafilters ". $this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia." ");
 
         return $data[0]->NPS;
+    }
+
+    private function surveysConsolidado(){
+        return  ['mutcon','mutamb','muturg','mutimg','mutreh','muthos', 'mutcop'];
     }
 
     private function surveyFilterZona($survey, $jwt, $request){
@@ -557,10 +577,6 @@ class DashboardMutual extends Dashboard
         if(isset($jwt[env('AUTH0_AUD')]->zona))
             return $jwt[env('AUTH0_AUD')]->zona;
     } 
-
-    private function surveysConsolidado(){
-        return  ['mutcon','mutamb','muturg','mutimg','mutreh','muthos', 'mutcop'];
-    }
 
     private function surveyFilterCentro($survey, $jwt, $request){
         $this->filterCentro = '';
@@ -591,6 +607,26 @@ class DashboardMutual extends Dashboard
         }
         return $centros;
     } 
+
+    private function surveyFilterGerencia($survey, $jwt, $request){
+        $this->filterGerencia = '';
+        if(isset($jwt[env('AUTH0_AUD')]->gerenciamedica)){
+            if(in_array( $survey,$this->surveysConsolidado())){
+                $this->filterGerencia= " AND gerenciamedica in ('".$this->setFilterGerencia($jwt, $request)."') ";
+            }
+        }
+    }
+
+    private function setFilterGerencia($jwt, $request){
+        $gerenciamedica = '';
+        if($request->get('gerenciamedica') !== null)
+            return trim($request->get('gerenciamedica'));
+
+        if(isset($jwt[env('AUTH0_AUD')]->gerenciamedica)){
+            return $jwt[env('AUTH0_AUD')]->gerenciamedica[0]; 
+        }
+        return $gerenciamedica;
+    }
 
     private function GraphCSATDriversMutual($db, $survey,  $dateEnd, $dateIni, $filter, $struct = 'two', $datafilters = null)
     {
@@ -624,8 +660,8 @@ class DashboardMutual extends Dashboard
                                 FROM ".$this->getValueParams('_dbSelected').".$db as a
                                 LEFT JOIN ".$this->getValueParams('_dbSelected')."." . $db . "_start as b
                                 on a.token = b.token 
-                                WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." ". $this->filterCentro." ".$this->whereCons ."
-                                ORDER BY date_survey");
+                                WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." ". $this->filterCentro." 
+                                ".$this->whereCons ." ".$this->filterGerencia."  ORDER BY date_survey");
                         
         $suite = new Suite($this->getValueParams('_jwt'));
         foreach ($data as $key => $value) {
@@ -687,7 +723,8 @@ class DashboardMutual extends Dashboard
                                 a.mes, a.annio ,".$this->getValueParams('_fieldSelectInQuery')."  
                                 FROM ".$this->getValueParams('_dbSelected').".$table as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected')."." . $table . "_start as b ON a.token = b.token 
-                                WHERE  date_survey BETWEEN '$dateEnd' AND '$dateIni' AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." ". $this->filterCentro." ".$this->whereCons ."
+                                WHERE  date_survey BETWEEN '$dateEnd' AND '$dateIni' AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." 
+                                ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
                                 GROUP BY  a.mes, a.annio 
                                 ORDER BY date_survey ASC");
 
@@ -697,7 +734,8 @@ class DashboardMutual extends Dashboard
                                 a.mes, a.annio ,".$this->getValueParams('_fieldSelectInQuery')."  
                                 FROM ".$this->getValueParams('_dbSelected').".$table as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected')."." . $table . "_start as b ON a.token = b.token 
-                                WHERE  a.mes = $mes  AND a.annio = $annio AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." ". $this->filterCentro." ".$this->whereCons ."
+                                WHERE  a.mes = $mes  AND a.annio = $annio AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." 
+                                ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
                                 GROUP BY  a.mes, a.annio 
                                 ORDER BY date_survey ASC");
         }
@@ -738,6 +776,22 @@ class DashboardMutual extends Dashboard
         $graphCsatM  = [];
 
         if ($filter != 'all') {
+            // echo "SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
+            //                     COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minCsat')." AND ".$this->getValueParams('_maxCsat')." THEN 1 END)) / 
+            //                     (COUNT(CASE WHEN $indicador!=99 THEN 1 END)) * 100),1) AS ISN, 
+            //                     count(if($indicador < ".$this->getValueParams('_minMediumCsat').", $indicador, NULL)) as Cdet,
+			// 		            count(if($indicador = ".$this->getValueParams('_minMaxCsat')." OR $indicador = ".$this->getValueParams('_maxMaxCsat').", $indicador, NULL)) as Cpro,
+			// 		            count(if($indicador = ".$this->getValueParams('_maxMediumCsat')." OR $indicador = ".$this->getValueParams('_minMediumCsat').", $indicador, NULL)) as Cneu,              
+            //                     COUNT(CASE WHEN $indicador!=99 THEN 1 END) as total, 
+            //                     ((count(if($indicador < ".$this->getValueParams('_minMediumCsat').", $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as detractor, 
+            //                     ((count(if($indicador = ".$this->getValueParams('_minMaxCsat')." OR $indicador = ".$this->getValueParams('_maxMaxCsat').", $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as promotor, 
+            //                     ((count(if($indicador = ".$this->getValueParams('_maxMediumCsat')." OR $indicador =".$this->getValueParams('_minMediumCsat').", $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as neutral,              
+            //                     a.mes, a.annio, WEEK(date_survey) AS week, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek,".$this->getValueParams('_fieldSelectInQuery')."  
+            //                     FROM ".$this->getValueParams('_dbSelected').".$table as a
+            //                     INNER JOIN ".$this->getValueParams('_dbSelected')."." . $table . "_start as b ON a.token = b.token 
+            //                     WHERE  $where AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+            //                     GROUP BY $group
+            //                     ORDER BY date_survey ASC";exit;
             $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
                                 COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minCsat')." AND ".$this->getValueParams('_maxCsat')." THEN 1 END)) / 
                                 (COUNT(CASE WHEN $indicador!=99 THEN 1 END)) * 100),1) AS ISN, 
@@ -751,7 +805,7 @@ class DashboardMutual extends Dashboard
                                 a.mes, a.annio, WEEK(date_survey) AS week, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek,".$this->getValueParams('_fieldSelectInQuery')."  
                                 FROM ".$this->getValueParams('_dbSelected').".$table as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected')."." . $table . "_start as b ON a.token = b.token 
-                                WHERE  $where AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." ". $this->filterCentro." ".$this->whereCons ."
+                                WHERE  $where AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
                                 GROUP BY $group
                                 ORDER BY date_survey ASC");
         }
@@ -930,14 +984,35 @@ class DashboardMutual extends Dashboard
             }
         }
 
-        if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
-            $data = DB::select("SELECT DISTINCT(gerenciamedica)
-                                FROM ".$this->getValueParams('_dbSelected').".adata_mut_" . $dbC . "_start
-                                WHERE gerenciamedica != '' and gerenciamedica != '1' and gerenciamedica != '0'");
-                                
-            $this->_fieldSelectInQuery = 'gerenciamedica';
+        if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img' || $dbC == 'con' || $dbC == 'cop') {
+            if(isset($jwt[env('AUTH0_AUD')]->gerenciamedica)){
+                $long = sizeof($jwt[env('AUTH0_AUD')]->gerenciamedica);
+                //print_r($jwt[env('AUTH0_AUD')]->centros);exit;
+    
+                if($long == 1){ 
+                    $obj = array([$jwt[env('AUTH0_AUD')]->gerenciamedica[0] =>  $jwt[env('AUTH0_AUD')]->gerenciamedica[0]]);
+                }
+                
+                if($long > 1){
+                    $obj = array($jwt[env('AUTH0_AUD')]->gerenciamedica[0] =>  $jwt[env('AUTH0_AUD')]->gerenciamedica[0]);
+                    for($i=1; $i<$long; $i++){
+                        $obj = array_merge($obj,array($jwt[env('AUTH0_AUD')]->gerenciamedica[$i] =>  $jwt[env('AUTH0_AUD')]->gerenciamedica[$i]));
+                    }
+                }
 
-            $Gerencia = ['filter' => 'Gerencia_Medica', 'datas' => $this->contentfilter($data, 'gerenciamedica')];
+                $CenAtencionn = ['filter' => 'Centro_Atencion', 'datas' => $obj];
+            }
+
+
+            if(empty($jwt[env('AUTH0_AUD')]->gerenciamedica)){
+                $data = DB::select("SELECT DISTINCT(gerenciamedica)
+                                    FROM ".$this->getValueParams('_dbSelected').".adata_mut_" . $dbC . "_start
+                                    WHERE gerenciamedica != '' and gerenciamedica != '1' and gerenciamedica != '0'");
+                                    
+                $this->_fieldSelectInQuery = 'gerenciamedica';
+
+                $Gerencia = ['filter' => 'Gerencia_Medica', 'datas' => $this->contentfilter($data, 'gerenciamedica')];
+            }
         }
 
         if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
@@ -981,13 +1056,13 @@ class DashboardMutual extends Dashboard
                                     FROM ".$this->getValueParams('_dbSelected')."." . $db . "_start  as a
                                     left join ".$this->getValueParams('_dbSelected').".$db as b
                                     on a.token = b.token
-                                    where procedencia != '' and procedencia != '-' and b.date_survey BETWEEN '$startDate' and '$endDate' AND etapaencuesta = 'P2' ". $this->filterZona." ". $this->filterCentro."
+                                    where procedencia != '' and procedencia != '-' and b.date_survey BETWEEN '$startDate' and '$endDate' AND etapaencuesta = 'P2' ". $this->filterZona." ". $this->filterCentro." ".$this->filterGerencia."
                                     group by procedencia) as a join 
                                     (select COUNT(*) as total 
                                     from ".$this->getValueParams('_dbSelected')."." . $db . "_start as a
                                     left join ".$this->getValueParams('_dbSelected').".$db as b
                                     on a.token = b.token
-                                    where procedencia != '' and procedencia != '-' and b.date_survey BETWEEN '$startDate' and '$endDate' AND etapaencuesta = 'P2' ". $this->filterZona." ". $this->filterCentro.")
+                                    where procedencia != '' and procedencia != '-' and b.date_survey BETWEEN '$startDate' and '$endDate' AND etapaencuesta = 'P2' ". $this->filterZona." ". $this->filterCentro." ".$this->filterGerencia.")
                                     AS b on true
                                     ORDER BY porcentaje desc");
             if ($data) {
@@ -1165,15 +1240,20 @@ class DashboardMutual extends Dashboard
     //DETAILS DASH
     public function detailsDash($request, $jwt)
     {
-        $closedMutual = false;
+        //$closedMutual = false;
 
         if(!isset($request->Centro_Atencion)){
             $centros=$this->setFilterCentro($jwt, $request);
-            //echo $centros;
             if(isset($jwt[env('AUTH0_AUD')]->centros)){
                 $request->merge(['Centro_Atencion'=>$centros]);
             }
-            //echo '----'.$request->Centro_Atencion;
+        }
+
+        if(!isset($request->Gerencia_Medica)){
+            $gerencia=$this->setFilterCentro($jwt, $request);
+            if(isset($jwt[env('AUTH0_AUD')]->gerenciamendica)){
+                $request->merge(['Gerencia_Medica'=>$gerencia]);
+            }
         }
 
         if( $request->survey == 'mutcon' )
@@ -1246,11 +1326,7 @@ class DashboardMutual extends Dashboard
         $call = null;
         $venta = null;
         $Procedencia = null;
-        $csat1 = null;
-        $csat2 = null;
-        $csat3 = null;
-        $csat4 = null;
-        $csat5 = null;
+        $csat1 = $csat2 = $csat3 = $csat4 = $csat5 = null;
         
         $dataNps    = $this->resumenNpsM($db, $dateIni, $dateEndIndicatorPrincipal, 'nps', $filterClient, $datafilters);
 
