@@ -2821,7 +2821,7 @@ class Dashboard extends Generic
                     FROM $this->_dbSelected.$db as a
                     left join $this->_dbSelected." . $db . "_start as b
                     on a.token = b.token 
-                    where datesurvey BETWEEN '$dateEnd' and '$dateIni' and b.$indicatorBD != ''  $datafilters
+                    where datesurvey BETWEEN '$dateEnd' and '$dateIni' and b.$indicatorBD != '' and etapaencuesta = 'P2'  $datafilters
                     GROUP by $indicatorName
                     order by $indicatorName";
         }
@@ -2850,14 +2850,6 @@ class Dashboard extends Generic
         $data = DB::select($queryTra);
         $lastSentido  = '';
         $values = [];
-        $meses = [];
-
-        for ($i = -11; $i < 1; $i++) {
-            array_push(
-                $meses,
-                (int)date("m", mktime(0, 0, 0, date("m") + $i, date("d"), date("Y")))
-            );
-        }
 
         foreach ($data as $key => $value) {
 
@@ -2894,51 +2886,37 @@ class Dashboard extends Generic
                     ]
                 );
             };
-
+    
             foreach ($data as $index => $dato) {
                 if ($value->nps != null) {
                     if ($lastSentido == $dato->$indicatorName) {
                         $values[$lastSentido][sizeof($values[$lastSentido]) - 3][0]['Respuestas']         = $value->Total;
-                        $values[$lastSentido][sizeof($values[$lastSentido]) - 3][0]['period' . $dato->mes]  = round($dato->nps) . '%';
+                        $values[$lastSentido][sizeof($values[$lastSentido]) - 3][0]['Valor']  = round($dato->nps) . '%';
                         $values[$lastSentido][sizeof($values[$lastSentido]) - 3][0]['rowSpan']  = ['cells' => 3, 'key' => "Respuestas"];
-                        $values[$lastSentido][sizeof($values[$lastSentido]) - 3][0]['textColor']  = ['color' => $this->setTextAnomalias($dato->nps), 'key' => 'period' . $dato->mes];
-                        $this->setAnomalias($dato->nps, $lastSentido);
+                        // $values[$lastSentido][sizeof($values[$lastSentido]) - 3][0]['textColor']  = ['color' => $this->setTextAnomalias($dato->nps), 'key' => 'nps'];
+                        // $this->setAnomalias($dato->nps, $lastSentido);
                     }
                 }
+
                 if ($value->$indic2 != null) { //INS
                     if ($lastSentido == $dato->$indicatorName) {
-                        $values[$lastSentido][sizeof($values[$lastSentido]) - 2][0]['period' . $dato->mes] = round($dato->$indic2) . '%';
+                        $values[$lastSentido][sizeof($values[$lastSentido]) - 2][0]['Valor'] = round($dato->$indic2) . '%';
                     }
                 }
                 if ($value->$indic1 != null) { //CBI
                     if ($lastSentido == $dato->$indicatorName) {
-                        $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['period' . $dato->mes] = round($dato->$indic1) . '%';
+                        $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['Valor'] = round($dato->$indic1) . '%';
                     }
                 }
             }
+            
         }
-
-        $numberToMonth = [
-            1 => 'Ene',
-            2 => 'Feb',
-            3 => 'Mar',
-            4 => 'Abr',
-            5 => 'May',
-            6 => 'Jun',
-            7 => 'Jul',
-            8 => 'Ago',
-            9 => 'Sep',
-            10 => 'Oct',
-            11 => 'Nov',
-            12 => 'Dic',
-        ];
-
+    
         $colums = [
             $indicatorName => $indicatorName,
             'Indicator' => 'Indicadores',
         ];
-      
-        $colums['period'.$meses[11]]=$numberToMonth[$meses[11]];
+        $colums['Valor']='Valor';
         $colums['Respuestas']='Respuestas';
 
         return [
@@ -5610,7 +5588,7 @@ class Dashboard extends Generic
         ];
     }
 
-    protected function ranking($db, $indicatordb, $indicator, $endDateFilterMonth, $startDateFilterMonth, $filterClient, $datafilters, $width){
+    protected function ranking($db, $indicatordb, $indicator, $endDateFilterMonth, $startDateFilterMonth, $filterClient, $datafilters, $width, $height){
         if ($datafilters)
             $datafilters = " AND $datafilters";            
         
@@ -5720,7 +5698,7 @@ class Dashboard extends Generic
                 }
                
                 return [
-                    "height" =>  4,
+                    "height" =>  $height,
                     "width" =>  $width,
                     "type" =>  "tables",
                     "props" =>  [
@@ -5825,7 +5803,7 @@ class Dashboard extends Generic
         }
 
         return [
-            "height" =>  4,
+            "height" =>  $height,
             "width" =>  $width,
             "type" =>  "tables",
             "props" =>  [
@@ -6954,7 +6932,7 @@ class Dashboard extends Generic
                 $sucursal   = $this->npsNew($db, $dateEnd, $dateIni, 4, $filterClient);
                 $regiones   = $this->npsByRegiones($db, $dateEnd, $dateIni, $filterClient, 'ubicSuc', 'regiones', 'Regiones y Region Metropolitana');
                 $sucNpsCsat = $this->npsCsatbyIndicator($db, $dateEnd, $dateIni, 'nomSuc', 'Sucursal', 'csat3', 'csat4', 6, $filterClient);
-                $rankingSuc = $this->ranking($db, 'nomsuc', 'Sucursal', $endDateFilterMonth, $startDateFilterMonth, $filterClient, $datafilters,8);
+                $rankingSuc = $this->ranking($db, 'nomsuc', 'Sucursal', $endDateFilterMonth, $startDateFilterMonth, $filterClient, $datafilters,8, 4);
                 if ($db == 'adata_ban_suc') {
                     $db = 'adata_ban_con';
                     $ges = $this->npsByIndicator($db, $dateEnd, $dateIni, $filterClient, 'canal', 'canal', 'canal', 'canal', 'Canal', 2);
@@ -7021,7 +6999,7 @@ class Dashboard extends Generic
                 $globalesServ       = $this->globales($db, $dateIni, $dateEnd, 'condicionservicio', 'Servicio', 'cbi', 'ins', 4, $datafilters);
                 $globalesCliente    = $this->globales($db, $dateIni, $dateEnd, 'tipocliente', 'Cliente', 'cbi', 'ins', 4, $datafilters);
                 $globalesReserva    = $this->globales($db, $dateIni, $dateEnd, 'tipoReserva', 'Reserva', 'cbi', 'ins', 4, $datafilters);
-                $rankingConvenio    = $this->ranking($db, 'convenio', 'Convenio', $endDateFilterMonth, $startDateFilterMonth, $filterClient,$datafilters, 6, 5);
+                $rankingConvenio    = $this->ranking($db, 'convenio', 'Convenio', $endDateFilterMonth, $startDateFilterMonth, $filterClient,$datafilters, 12, 3);
             }
 
             $name = 'Transvip';         
