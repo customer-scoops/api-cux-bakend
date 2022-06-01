@@ -11,6 +11,7 @@ class DashboardMutual extends Dashboard
     private $filterCentro = '';
     private $whereCons = '';
     private $_activeSurvey = 'mutamb';
+    private $_suveysConsolidado = ['mutamb', 'muthos', 'muturg', 'mutreh', 'mutimg'];
  
     public function __construct($jwt, $request)
     {
@@ -19,16 +20,26 @@ class DashboardMutual extends Dashboard
 
     public function generalInfo($request, $jwt)
     {
+        $c = 0;
         $surveys = parent::getDataSurvey($request, $jwt); 
-
         $data = [];
         $otherGraph = [];
-
+   
         if ($surveys['status'] == 200) {
             if($surveys['datas'][0]['customer'] == 'MUT001'){
-                array_push($surveys['datas'], $this->consolidateMutual());
+                for($i=0; $i<sizeof($surveys['datas']); $i++){
+                    if (in_array($surveys['datas'][$i]['base'], $this->_suveysConsolidado)){
+                        $c++;
+                    }
+                }
+                if ($c == 5){
+                    array_push($surveys['datas'], $this->consolidateMutualPeso());
+                }
+                if ($c>1 && $c<5){
+                    array_push($surveys['datas'], $this->consolidateMutual());
+                }
             }
-            //print_r($surveys);exit;
+
             foreach ($surveys['datas'] as $key => $value) {
                 if ($value['base'] != 'mutredsms'){
                     $this->surveyFilterZona($value['base'], $jwt, $request);
@@ -44,7 +55,7 @@ class DashboardMutual extends Dashboard
                         "title"                 => ucwords(strtolower($value['name'])),
                         "identifier"            => $value['base'],
                         "principalIndicator"    => $infoNps,
-                        "journeyMap"            => $this->GraphCSATDriversMutual($db,$value['base'],date('Y-m-d'),date('Y-m-01'),$this->getInitialFilter(),$struct = 'one'),
+                        "journeyMap"            => $value['base'] == 'mutcon' || $value['base'] == 'mutcop'? null : $this->GraphCSATDriversMutual($db,$value['base'],date('Y-m-d'),date('Y-m-01'),$this->getInitialFilter(),$struct = 'one'),
                         "otherGraphs"           => $otherGraph
                     ];
                 }
@@ -54,11 +65,12 @@ class DashboardMutual extends Dashboard
             'datas'     => $data,
             'status'    => Response::HTTP_OK
         ];
+        unset($c);
     }
 
     private function whereConsolidado($base,$jwt){
         $this->whereCons = '';
-        if ($base == 'mutcon'){
+        if ($base == 'mutcon' || $base == 'mutcop'){
             if (isset($jwt[env('AUTH0_AUD')]->surveysActive)){
                 $surveys = $jwt[env('AUTH0_AUD')]->surveysActive;
                 $text = "'".$surveys[0]."'";
@@ -101,7 +113,7 @@ class DashboardMutual extends Dashboard
         $dataEmail  = $this->email('adata_' . substr($survey, 0, 3) . '_' . substr($survey, 3, 6), date('Y-m-01'), date('Y-m-d'), $this->getValueParams('_initialFilter'));
         $data       = $this->infoClosedLoop('adata_' . substr($survey, 0, 3) . '_' . substr($survey, 3, 6), date('Y-m-01'), date('Y-m-d'), $npsInDb, $this->getValueParams('_initialFilter'));
         $resp = [$dataEmail, $data];
-        //array_push($resp,$data);
+
         return [
             'datas'     => $resp,
             'status'    => Response::HTTP_OK
@@ -126,7 +138,7 @@ class DashboardMutual extends Dashboard
         }
        
         $closedRate = 0;
-        //var_dump($data[0]->ticketCreated);
+
         if ($data[0]->ticketCreated != "0") {
             $closedRate = round(($data[0]->ticketClosed / $data[0]->ticketCreated) * 100, 3);
         }
@@ -258,7 +270,6 @@ class DashboardMutual extends Dashboard
         $isnPreviousPeriod = $this->isnPreviousPeriod($table,$dateIni, $dateEnd, $indicador, $filter,  $datafilters);
 
         $isnActive = 0;
-        //print_r($data);
         if (($data == null) || $data[0]->total == null || $data[0]->isn == null) {
             
             $isnActive =  $isnActive;
@@ -290,14 +301,14 @@ class DashboardMutual extends Dashboard
         AVG(nps) as promedio,
         ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) - 
         COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) / 
-        (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1) AS NPS,  ".$this->getValueParams('_fieldSelectInQuery')."
+        (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),0) AS NPS,  ".$this->getValueParams('_fieldSelectInQuery')."
         FROM ".$this->getValueParams('_dbSelected').".$table as a
         LEFT JOIN ".$this->getValueParams('_dbSelected')."." . $table . "_start as b
         on a.token = b.token
         WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'  $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ."
         GROUP BY a.mes, a.annio
         ORDER BY date_survey ASC";
-        //echo $query;exit;
+        //echo $query;
         $data = DB::select($query);
 
         return $data;
@@ -332,15 +343,14 @@ class DashboardMutual extends Dashboard
 
         return $data[0]->isn;
     }
-   
-//OKK              
+              
     private function resumenNpsM($table,  $dateEnd, $dateIni, $indicador, $filter, $datafilters)
     {
         if ($datafilters)
             $datafilters = " AND $datafilters";
         
         $data = $this->dbResumenNps1($table,$indicador,$dateIni,$dateEnd, '', $datafilters);
-
+    
         if (($data == null) || $data[0]->total == null || $data[0]->total == 0) {
             $npsActive = (isset($data[0]->NPS)) ? $data[0]->NPS : 0;
             $npsPreviousPeriod = $this->npsPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $datafilters);
@@ -364,13 +374,13 @@ class DashboardMutual extends Dashboard
             if ($npsPreviousPeriod  === null) {
                 $npsPreviousPeriod = 0;
             }
-
+           
             return [
                 "name"              => "nps",
                 "value"             => round($npsActive),
                 "percentageGraph"   => true,
                 "promotors"         => round($data[0]->promotor),
-                "neutrals"          => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - (round($data[0]->detractor) + round($data[0]->promotor)),
+                "neutrals"          => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - round(($data[0]->detractor) + ($data[0]->promotor)),
                 "detractors"        => round($data[0]->detractor),
                 "percentage"        => '0',
                 "smAvg"             => '0',
@@ -381,12 +391,8 @@ class DashboardMutual extends Dashboard
 
     private function graphNps($table, $indicador, $dateIni, $dateEnd, $filter, $struct = 'two', $datafilters = null, $group = null)
     {
-        $activeP2 ='';
         $graphNPS  = [];
 
-        if(substr($table, 6, 3) == 'mut'){
-            return $graphNPS;
-        }
         $group2 = "mes, annio";
         
         if ($group !== null) {
@@ -404,8 +410,7 @@ class DashboardMutual extends Dashboard
             $datafilters = " AND $datafilters";
 
         if ($filter != 'all') {
-
-            $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('$this->_minMaxNps')." AND ".$this->getValueParams('$this->_maxMaxNps')." THEN 1 END) - 
+            $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) - 
                                 COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) / 
                                 COUNT(CASE WHEN nps!=99 THEN 1 END) * 100),1) AS NPS, 
                                 count(if(nps <= ".$this->getValueParams('_maxNps')." , nps, NULL)) as Cdet,
@@ -418,21 +423,16 @@ class DashboardMutual extends Dashboard
                                 a.mes, a.annio, WEEK(date_survey) AS week, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek,".$this->getValueParams('_fieldSelectInQuery')."  
                                 FROM ".$this->getValueParams('_dbSelected').".$table as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected').".".$table."_start as b ON a.token = b.token 
-                                WHERE  $where $activeP2 $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ."
+                                WHERE  $where  $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ."
                                 GROUP BY $group2
-                                ORDER BY date_survey ASC");
-
-                           
+                                ORDER BY date_survey ASC");               
         }
-
 
         if ($data) {
             if ($data[0]->total === null) {
                 foreach ($data as $key => $value) {
                     if ($struct != 'one') {
                         $graphNPS[] = [
-                            //'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
-                            //'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('m-d', strtotime($mondayWeek . "- $count week")) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                             'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('d',strtotime($value->mondayWeek)). '-' .date('m',strtotime($value->mondayWeek)) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                             'values' => [
                                 "promoters"     => round($value->promotor),
@@ -454,9 +454,7 @@ class DashboardMutual extends Dashboard
                 foreach ($data as $key => $value) {
                     if ($struct != 'one') {
                         $graphNPS[] = [
-                            //'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
-                            //'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('m-d', strtotime($mondayWeek . "- $count week")) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
-                            'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('d',strtotime($value->mondayWeek)). '-' .date('m',strtotime($value->mondayWeek)) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
+                           'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('d',strtotime($value->mondayWeek)). '-' .date('m',strtotime($value->mondayWeek)) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                             'values' => [
                                 "promoters"     => round($value->promotor),
                                 "neutrals"      => ((round($value->promotor) == 0) && (round($value->detractor) == 0)) ? round($value->neutral) : 100 - (round($value->detractor) + round($value->promotor)),//100 - (round($value->promotor) + round($value->detractor)),
@@ -477,8 +475,6 @@ class DashboardMutual extends Dashboard
         if ($data === null) {
                 if ($struct != 'one') {
                     $graphNPS[] = [
-                        //'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (0)',
-                        //'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('m-d', strtotime($mondayWeek . "- $count week")) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                         'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('d',strtotime($value->mondayWeek)). '-' .date('m',strtotime($value->mondayWeek)) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                         'values' => [
                             "promoters"     => 0,
@@ -547,7 +543,6 @@ class DashboardMutual extends Dashboard
 
     private function surveyFilterZona($survey, $jwt, $request){
         $this->filterZona = '';
-        //$filter = ['mutcon','mutamb','muturg','mutimg','mutreh','muthos'];
         if(isset($jwt[env('AUTH0_AUD')]->zona)){
             if(in_array( $survey,$this->surveysConsolidado())){
                 $this->filterZona= " AND zonal = '". $this->setFilterZona($jwt, $request)."'" ;
@@ -564,12 +559,11 @@ class DashboardMutual extends Dashboard
     } 
 
     private function surveysConsolidado(){
-        return  ['mutcon','mutamb','muturg','mutimg','mutreh','muthos'];
+        return  ['mutcon','mutamb','muturg','mutimg','mutreh','muthos', 'mutcop'];
     }
 
     private function surveyFilterCentro($survey, $jwt, $request){
         $this->filterCentro = '';
-       // $filter = ['mutcon','mutamb','muturg','mutimg','mutreh','muthos'];
         if(isset($jwt[env('AUTH0_AUD')]->centros)){
             if(in_array( $survey,$this->surveysConsolidado())){
                 $this->filterCentro= " AND catencion in ('".$this->setFilterCentro($jwt, $request)."') ";
@@ -578,30 +572,28 @@ class DashboardMutual extends Dashboard
     }
 
     private function setFilterCentro($jwt, $request){
- 
-            $centros = '';
-            if($request->get('catencion') !== null)
-                return trim($request->get('catencion'));
+        $centros = '';
+        if($request->get('catencion') !== null)
+            return trim($request->get('catencion'));
 
-            if(isset($jwt[env('AUTH0_AUD')]->centros)){
-                $long = sizeof($jwt[env('AUTH0_AUD')]->centros);
-                if($long == 1){ 
-                    return $jwt[env('AUTH0_AUD')]->centros[0];
-                }
-                if($long > 1){
-                    $centros = $jwt[env('AUTH0_AUD')]->centros[0];
-                    for($i=1; $i<$long; $i++){
-                        $centros = $centros."' ,'".$jwt[env('AUTH0_AUD')]->centros[$i];
-                    }
-                    return $centros;
-                }
+        if(isset($jwt[env('AUTH0_AUD')]->centros)){
+            $long = sizeof($jwt[env('AUTH0_AUD')]->centros);
+            if($long == 1){ 
+                return $jwt[env('AUTH0_AUD')]->centros[0];
             }
-            return $centros;
+            if($long > 1){
+                $centros = $jwt[env('AUTH0_AUD')]->centros[0];
+                for($i=1; $i<$long; $i++){
+                    $centros = $centros."' ,'".$jwt[env('AUTH0_AUD')]->centros[$i];
+                }
+                return $centros;
+            }
+        }
+        return $centros;
     } 
 
     private function GraphCSATDriversMutual($db, $survey,  $dateEnd, $dateIni, $filter, $struct = 'two', $datafilters = null)
     {
-        //echo $survey;exit;
         $graphCSAT = [];
         $endCsat = $this->getEndCsat($survey);
         $fieldBd = $this->getFielInDbCsat($survey);
@@ -627,7 +619,7 @@ class DashboardMutual extends Dashboard
                                 ((count(if( $fieldBd$i <= ".$this->getValueParams('_maxMediumCsat')." AND  $fieldBd$i >= ".$this->getValueParams('_minMediumCsat').",  $fieldBd$i, NULL))*100)/count(case when  $fieldBd$i != 99 THEN  $fieldBd$i END)) as neutral$i ";
                 }
             }
-
+         
             $data = DB::select("SELECT $query,date_survey, WEEK(date_survey) AS week, a.mes
                                 FROM ".$this->getValueParams('_dbSelected').".$db as a
                                 LEFT JOIN ".$this->getValueParams('_dbSelected')."." . $db . "_start as b
@@ -635,7 +627,6 @@ class DashboardMutual extends Dashboard
                                 WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." ". $this->filterCentro." ".$this->whereCons ."
                                 ORDER BY date_survey");
                         
-        
         $suite = new Suite($this->getValueParams('_jwt'));
         foreach ($data as $key => $value) {
             for ($i = 1; $i <= $endCsat; $i++) {
@@ -644,15 +635,16 @@ class DashboardMutual extends Dashboard
                 $neu = 'neutral' . $i;
                 $det = 'detractor' . $i;
                 $csat = $value->$r;
+              
                 if ($struct == 'two') {
                     $graphCSAT[] = [
                         'xLegend' => $suite->getInformationDriver($survey . '_' . $r),
                         'values' =>
                         [
                             "promoters"     => round($value->$pro),
-                            "neutrals"      => ((round($value->$pro) == 0) && (round($value->$det) == 0)) ? round(round($value->$neu)) : round(100 - (round($value->$det) + round($value->$pro))),//100 - (ROUND($value->$pro) + ROUND($value->$det)),
+                            "neutrals"      => (($value->$pro) == 0 && ($value->$det) == 0) ? round(round($value->$neu)) : (100 - (ROUND($value->$pro) + ROUND($value->$det))),//100 - (ROUND($value->$pro) + ROUND($value->$det)),
                             "detractors"    => ROUND($value->$det),
-                            "csat"          => (int)($csat)
+                            "csat"          => (int)round(round($value->$pro)-round($value->$det))
                         ]
                     ];
                 }
@@ -661,7 +653,7 @@ class DashboardMutual extends Dashboard
                     $graphCSAT[] =
                         [
                             'text'  =>  $suite->getInformationDriver($survey . '_' . $r),
-                            'values' => ROUND($csat)
+                            'values' => round(round($value->$pro)-round($value->$det))
                         ];
                 }
             }
@@ -709,12 +701,13 @@ class DashboardMutual extends Dashboard
                                 GROUP BY  a.mes, a.annio 
                                 ORDER BY date_survey ASC");
         }
-    
+
         if ($data != null && $data[0]->ISN != null){
+            $data2 == null? $datas = 0 : $datas = $data2[0]->ISN;
             return[
                 "name"              => "isn",
                 "value"             => round($data[0]->ISN),
-                "percentage"        => round($data[0]->ISN - $data2[0]->ISN),
+                "percentage"        => round($data[0]->ISN - $datas),
             ];
         }
 
@@ -730,7 +723,6 @@ class DashboardMutual extends Dashboard
     private function graphCsatMutual($table,$indicador, $dateIni, $dateEnd, $filter, $struct = 'two', $datafilters = null, $group = null)
     {
         if ($group !== null) {
-            //$where = " date_survey between date_sub(NOW(), interval 9 week) and NOW() and WEEK(date_survey) != 0 ";
             $where = $datafilters;
             $datafilters = '';
         }
@@ -748,7 +740,7 @@ class DashboardMutual extends Dashboard
         if ($filter != 'all') {
             $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
                                 COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minCsat')." AND ".$this->getValueParams('_maxCsat')." THEN 1 END)) / 
-                                (COUNT(CASE WHEN $indicador!=99 THEN 1 END)) * 100),1) AS CSAT, 
+                                (COUNT(CASE WHEN $indicador!=99 THEN 1 END)) * 100),1) AS ISN, 
                                 count(if($indicador < ".$this->getValueParams('_minMediumCsat').", $indicador, NULL)) as Cdet,
 					            count(if($indicador = ".$this->getValueParams('_minMaxCsat')." OR $indicador = ".$this->getValueParams('_maxMaxCsat').", $indicador, NULL)) as Cpro,
 					            count(if($indicador = ".$this->getValueParams('_maxMediumCsat')." OR $indicador = ".$this->getValueParams('_minMediumCsat').", $indicador, NULL)) as Cneu,              
@@ -759,49 +751,67 @@ class DashboardMutual extends Dashboard
                                 a.mes, a.annio, WEEK(date_survey) AS week, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek,".$this->getValueParams('_fieldSelectInQuery')."  
                                 FROM ".$this->getValueParams('_dbSelected').".$table as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected')."." . $table . "_start as b ON a.token = b.token 
-                                WHERE  $where AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." ". $this->filterCentro."
+                                WHERE  $where AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." ". $this->filterCentro." ".$this->whereCons ."
                                 GROUP BY $group
                                 ORDER BY date_survey ASC");
         }
        
-    //     if (trim($group) == 'week') 
-    //     { 
-    //         $mondayWeek = $this->getFirstMond();
-    //     }
-    //    $count = count($data)-1;
         foreach ($data as $key => $value) {
             if ($struct != 'one') {
+                //echo (round(($value->detractor) + ($value->promotor)));exit;
                 $graphCsatM[] = [
-                    //'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
-                    //'xLegend'  =>(trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('m-d', strtotime($mondayWeek . "- $count week")) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                     'xLegend'  =>(trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('d',strtotime($value->mondayWeek)). '-' .date('m',strtotime($value->mondayWeek)) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                     'values' => [
                         "satisfechos"       => round($value->promotor),
-                        "neutrals"          => ($value->promotor != null && $value->detractor != null)? 100 - (round($value->promotor)+ round($value->detractor)):  round($value->neutral),
+                        "neutrals"          => ((round($value->promotor) == 0) && (round($value->detractor) == 0)) ? round($value->neutral) : 100 - round(($value->detractor) + ($value->promotor)),
                         "insatisfechos"     => round($value->detractor),
-                        "csat"              => round($value->CSAT)
+                        "csat"              => round($value->ISN)
                     ],
                 ];
             }
-            //$count -= 1;
         }
         return $graphCsatM;
     }   
+
+    private function structfilterM($request, $fieldbd, $fieldurl, $where)
+    {
+        if ($request->get($fieldurl) === null)
+            return '';
+        if ($request->get($fieldurl)) {
+            if ($where != '' ) {
+                if($fieldbd == 'catencion'){
+                $where = " AND $fieldbd in( '" . $request->get($fieldurl) ."')";
+                }
+                if($fieldbd != 'catencion'){
+                $where = " AND $fieldbd = '" . $request->get($fieldurl) . "'";
+                }
+            }
+            if ($where == '') {
+                if($fieldbd == 'catencion'){
+                $where = " $fieldbd in ( '" . $request->get($fieldurl) . "')";
+                }
+                if($fieldbd != 'catencion'){
+                    $where = " $fieldbd = '" . $request->get($fieldurl) . "'";
+                }
+            }
+        }
+        return $where;
+    }
 
     private function infofilters($request)
     {
         $where = '';
         
         if(substr($request->survey,0,3) == 'mut'){
-            $where .= $this->structfilter($request, 'macroseg',         'Macrosegmento',      $where);
-            $where .= $this->structfilter($request, 'tatencion',        'Modalidad_Atencion', $where);
-            $where .= $this->structfilter($request, 'tipcliente',       'Tipo_Cliente',       $where);
-            $where .= $this->structfilter($request, 'canal',            'Canal',              $where);
-            $where .= $this->structfilter($request, 'tatencion',        'Tipo_Atencion',      $where);
-            $where .= $this->structfilter($request, 'catencion',        'Centro_Atencion',    $where);
-            $where .= $this->structfilter($request, 'aatencion',        'Area_Atencion',      $where);
-            $where .= $this->structfilter($request, 'gerenciamedica',   'Gerencia_Medica',    $where);
-            $where .= $this->structfilter($request, 'zonal',             'Zona',              $where);
+            $where .= $this->structfilterM($request, 'macroseg',         'Macrosegmento',      $where);
+            $where .= $this->structfilterM($request, 'tatencion',        'Modalidad_Atencion', $where);
+            $where .= $this->structfilterM($request, 'tipcliente',       'Tipo_Cliente',       $where);
+            $where .= $this->structfilterM($request, 'canal',            'Canal',              $where);
+            $where .= $this->structfilterM($request, 'tatencion',        'Tipo_Atencion',      $where);
+            $where .= $this->structfilterM($request, 'catencion',        'Centro_Atencion',    $where);
+            $where .= $this->structfilterM($request, 'aatencion',        'Area_Atencion',      $where);
+            $where .= $this->structfilterM($request, 'gerenciamedica',   'Gerencia_Medica',    $where);
+            $where .= $this->structfilterM($request, 'zonal',             'Zona',              $where);
                 
             return $where;
         }
@@ -820,17 +830,13 @@ class DashboardMutual extends Dashboard
         $AreaAten      =    [];
         $ZonaHos =          [];
         $dbC = substr($survey, 3, 6);
-      //MUTUAL
+
       if ($this->getValueParams('_dbSelected')  == 'customer_colmena' && substr($survey, 0, 3) == 'mut'  && $survey != 'mutred') {
-        // $filtersInCache = \Cache::get('customer_colmena-mut');
-        // if($filtersInCache){
-        //     return $filtersInCache;
-        // }
 
         if ($survey == "muthos" || $survey == "muturg" || $survey == "mutamb" || $survey == "mutimg" || $survey == "mutreh") {
-            $db = 'MUT001_mutcon_resp';
+            //$db = 'MUT001_mutcon_resp';
             if ($request->client) {
-                $db = 'adata_' . trim(substr($request->client, 0, 3)) . '_' . trim(substr($request->client, 3, 6));
+                //$db = 'adata_' . trim(substr($request->client, 0, 3)) . '_' . trim(substr($request->client, 3, 6));
                 $dbC = substr($request->client, 3, 6);
             }
         }
@@ -888,16 +894,29 @@ class DashboardMutual extends Dashboard
             $tipAtencion = ['filter' => 'Tipo_Atencion', 'datas' => $this->contentfilter($data, 'tatencion')];
         }
 
-        if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh'|| $dbC == 'img') {
+        if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh'|| $dbC == 'img' || $dbC == 'con' || $dbC == 'cop') {
             $cond = '';
-            //print_r($request->get('Zona'));
             if ($datafilters != null && strpos($datafilters,'zonal') != false)
             {
                 $cond = " AND zonal = '". $request->get('Zona')."'"; 
             }
 
             if(isset($jwt[env('AUTH0_AUD')]->centros)){
-                $CenAtencionn = ['filter' => 'Centro_Atencion', 'datas' => ''];
+                $long = sizeof($jwt[env('AUTH0_AUD')]->centros);
+                //print_r($jwt[env('AUTH0_AUD')]->centros);exit;
+    
+                if($long == 1){ 
+                    $obj = array([$jwt[env('AUTH0_AUD')]->centros[0] =>  $jwt[env('AUTH0_AUD')]->centros[0]]);
+                }
+                
+                if($long > 1){
+                    $obj = array($jwt[env('AUTH0_AUD')]->centros[0] =>  $jwt[env('AUTH0_AUD')]->centros[0]);
+                    for($i=1; $i<$long; $i++){
+                        $obj = array_merge($obj,array($jwt[env('AUTH0_AUD')]->centros[$i] =>  $jwt[env('AUTH0_AUD')]->centros[$i]));
+                    }
+                }
+
+                $CenAtencionn = ['filter' => 'Centro_Atencion', 'datas' => $obj];
             }
 
             if(empty($jwt[env('AUTH0_AUD')]->centros)){
@@ -917,7 +936,7 @@ class DashboardMutual extends Dashboard
                                 WHERE gerenciamedica != '' and gerenciamedica != '1' and gerenciamedica != '0'");
                                 
             $this->_fieldSelectInQuery = 'gerenciamedica';
-            //print_r($data);
+
             $Gerencia = ['filter' => 'Gerencia_Medica', 'datas' => $this->contentfilter($data, 'gerenciamedica')];
         }
 
@@ -931,9 +950,10 @@ class DashboardMutual extends Dashboard
             $AreaAten = ['filter' => 'Area_Atencion', 'datas' => $this->contentfilter($data, 'aatencion')];
         }
 
-        if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
+        if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img'|| $dbC == 'con'|| $dbC == 'cop') {
             if(isset($jwt[env('AUTH0_AUD')]->zona)){
-                $ZonaHos = ['filter' => 'Zona', 'datas' => ''];
+                //$ZonaHos = ['filter' => 'Zona', 'datas' => ''];
+                $ZonaHos = null;
             }
 
             if(empty($jwt[env('AUTH0_AUD')]->zona)){
@@ -948,11 +968,6 @@ class DashboardMutual extends Dashboard
 
             return ['filters' => [ (object)$tipAtencion, (object)$CenAtencionn, (object)$Gerencia,  (object)$AreaAten,  (object)$ZonaHos], 'status' => Response::HTTP_OK];
         }
-
-        // $response = ['filters' => [(object)$TipoClienteT, (object)$TipoServicio, (object)$CondServicio, (object)$Sentido, (object)$Zona, (object)$Reserva, (object)$CanalT, (object)$Convenio], 'status' => Response::HTTP_OK];
-        // \Cache::put('customer_colmena-mut', $response, $this->expiresAtCache);
-
-        // return $response;
 
         return ['filters' => [(object)$macrosegmento], 'status' => Response::HTTP_OK];
         }
@@ -1000,7 +1015,7 @@ class DashboardMutual extends Dashboard
     private function graphProcedencia($db, $startDateFilterMonth, $endDateFilterMonth, $filterClient)
     {
         $dataProcedencia = $this->detailsProcedencia($db, $startDateFilterMonth, $endDateFilterMonth, $filterClient);
-        //var_dump($dataProcedencia);
+
         $standarStruct = [
             [
                 "text" => "Procendecia",
@@ -1094,14 +1109,71 @@ class DashboardMutual extends Dashboard
         ];
     }
 
+    private function consolidateMutualPeso(){
+        return [
+            'name'      => 'CONSOLIDADO',
+            'base'      => 'mutcop',
+            'customer'  => 'MUT001',
+        ];
+    }
+
+    private function cardNpsBanmedica($dataNPSGraph)
+    {
+        //$indicador === 'CSAT' ? print_r($dataNPSGraph) : print_r('nada');
+        return [
+            "height" => 4,
+            "width" => 12,
+            "type" => "chart",
+            "props" => [
+                "icon" => "arrow-right",
+                "text" => "NPS" ,
+                "chart" => [
+                    "fields" => [
+                        [
+                            "type" => "stacked-bar",
+                            "key" => "detractors",
+                            "text" => "Detractores",
+                            "bgColor" => "#fe4560",
+                        ],
+
+                        [
+                            "type" => "stacked-bar",
+                            "key" => "neutrals",
+                            "text" => "Neutrales",
+                            "bgColor" => "#FFC700",
+                        ],
+                        [
+                            "type" => "stacked-bar",
+                            "key" => "promoters",
+                            "text" => "Promotores",
+                            "bgColor" => "#17C784",
+                        ],
+                        [
+                            "type" => "line",
+                            "key" => "nps",
+                            "text" => "NPS",
+                            "bgColor" => "#1a90ff",
+                        ],
+                    ],
+                    "values" => $dataNPSGraph
+                ],
+            ],
+        ];
+    }
+
+
     //DETAILS DASH
     public function detailsDash($request, $jwt)
     {
-        // if($jwt[env('AUTH0_AUD')]->zona != null){
-        //     $request->merge(['Zona'=>$jwt[env('AUTH0_AUD')]->zona[0]]);
-        // }
-        if(isset($jwt[env('AUTH0_AUD')]->centros)){
-            $request->merge(['Centro_Atencion'=>$jwt[env('AUTH0_AUD')]->centros[0]]);
+        $closedMutual = false;
+
+        if(!isset($request->Centro_Atencion)){
+            $centros=$this->setFilterCentro($jwt, $request);
+            //echo $centros;
+            if(isset($jwt[env('AUTH0_AUD')]->centros)){
+                $request->merge(['Centro_Atencion'=>$centros]);
+            }
+            //echo '----'.$request->Centro_Atencion;
         }
 
         if( $request->survey == 'mutcon' )
@@ -1110,6 +1182,16 @@ class DashboardMutual extends Dashboard
                     $request->merge(['survey'=>'mutcon']);
                 }
         }
+        if( $request->survey == 'mutcop' )
+        {
+            if(isset($jwt[env('AUTH0_AUD')]->surveysActive)){
+                    $request->merge(['survey'=>'mutcop']);
+                }
+        }
+
+        // if($jwt[env('AUTH0_AUD')]->closedLoop == true){
+        //     $closedMutual = true;
+        // }
 
         if ($request->survey === null) {
             return [
@@ -1152,8 +1234,7 @@ class DashboardMutual extends Dashboard
         $indetifyClient = ($filterClient == 'all') ? $indetifyClient : $filterClient;
       
         $db = 'adata_'.substr($request->survey,0,3).'_'.trim(substr($request->survey,3,6));
-        
-        //echo $request->survey;exit;
+
         $this->whereConsolidado(substr($request->survey,0,6),$jwt);
 
         $rankingSuc = null;
@@ -1187,12 +1268,12 @@ class DashboardMutual extends Dashboard
             if ($db == 'adata_mut_urg'){
                 $nameCsat3 = "Amabilidad personal médico";
                 $nameCsat4 = "Claridad información entregada";
-                $nameCsat5 = "Instalaciones y quipamiento para atención";
+                $nameCsat5 = "Instalaciones y equipamiento para atención";
             }
 
             if ($db == 'adata_mut_reh'){
                 $nameCsat3 = "Claridad información entregada";
-                $nameCsat4 = "Instalaciones y quipamiento para atención";
+                $nameCsat4 = "Instalaciones y equipamiento para atención";
                 $nameCsat5 = "Resultados obtenidos con rehabilitación";
             }
 
@@ -1202,7 +1283,6 @@ class DashboardMutual extends Dashboard
                 $nameCsat3 = "Claridad información entregada";
                 $nameCsat4 = "Resolución problema salud";
                 $nameCsat5 = "Instalaciones y quipamiento para atención";
-
             }
 
             if ($db == 'adata_mut_img'){
@@ -1211,16 +1291,19 @@ class DashboardMutual extends Dashboard
                 $nameCsat5 = "Claridad información entregada";
             }
 
-            $dataCes              = $this->ces($db,$dateIni, $dateEndIndicatorPrincipal, 'ces', $datafilters);
-            $dataNPSGraph         = $this->graphNps($db, 'nps', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
-            $dataCsat1Graph       = $this->graphCsatMutual($db, 'csat1', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
-            $dataCsat2Graph       = $this->graphCsatMutual($db, 'csat2', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
-            $dataCsat3Graph       = $this->graphCsatMutual($db, 'csat3', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
-            $dataCsat4Graph       = $this->graphCsatMutual($db, 'csat4', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
-            $dataCsat5Graph       = $this->graphCsatMutual($db, 'csat5', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
-            $dataIsn              = $this->graphCsatMutual($db, 'csat', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
-            $dataIsnP             = $this->graphInsMutual($db, 'csat',  $endDateFilterMonth, $startDateFilterMonth, 'all',  $datafilters);
-            $graphCSATDrivers     = $this->GraphCSATDriversMutual($db, trim($request->survey),  $endDateFilterMonth, $startDateFilterMonth, 'one', 'two', $datafilters);
+            if(substr($request->survey, 3, 3) != 'con' && substr($request->survey, 3, 3) != 'cop'){
+                $dataCsat1Graph       = $this->graphCsatMutual($db, 'csat1', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
+                $dataCsat2Graph       = $this->graphCsatMutual($db, 'csat2', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
+                $dataCsat3Graph       = $this->graphCsatMutual($db, 'csat3', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
+                $dataCsat4Graph       = $this->graphCsatMutual($db, 'csat4', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
+                $dataCsat5Graph       = substr($request->survey, 3, 3) != 'red'? $this->graphCsatMutual($db, 'csat5', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group) : null;
+                $graphCSATDrivers     = $this->GraphCSATDriversMutual($db, trim($request->survey),  $endDateFilterMonth, $startDateFilterMonth, 'one', 'two', $datafilters);
+            }
+
+            $dataIsn     = $this->graphCsatMutual($db, 'csat', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
+            $dataIsnP    = $this->graphInsMutual($db, 'csat',  $endDateFilterMonth, $startDateFilterMonth, 'all',  $datafilters);
+            $dataNPSGraph         = $this->graphNps($db, 'nps', $dateIni, '2022-04-18', 'one', 'two', $datafilters, $group);
+            
             $datasStatsByTaps     = null;
 
             if ($db == 'adata_mut_amb' ||  $db == 'adata_mut_urg' ||  $db == 'adata_mut_reh' || $db == 'adata_mut_hos' ||  $db == 'adata_mut_img') {
@@ -1236,20 +1319,21 @@ class DashboardMutual extends Dashboard
             }
 
             if ($db == 'adata_mut_reh' || $db == 'adata_mut_amb' || $db == 'adata_mut_urg') {
-                $rankingSuc = $this->ranking($db, 'catencion', 'CentroAtencion', $endDateFilterMonth, $startDateFilterMonth, 'one',$datafilters, 6);
-            } 
+                $rankingSuc = $this->ranking($db, 'catencion', 'CentroAtencion', $endDateFilterMonth, $startDateFilterMonth, 'one',$datafilters, 6, 4);
+            }
+            
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient,$request->survey, $db);
             $performance        = $this->cardsPerformace($dataNps, $dataIsnP , $dateEnd, $dateIni, $request->survey, $datafilters);
             $npsConsolidado     = $this->cardCsatDriversMutual('ISN', $name, $dataIsn , $this->ButFilterWeeks, 12, 4);
-            $npsBan             = substr($request->survey, 3, 3) == 'con'? null : $this->CSATJourney($graphCSATDrivers);
-            $npsVid             = substr($request->survey, 3, 3) == 'con'? null : $this->CSATDrivers($graphCSATDrivers);
+            $npsBan             = (substr($request->survey, 3, 3) == 'con' || substr($request->survey, 3, 3) == 'cop')? $this->cardNpsBanmedica($dataNPSGraph) : $this->CSATJourney($graphCSATDrivers);
+            $npsVid             = (substr($request->survey, 3, 3) == 'con' || substr($request->survey, 3, 3) == 'cop')? null : $this->CSATDrivers($graphCSATDrivers);
             $csatJourney        = $csat1;
             $csatDrivers        = $csat2;
             $cx                 = $csat3;
             $wordCloud          = $csat4;
             $closedLoop         = $csat5;
             $detailGender       = null;
-            $detailGeneration   = $this->closedLoop($db, 'nps', $endDateFilterMonth, $startDateFilterMonth, $filterClient, $datafilters);
+            $detailGeneration   = null; //$this->closedLoop($db, 'nps', $endDateFilterMonth, $startDateFilterMonth, $filterClient, $datafilters)
             $detailsProcedencia = $Procedencia;
             $box14              = $venta;
             $box15              = $call;

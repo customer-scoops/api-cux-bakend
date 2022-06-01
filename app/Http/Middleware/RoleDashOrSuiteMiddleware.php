@@ -12,7 +12,7 @@ use Illuminate\Http\Response;
 
 use App\Traits\ApiResponser;
 
-class RoleDownloadMiddleware
+class RoleDashOrSuiteMiddleware
 {
     use ApiResponser;
     /**
@@ -34,10 +34,9 @@ class RoleDownloadMiddleware
 
     public function validatePermiso($next, $request)
     {
-
         try {
-            if($request->dataJwt[env('AUTH0_AUD')]->client == 'BAN001' || $request->dataJwt[env('AUTH0_AUD')]->client == 'MUT001'){
-                if(!in_array('Downloader',$request->dataJwt[env('AUTH0_AUD')]->roles)){
+            if($request->dataJwt[env('AUTH0_AUD')]->client == 'BAN001'){
+                if(in_array('Loyalty',$request->dataJwt[env('AUTH0_AUD')]->roles)){
                     return  $this->generic(['datas'=>'Unauthorized'], Response::HTTP_UNAUTHORIZED);
                 }
             } 
@@ -46,7 +45,7 @@ class RoleDownloadMiddleware
         catch(InvalidTokenException $e) {
             //echo $e->getMessage();
             return $this->generic([$e->getMessage()], Response::HTTP_UNAUTHORIZED);
-            return response()->json('No token provided', 401);
+            return response()->json('No token provided', 403);
             //throw $e;
         };
     }

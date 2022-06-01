@@ -81,13 +81,7 @@ class Suite
     }
     public function getSurvey($request,$jwt)
     {   
-        // echo $this->_dbSelected;
-    //    try {
-    //     DB::connection()->getPdo();
-    // } catch (\Throwable $th) {
-    //     echo $th->getMessage();
-    // }
-    // exit;
+
         try{
             //$codCustomer = ($jwt[env('AUTH0_AUD')]->client === null) ? 'BAN001' : $jwt[env('AUTH0_AUD')]->client;
             $codCustomer = $jwt[env('AUTH0_AUD')]->client;
@@ -244,7 +238,7 @@ class Suite
             }
             
             $survey = ($request->get('survey') === null) ? $jwt[env('AUTH0_AUD')]->survey: $request->get('survey');
-            //echo $survey;
+            //echo $jwt[env('AUTH0_AUD')]->email;exit;
             $survey = $this->buildSurvey($survey,$client);
             $dbQuery = DB::table($this->_dbSelected.'.'.$client.'_'.$survey);
             //echo $this->_dbSelected.'.'.$client.'_'.$survey;
@@ -254,7 +248,11 @@ class Suite
             if($client != 'BAN001' && $client != 'VID001')
                 $dbQuery->whereBetween('nps', [$this->_startMinNps,$this->_startMaxNps]);
             $dbQuery->where('date','>=', $this->_dateStartClient);
-            //$dbQuery = DB::table('dataSuite_banmedica');
+            
+            if($client == 'BAN001' || $client == 'VID001')
+                if(in_array('Loyalty',$jwt[env('AUTH0_AUD')]->roles)){
+                    $dbQuery->where('ejecutivo', $jwt[env('AUTH0_AUD')]->email);
+                }
             
             // Filtramos
             if($request->get('filters') !== null) {
@@ -343,6 +341,7 @@ class Suite
                     "client" => array(
                         'name' => $value->nom,
                         'rut'  => $value->rut,
+                        'rut2'  => (isset($value->rut2)) ? $value->rut2 : '',
                         'phone' => (isset($value->phone)) ?  $value->phone : '',
                         'celu' => (isset($value->celu)) ?  $value->celu : '',
                         'dateSchedule' =>  (isset($value->dateSchedule)) ?  $value->dateSchedule : '',
@@ -361,10 +360,10 @@ class Suite
                     "tableName" =>$value->tableName,
                     "visita"    => $value->visita,
                     "estapaEncuesta"=> $value->etapaencuesta,
-                    "subStatus1" => substr($client, 0, 3) == 'BAN' ? $value->field_1 : '',
-                    "subStatus2" =>substr($client, 0, 3) == 'BAN' ? $value->field_2 : '',
-                    "caso" => substr($client, 0, 3) == 'BAN' ? $value->field_3 : '',
-                    "cliente_det_close"=> substr($client, 0, 3) == 'BAN' ? $value->cliente_det_close : '',
+                    "subStatus1" => (isset($value->field_1)) ? $value->field_1 : '',
+                    "subStatus2" => (isset($value->field_2)) ? $value->field_2 : '',
+                    "caso"       => (isset($value->field_3)) ? $value->field_3 : '',
+                    "cliente_det_close"=> (isset($value->cliente_det_close)) ? $value->cliente_det_close : '',
                     "comentarios" => array(
                         'date'      => $value->fechacarga, 
                         'content'   => $value->contenido,
@@ -420,9 +419,13 @@ class Suite
     }
 
     private function sendedmail($nombre,$mail,$hash,$encuesta){
+        $endpoint = 'sendmail.php';
+        if(substr($encuesta,0,3) == 'vid'){
+            $endpoint = 'sendmail2.php';
+        }
         $curl = curl_init();
         curl_setopt_array($curl, array(
-        CURLOPT_URL =>'https://customerscoops.com/srv/suitemail/sendmail.php',
+        CURLOPT_URL =>'https://customerscoops.com/srv/suitemail/'.$endpoint,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => '',
         CURLOPT_MAXREDIRS => 10,
@@ -574,20 +577,20 @@ class Suite
             "mutreh_csat1" => "Tiempo espera para tu atención",
             "mutreh_csat2" => "Amabilidad profesionales Mutual",
             "mutreh_csat3" => "Claridad información entregada",
-            "mutreh_csat4" => "Instalaciones y quipamiento para atención",
+            "mutreh_csat4" => "Instalaciones y equipamiento para atención",
             "mutreh_csat5" => "Resultados obtenidos con rehabilitación",
             
             "muturg_csat1" => "Tiempo espera para tu atención",
             "muturg_csat2" => "Amabilidad profesionales Mutual",
             "muturg_csat3" => "Amabilidad personal médico",
             "muturg_csat4" => "Claridad información entregada",
-            "muturg_csat5" => "Instalaciones y quipamiento para atención",
+            "muturg_csat5" => "Instalaciones y equipamiento para atención",
             
             "muthos_csat1" => "Amabilidad personal clínico",
             "muthos_csat2" => "Amabilidad personal médico",
             "muthos_csat3" => "Claridad información entregada",
             "muthos_csat4" => "Resolución problema salud",
-            "muthos_csat5" => "Instalaciones y quipamiento para atención",
+            "muthos_csat5" => "Instalaciones y equipamiento para atención",
             
             "mutcas_csat1" => "Tiempo espera para tu atención",
             "mutcas_csat2" => "Amabilidad profesionales Mutual",
@@ -681,7 +684,7 @@ class Suite
             $this->_dbSelected   = 'customer_banmedica';
             $this->_startMinNps = 0;
             $this->_startMaxNps = 6;
-            $this->_daysActiveSurvey = -7;
+            $this->_daysActiveSurvey = -15;
             if($client == 'VID001'){
                 $this->_nameClient = 'Vida Tres';
             }
