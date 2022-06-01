@@ -341,6 +341,7 @@ class Suite
                     "client" => array(
                         'name' => $value->nom,
                         'rut'  => $value->rut,
+                        'rut2'  => (isset($value->rut2)) ? $value->rut2 : '',
                         'phone' => (isset($value->phone)) ?  $value->phone : '',
                         'celu' => (isset($value->celu)) ?  $value->celu : '',
                         'dateSchedule' =>  (isset($value->dateSchedule)) ?  $value->dateSchedule : '',
