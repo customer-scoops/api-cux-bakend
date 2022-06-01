@@ -5594,7 +5594,7 @@ class Dashboard extends Generic
         if (substr($datafilters, 30, 3) == 'NOW') {
             $datafilters = '';
         }
-
+        //algo para probar
         $arrayTop =[];
         
         if($filterClient != 'all'){
