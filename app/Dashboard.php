@@ -2847,7 +2847,7 @@ class Dashboard extends Generic
         $data = DB::select($queryTra);
         $lastSentido  = '';
         $values = [];
-
+        //echo !$data;exit;
         if ($data != null){
 
             foreach ($data as $key => $value) {
@@ -2912,7 +2912,44 @@ class Dashboard extends Generic
                 
             }
         }
-    
+
+        if (!$data){
+            $rowData = [];
+            $values['N/A'] = [];
+            array_push(
+                $values['N/A'],
+                [
+                    array_merge(
+                        ['Indicator' => 'NPS'],
+                        $rowData
+                    )
+                ]
+            );
+            array_push(
+                $values['N/A'],
+                [
+                    array_merge(
+                        ['Indicator' => 'INS'],
+                        $rowData
+                    )
+                ]
+            );
+            array_push(
+                $values['N/A'],
+                [
+                    array_merge(
+                        ['Indicator' => 'CBI'],
+                        $rowData
+                    )
+                ]
+            );
+            $values['N/A'][sizeof($values['N/A']) - 3][0]['Respuestas'] = 'N/A';
+            $values['N/A'][sizeof($values['N/A']) - 3][0]['rowSpan']  = ['cells' => 3, 'key' => "Respuestas"];
+            $values['N/A'][sizeof($values['N/A']) - 3][0]['Valor'] = 'N/A';
+            $values['N/A'][sizeof($values['N/A']) - 2][0]['Valor'] = 'N/A';
+            $values['N/A'][sizeof($values['N/A']) - 1][0]['Valor'] = 'N/A';
+        }
+
         $colums = [
             $indicatorName => $indicatorName,
             'Indicator' => 'Indicadores',
