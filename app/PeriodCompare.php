@@ -228,18 +228,15 @@ class PeriodCompare
 
                 for ($i=1; $i <= $endCsat; $i++) 
                 {
-                    if ($i != $endCsat) 
-                    {
-                        $query .= " ROUND((COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL ))) AS  $fieldBd$i, ";
+                    if ($i != $endCsat) {
+                        $query .= " ROUND(((COUNT(if($fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL)) - COUNT(CASE WHEN $fieldBd$i BETWEEN $minCsat AND  $maxCsat THEN 1 END))* 100)/COUNT(CASE WHEN $fieldBd$i BETWEEN $minCsat AND  $maxMaxCsat THEN 1 END)) AS  $fieldBd$i, ";
                     }
-
-                    if ($i == $endCsat) 
-                    {
-                        $query .= " ROUND((COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL ))) AS  $fieldBd$i ";
+                    if ($i == $endCsat) {
+                        $query .= " ROUND(((COUNT(if($fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL)) - COUNT(CASE WHEN $fieldBd$i BETWEEN $minCsat AND  $maxCsat THEN 1 END))* 100)/COUNT(CASE WHEN $fieldBd$i BETWEEN $minCsat AND  $maxMaxCsat THEN 1 END)) AS  $fieldBd$i ";
                     }
                 }
 
-                $data = DB::select("SELECT $query, fechaservicio, MONTH(fechaservicio) as mes,  WEEK(fechaservicio) AS week
+                $data = DB::select("SELECT $query, fechaservicio, MONTH(fechaservicio) as mes, WEEK(fechaservicio) AS week
                                 FROM $dbSelected.$db as a
                                 LEFT JOIN  $dbSelected." . $db . "_start as b
                                 on a.token = b.token
@@ -248,8 +245,6 @@ class PeriodCompare
                                 ORDER BY fechaservicio");
             }
         }
-
-        
 
         $indexData = count($data);
         $suite = new Suite($jwt);
@@ -268,7 +263,6 @@ class PeriodCompare
             $column["period".$value->mes] = substr(date("F", strtotime(date('Y-'.$value->mes.'-d'))),0,3);
              }
             $periods = null;
-            
             
             if($key == 0){
                 for($i=1; $i <= $endCsat; $i++) {
