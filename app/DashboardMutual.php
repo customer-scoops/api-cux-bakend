@@ -398,8 +398,8 @@ class DashboardMutual extends Dashboard
                 "promotors"         => round($data[0]->promotor),
                 "neutrals"          => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - round(($data[0]->detractor) + ($data[0]->promotor)),
                 "detractors"        => round($data[0]->detractor),
-                "percentage"        => '0',
-                "smAvg"             => '0',
+                "percentage"        => $npsActive - $npsPreviousPeriod,
+                "smAvg"             => $this->AVGLast6MonthNPS($table, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 1 month")), $indicador, $filter),
                 'NPSPReV'           => $npsPreviousPeriod,
             ];
         }
@@ -418,14 +418,13 @@ class DashboardMutual extends Dashboard
         }
 
         if ($group === null) {
-            $where = " date_survey BETWEEN '$dateEnd' AND '$dateIni' ";
+            $where = " date_survey BETWEEN '2022-05-01' AND '$dateIni' ";
             $group = " a.mes, a.annio ";
         }
 
         if ($datafilters)
             $datafilters = " AND $datafilters";
 
-        if ($filter != 'all') {
             $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) - 
                                 COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) / 
                                 COUNT(CASE WHEN nps!=99 THEN 1 END) * 100),1) AS NPS, 
@@ -442,7 +441,6 @@ class DashboardMutual extends Dashboard
                                 WHERE  $where  $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
                                 GROUP BY $group2
                                 ORDER BY date_survey ASC");               
-        }
 
         if ($data) {
             if ($data[0]->total === null) {
@@ -518,11 +516,11 @@ class DashboardMutual extends Dashboard
                                 COUNT(CASE WHEN nps != 99 THEN 1 END) * 100),1) AS NPS, a.mes as mes, a.annio
                                 FROM ".$this->getValueParams('_dbSelected').".$table as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected').".".$table."_start as b ON a.token = b.token 
-                                WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' ". $this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                                WHERE date_survey BETWEEN '2022-05-01' AND '$dateIni' ". $this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
                                 group by a.annio, a.mes) as a");
         }
         if($data[0]->meses == '0')
-            return 0;
+            return '';
         return (string)(round($data[0]->total / $data[0]->meses));
     }
 
@@ -623,7 +621,7 @@ class DashboardMutual extends Dashboard
             return trim($request->get('gerenciamedica'));
 
         if(isset($jwt[env('AUTH0_AUD')]->gerenciamedica)){
-            return $jwt[env('AUTH0_AUD')]->gerenciamedica[0]; 
+            return $jwt[env('AUTH0_AUD')]->gerenciamedica; 
         }
         return $gerenciamedica;
     }
@@ -1236,7 +1234,7 @@ class DashboardMutual extends Dashboard
         }
 
         if(!isset($request->Gerencia_Medica)){
-            $gerencia=$this->setFilterCentro($jwt, $request);
+            $gerencia=$this->setFilterGerencia($jwt, $request);
             if(isset($jwt[env('AUTH0_AUD')]->gerenciamendica)){
                 $request->merge(['Gerencia_Medica'=>$gerencia]);
             }
