@@ -1217,7 +1217,7 @@ class DashboardMutual extends Dashboard
                 //print_r($jwt[env('AUTH0_AUD')]->centros);exit;
     
                 if($long == 1){ 
-                    $obj = array([$jwt[env('AUTH0_AUD')]->centros[0] =>  $jwt[env('AUTH0_AUD')]->centros[0]]);
+                    $obj = [$jwt[env('AUTH0_AUD')]->centros[0] =>  $jwt[env('AUTH0_AUD')]->centros[0]];
                 }
                 
                 if($long > 1){
