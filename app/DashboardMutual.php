@@ -261,8 +261,7 @@ class DashboardMutual extends Dashboard
         }
    
         if($consolidadoTotal == true){
-            $data = DB::select("SELECT sum(csat) as csat, sum(Cdet) as Cdet, sum(Cpro) as Cpro, sum(Cneu) as Cneu, sum(detractor) as detractor, sum(promotor) as promotor, sum(neutral) as neutral, sum(total)as total,
-                            mes , annio, WEEK(date_survey) AS week, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek,".$this->getValueParams('_fieldSelectInQuery')."  from (
+            $data = DB::select("SELECT sum(csat) as csat, mes, annio  from (
                             select ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
                             COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minCsat')." AND ".$this->getValueParams('_maxCsat')." THEN 1 END)) / 
                             (COUNT(CASE WHEN $indicador!=99 THEN 1 END)) * 100),1)*0.3 AS csat, 
