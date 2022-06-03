@@ -608,7 +608,7 @@ class DashboardMutual extends Dashboard
 
     private function surveyFilterGerencia($survey, $jwt, $request){
         $this->filterGerencia = '';
-        if(isset($jwt[env('AUTH0_AUD')]->gerenciamedica)){
+        if(isset($jwt[env('AUTH0_AUD')]->gerenciaMedica)){
             if(in_array( $survey,$this->surveysConsolidado())){
                 $this->filterGerencia= " AND gerenciamedica in ('".$this->setFilterGerencia($jwt, $request)."') ";
             }
@@ -620,8 +620,8 @@ class DashboardMutual extends Dashboard
         if($request->get('gerenciamedica') !== null)
             return trim($request->get('gerenciamedica'));
 
-        if(isset($jwt[env('AUTH0_AUD')]->gerenciamedica)){
-            return $jwt[env('AUTH0_AUD')]->gerenciamedica; 
+        if(isset($jwt[env('AUTH0_AUD')]->gerenciaMedica)){
+            return $jwt[env('AUTH0_AUD')]->gerenciaMedica; 
         }
         return $gerenciamedica;
     }
@@ -951,7 +951,7 @@ class DashboardMutual extends Dashboard
                         $obj = array_merge($obj,array($jwt[env('AUTH0_AUD')]->centros[$i] =>  $jwt[env('AUTH0_AUD')]->centros[$i]));
                     }
                 }
-
+                
                 $CenAtencionn = ['filter' => 'Centro_Atencion', 'datas' => $obj];
             }
 
@@ -959,7 +959,6 @@ class DashboardMutual extends Dashboard
                 $data = DB::select("SELECT DISTINCT(catencion)
                                 FROM ".$this->getValueParams('_dbSelected').".adata_mut_" . $dbC . "_start
                                 WHERE catencion != '' and catencion != '0' $cond");
-
                 $this->_fieldSelectInQuery = 'catencion';
 
                 $CenAtencionn = ['filter' => 'Centro_Atencion', 'datas' => $this->contentfilter($data, 'catencion')];
@@ -967,26 +966,12 @@ class DashboardMutual extends Dashboard
         }
 
         if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img' || $dbC == 'con' || $dbC == 'cop') {
-            if(isset($jwt[env('AUTH0_AUD')]->gerenciamedica)){
-                $long = sizeof($jwt[env('AUTH0_AUD')]->gerenciamedica);
-                //print_r($jwt[env('AUTH0_AUD')]->centros);exit;
-    
-                if($long == 1){ 
-                    $obj = array([$jwt[env('AUTH0_AUD')]->gerenciamedica[0] =>  $jwt[env('AUTH0_AUD')]->gerenciamedica[0]]);
-                }
-                
-                if($long > 1){
-                    $obj = array($jwt[env('AUTH0_AUD')]->gerenciamedica[0] =>  $jwt[env('AUTH0_AUD')]->gerenciamedica[0]);
-                    for($i=1; $i<$long; $i++){
-                        $obj = array_merge($obj,array($jwt[env('AUTH0_AUD')]->gerenciamedica[$i] =>  $jwt[env('AUTH0_AUD')]->gerenciamedica[$i]));
-                    }
-                }
-
-                $CenAtencionn = ['filter' => 'Centro_Atencion', 'datas' => $obj];
+            if(isset($jwt[env('AUTH0_AUD')]->gerenciaMedica)){
+                $Gerencia = null;
             }
 
 
-            if(empty($jwt[env('AUTH0_AUD')]->gerenciamedica)){
+            if(empty($jwt[env('AUTH0_AUD')]->gerenciaMedica)){
             $data = DB::select("SELECT DISTINCT(gerenciamedica)
                                 FROM ".$this->getValueParams('_dbSelected').".adata_mut_" . $dbC . "_start
                                 WHERE gerenciamedica != '' and gerenciamedica != '1' and gerenciamedica != '0'");
@@ -1009,7 +994,6 @@ class DashboardMutual extends Dashboard
 
         if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img'|| $dbC == 'con'|| $dbC == 'cop') {
             if(isset($jwt[env('AUTH0_AUD')]->zona)){
-                //$ZonaHos = ['filter' => 'Zona', 'datas' => ''];
                 $ZonaHos = null;
             }
 
@@ -1235,7 +1219,7 @@ class DashboardMutual extends Dashboard
 
         if(!isset($request->Gerencia_Medica)){
             $gerencia=$this->setFilterGerencia($jwt, $request);
-            if(isset($jwt[env('AUTH0_AUD')]->gerenciamendica)){
+            if(isset($jwt[env('AUTH0_AUD')]->gerenciaMendica)){
                 $request->merge(['Gerencia_Medica'=>$gerencia]);
             }
         }
