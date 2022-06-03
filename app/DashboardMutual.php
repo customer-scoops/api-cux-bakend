@@ -14,8 +14,8 @@ class DashboardMutual extends Dashboard
     private $_activeSurvey = 'mutamb';
     private $_suveysConsolidado = ['mutamb', 'muthos', 'muturg', 'mutreh', 'mutimg'];
     private $consolidadoTotal = false;
-    private $_bdConsolidado = ['adata_mut_amb','adata_mut_hos','adata_mut_urg','adata_mut_reh','adata_mut_img'];
-    private $_pesos = [0.3, 0.08, 0.17, 0.29, 0.16];
+    //private $_bdConsolidado = ['adata_mut_amb','adata_mut_hos','adata_mut_urg','adata_mut_reh','adata_mut_img'];
+    //private $_pesos = [0.3, 0.08, 0.17, 0.29, 0.16];
  
     public function __construct($jwt, $request)
     {
@@ -562,7 +562,7 @@ class DashboardMutual extends Dashboard
     
         if (($data == null) || $data[0]->total == null || $data[0]->total == 0) {
             $npsActive = (isset($data[0]->NPS)) ? $data[0]->NPS : 0;
-            $npsPreviousPeriod = $this->npsPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $datafilters);
+            $npsPreviousPeriod = $this->npsPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $datafilters,$consolidadoTotal);
             
             return [
                 "name"              => "nps",
@@ -578,7 +578,7 @@ class DashboardMutual extends Dashboard
 
         if ($data[0]->total != 0) {
             $npsActive = (isset($data[0]->NPS)) ? $data[0]->NPS : 0;
-            $npsPreviousPeriod = $this->npsPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $datafilters);
+            $npsPreviousPeriod = $this->npsPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $datafilters,$consolidadoTotal);
             
             if ($npsPreviousPeriod  === null) {
                 $npsPreviousPeriod = 0;
@@ -800,7 +800,7 @@ class DashboardMutual extends Dashboard
         return (string)(round($data[0]->total / $data[0]->meses));
     }
 
-    private function npsPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $datafilters)
+    private function npsPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $datafilters,$consolidadoTotal)
     {
         $datafilters = str_replace(' AND date_survey between date_sub(NOW(), interval 9 week) and NOW()', '', $datafilters);
         $monthAntEnd = date('m') - 1;
@@ -819,14 +819,63 @@ class DashboardMutual extends Dashboard
         }
 
         $mes = $monthAntEnd;
-
-        $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
+        if($consolidadoTotal == false){
+            $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
                             COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) /
                             (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1) AS NPS
                             FROM ".$this->getValueParams('_dbSelected').".$table as a
                             left join ".$this->getValueParams('_dbSelected').".".$table."_start as b
                             on a.token = b.token
-                            WHERE a.mes = $mes and a.annio = $annio $datafilters ". $this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia." ");
+                            WHERE a.mes = $mes and a.annio = $annio $datafilters ". $this->filterZona." 
+                            ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia." ");
+        }
+        if($consolidadoTotal == true){
+            $data = DB::select("SELECT SUM(NPS) AS NPS FROM(
+                            SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
+                            COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) /
+                            (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1)*0.3 AS NPS
+                            FROM ".$this->getValueParams('_dbSelected').".adata_mut_amb as a
+                            left join ".$this->getValueParams('_dbSelected').".adata_mut_amb_start as b
+                            on a.token = b.token
+                            WHERE a.mes = $mes and a.annio = $annio $datafilters ". $this->filterZona." 
+                            ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                            union
+                            SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
+                            COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) /
+                            (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1)*0.08 AS NPS
+                            FROM ".$this->getValueParams('_dbSelected').".adata_mut_hos as a
+                            left join ".$this->getValueParams('_dbSelected').".adata_mut_hos_start as b
+                            on a.token = b.token
+                            WHERE a.mes = $mes and a.annio = $annio $datafilters ". $this->filterZona." 
+                            ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                            union
+                            SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
+                            COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) /
+                            (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1)*0.17 AS NPS
+                            FROM ".$this->getValueParams('_dbSelected').".adata_mut_urg as a
+                            left join ".$this->getValueParams('_dbSelected').".adata_mut_urg_start as b
+                            on a.token = b.token
+                            WHERE a.mes = $mes and a.annio = $annio $datafilters ". $this->filterZona." 
+                            ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                            union
+                            SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
+                            COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) /
+                            (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1)*0.29 AS NPS
+                            FROM ".$this->getValueParams('_dbSelected').".adata_mut_reh as a
+                            left join ".$this->getValueParams('_dbSelected').".adata_mut_reh_start as b
+                            on a.token = b.token
+                            WHERE a.mes = $mes and a.annio = $annio $datafilters ". $this->filterZona." 
+                            ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                            union
+                            SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
+                            COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) /
+                            (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1)*0.16 AS NPS
+                            FROM ".$this->getValueParams('_dbSelected').".adata_mut_img as a
+                            left join ".$this->getValueParams('_dbSelected').".adata_mut_img_start as b
+                            on a.token = b.token
+                            WHERE a.mes = $mes and a.annio = $annio $datafilters ". $this->filterZona." 
+                            ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia.") AS A");
+        }
 
         return $data[0]->NPS;
     }
