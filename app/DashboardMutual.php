@@ -261,6 +261,7 @@ class DashboardMutual extends Dashboard
         }
    
         if($consolidadoTotal == true){
+       
             $data = DB::select("SELECT sum(csat) as csat, mes, annio  from (
                             select ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
                             COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minCsat')." AND ".$this->getValueParams('_maxCsat')." THEN 1 END)) / 
@@ -314,8 +315,6 @@ class DashboardMutual extends Dashboard
                             GROUP BY mes, annio
                             ORDER BY date_survey asc");
         }
-            
-        
 
         if (!empty($data)) {
             foreach ($data as $key => $value) {
@@ -638,6 +637,7 @@ class DashboardMutual extends Dashboard
                                 ORDER BY date_survey ASC");
             }
             if($consolidadoTotal == true){
+                $struct = 'two';
                 $query =   ("SELECT sum(NPS) as NPS, sum(Cdet) as Cdet, sum(Cpro) as Cpro, sum(Cneu) as Cneu, sum(detractor) as detractor, sum(promotor) as promotor, sum(neutral) as neutral, sum(total)as total,
                                         mes , annio, WEEK(date_survey) AS week, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek,".$this->getValueParams('_fieldSelectInQuery')." from ( select
                                         ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) - 
