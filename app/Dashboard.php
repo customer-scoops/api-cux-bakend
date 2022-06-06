@@ -6744,24 +6744,23 @@ class Dashboard extends Generic
         return ['color'=>'rgb(0,0,0)','text'=>''];
     }
 
-    // public function arrayPushToValues($array,$valuesReferences,$keyReferences){
-    //     if($keyReferences == 'GAP'){
-    //         foreach($valuesReferences as $key => $value){
-    //             array_push($array, ['name' => $value, 'exp' => 9]);
-    //         }
-    //     }
-    //     if($keyReferences == 'frec'){
-    //         foreach($valuesReferences as $key => $value){
-    //             array_push($array, ["icon" => "plane","percentage"=> $value, "quantity" => '']);
-    //         }
-    //     }
-    //     if($keyReferences == 'lab'){
-    //         foreach($valuesReferences as $key => $value){
-    //             array_push($array, ["icon" => "star", "percentage" => $value, "quantity" =>  '']);
-    //         }
-    //     }
-    //     return $array;
-    // }
+    public function arrayPushToValues($array, $valuesReferences, $keyReferences, $icon = [], $quantity = [], $expect = null){
+        if($keyReferences == 'GAP'){
+            foreach($valuesReferences as $key => $value){
+                array_push($array, ['name' => $value, 'exp' => $expect]);
+            }
+        }
+
+        if($keyReferences != 'GAP'){
+            for ($i=0; $i < count($valuesReferences); $i++) { 
+                array_push($array, ["icon" => count($icon) > 1 ? $icon[$i] : $icon[0], 
+                                    "percentage"=> count($valuesReferences) > 1 ? $valuesReferences[$i] : $valuesReferences[0], 
+                                    "quantity" => count($quantity) > 1 ? $quantity[$i] : '']);
+            }
+        }
+
+        return $array;
+    }
 
 
     //DETAILS DASH
@@ -6831,8 +6830,6 @@ class Dashboard extends Generic
             $db = 'adata_'.substr($request->survey,0,3).'_'.trim(substr($request->survey,3,6));
         }
        
-        $brandAwareness = null;
-        $aerolineas = null;
         $rankingSuc = null;
         $ges = null;
         $ejecutivo = null;
@@ -6857,8 +6854,10 @@ class Dashboard extends Generic
         }
 
         $dataNps    = $this->resumenNps($db, $dateIni, $dateEndIndicatorPrincipal, $npsInDb, $filterClient, $datafilters);
-        $dataCsat   = $this->resumenCsat($db, $dateIni, $dateEndIndicatorPrincipal, $csatInDb, $filterClient, $datafilters);
- 
+        if (substr($request->survey, 0, 3) != 'tra') {
+            $dataCsat   = $this->resumenCsat($db, $dateIni, $dateEndIndicatorPrincipal, $csatInDb, $filterClient, $datafilters);
+        }
+
         if (substr($request->survey, 0, 3) == 'jet') {
             $dataCsatGraph   = $this->graphCsat($db,  $csatInDb, $dateIni, $dateEnd, $filterClient, $datafilters);
         }
@@ -6866,150 +6865,7 @@ class Dashboard extends Generic
         if (substr($request->survey, 0, 3) != 'jet') {
             $dataCsatGraph   = $this->graphCsat($db,  $csatInDb, $endDateFilterMonth, $startDateFilterMonth,  $filterClient, $datafilters);
         }
-     
-        $jetNamesGene = [
-            'title' => 'Generation',
-            'data' => [
-                [
-                    "icon" => "genz",
-                    "percentage" => 'GEN Z',
-                    "quantity" =>  '14-22',
-                ],
-                [
-                    "icon" => "genmille",
-                    "percentage" => 'GEN MILLE',
-                    "quantity" =>  '23-38',
-                ],
-                [
-                    "icon" => "genx",
-                    "percentage" => 'GEN X',
-                    "quantity" =>  '39-54',
-                ],
-                [
-                    "icon" => "genbb",
-                    "percentage" => 'GEN BB',
-                    "quantity" =>  '55-73',
-                ],
-                [
-                    "icon" => "gensil",
-                    "percentage" => 'GEN SIL',
-                    "quantity" =>  '74-91',
-                ],
-            ]
-        ];
-
-        $jetNamesLab = [
-            'title' => 'Situación Laboral',
-            'data' => [
-                [
-                    "icon" => "star",
-                    "percentage" => 'Cesante',
-                    "quantity" =>  '',
-                ],
-                [
-                    "icon" => "star",
-                    "percentage" => 'Empleado',
-                    "quantity" =>  '',
-                ],
-                [
-                    "icon" => "star",
-                    "percentage" => 'Emprendedor',
-                    "quantity" =>  '',
-                ],
-                [
-                    "icon" => "star",
-                    "percentage" => 'Estudiante',
-                    "quantity" =>  '',
-                ],
-                [
-                    "icon" => "star",
-                    "percentage" => 'Ret/Jub',
-                    "quantity" =>  '',
-                ],
-            ]
-        ];
-
-        $jetNamesFrecVuelo = [
-            'title' => 'Frecuencia de Vuelo',
-            'data' => [
-               // $this->arrayPushToValues([],['1 / semana','2-3 / mes','1 / mes','2+ al  año','Act. no viajo','1 / año'],'frec')
-                [
-                    "icon" => "plane",
-                    "percentage"=> '1 / semana',
-                    "quantity" =>  '',
-                ],
-                [
-                    "icon" => "plane",
-                    "percentage"  => '2-3 / mes',
-                    "quantity"=>  '',
-                ],
-                [
-                    "icon" => "plane",
-                    "percentage" => '1 / mes',
-                    "quantity" =>  '',
-                ],
-                [
-                    "icon" => "plane",
-                    "percentage" => '2+ al  año',
-                    "quantity" =>  '',
-                ],
-                [
-                    "icon" => "plane",
-                    "percentage" => '1 / año',
-                    "quantity" =>  '',
-                ],
-                [
-                    "icon" => "plane",
-                    "percentage" => 'Act. no viajo',
-                    "quantity" =>  '',
-                ],
-            ]
-        ];
-
-        $structGAPJetSmart = [
-            [
-                'name' => 'Compra',
-                'exp' => 9,
-            ],
-            [
-                'name' => 'Pago',
-                'exp' => 9,
-            ],            
-            [
-                'name' => 'N/A',
-                'exp' => 9,
-            ],
-            [
-                'name' => 'Confirmación',
-                'exp' => 9,
-            ],
-            [
-                'name' => 'Check in',
-                'exp' => 9,
-            ],
-            [
-                'name' => 'Registro equipaje',
-                'exp' => 9,
-            ],
-            [
-                'name' => 'Abordaje',
-                'exp' => 9,
-            ],
-            [
-                'name' => 'Vuelo',
-                'exp' => 9,
-            ],
-            [
-                'name' => 'Llegada',
-                'exp' => 9,
-            ],
-            [
-                'name' => 'Atención cliente',
-                'exp' => 9,
-            ],
-        ];
-
-        
+             
         if ($this->_dbSelected  == 'customer_banmedica') {
             $name =  $nameIndicatorPrincipal . ' & ' . $nameIndicatorPrincipal2;
             $db2 = ($indetifyClient == 'vid') ? 'adata_ban_' . trim(substr($request->survey, 3, 6)) : 'adata_vid_' . trim(substr($request->survey, 3, 6));
@@ -7139,12 +6995,55 @@ class Dashboard extends Generic
         }
 
         if ($this->_dbSelected  == 'customer_jetsmart') {
-            $ces=true;
             $name = 'JetSmart';
+            $detGend = $detGene = $datasSBT = $detailsProc = $bo14 = null;
+            $bo15 = $bo16 = $bo17 = $bo18 = $bo19 = $bo20 = null;
+            $brandAwareness = $aerolineas = null;
+
             if ($db == 'adata_jet_via') {
-                $ces=false;
+                $jetNamesFrecVuelo = [
+                    'title' => 'Frecuencia de Vuelo',
+                    'data' => $this->arrayPushToValues([],['1 / semana', '2-3 / mes', '1 / mes', '2+ al  año','1 / año', 'Act. no viajo'],'frec2', ["plane"])
+                ];
+
+                $jetNamesLab = [
+                    'title' => 'Situación Laboral',
+                    'data' =>  $this->arrayPushToValues([],['Cesante', 'Empleado', 'Emprendedor', 'Estudiante', 'Ret/Jub'], 'laboral', ["star"])
+                ];
+
+                $jetNamesGene = [
+                    'title' => 'Generation',
+                    'data' => $this->arrayPushToValues([],['GEN Z', 'GEN MILLE', 'GEN X', 'GEN BB', 'GEN SIL'], 'gene', ["genz", "genmille", "genx", "genbb", "gensil"], ['14-22', '23-38', '39-54', '55-73', '74-91'])
+                ];
+
+                $structGAPJetSmart =  $this->arrayPushToValues([],['Compra', 'Pago', 'N/A', 'Confirmación', 'Check in', 'Registro equipaje', 'Abordaje', 'Vuelo', 'Llegada', 'Atención cliente',],'GAP', [], [], 9);
                 $aerolineas = $this->OrdenAerolineas($db, $startDateFilterMonth, $endDateFilterMonth);
                 $brandAwareness = $this->BrandAwareness($db, $startDateFilterMonth, $endDateFilterMonth);
+                $detGend = $this->gapJetsmart($db, $request->survey,'csat', $dateIni, $dateEnd, $structGAPJetSmart, $datafilters);
+                $detGene = $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'gene', $endDateFilterMonth, $startDateFilterMonth,  $filterClient,  $datafilters, $jetNamesGene);
+                $detailsProc = $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'laboral' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesLab);
+                $bo14 = $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'frec2' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesFrecVuelo);
+            }
+
+            if ($db != 'adata_jet_via') {
+                $detGend = $this->GraphCSATAtributos($db, trim($request->survey), 'csat1',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
+                $detGene = $this->GraphCSATAtributos($db, trim($request->survey), 'csat2',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
+                $datasSBT = $this->GraphCSATAtributos($db, trim($request->survey), 'csat3',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
+                $detailsProc = $this->GraphCSATAtributos($db, trim($request->survey), 'csat4',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
+                $bo14 = $this->GraphCSATAtributos($db, trim($request->survey), 'csat5',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
+                $bo15 = $this->GraphCSATAtributos($db, trim($request->survey), 'csat6',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
+            }
+
+            if ($db == 'adata_jet_vue') {
+                $bo16 = $this->GraphCSATAtributos($db, trim($request->survey), 'csat7',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
+                $bo17 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc_1', "Motivo de Vuelo", 4, 4);
+                $bo18 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Inconveniente llegada", 2, 4);
+                $bo19 = $this->rankingInconvLlegada($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Tipo Inconveniente", 2, 4);
+                $bo20 = $this->statsJetSmartResp($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, $datafilters);
+            }
+
+            if ($db == 'adata_jet_com') {
+                $bo17 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc_1', "Ingreso", 2, 4);
             }
 
             $dataCes            = $this->ces($db, $dateIni, $dateEndIndicatorPrincipal, 'ces', $datafilters);
@@ -7162,17 +7061,17 @@ class Dashboard extends Generic
             $csatDrivers        = substr($db, 10, 3) == 'com' ?  $this->cardNpsBanmedica($this->_nameClient, $dataCesGraph, 'CES') : null; //Ces
             $wordCloud          = $this->CSATJourney($graphCSATDrivers);;
             $closedLoop         = null; 
-            $detailGender       = substr($db, 10, 3) == 'via' ? $this->gapJetsmart($db, $request->survey,'csat', $dateIni, $dateEnd, $structGAPJetSmart, $datafilters): $this->GraphCSATAtributos($db, trim($request->survey), 'csat1',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
-            $detailGeneration   = substr($db, 10, 3) == 'via' ? $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'gene', $endDateFilterMonth, $startDateFilterMonth,  $filterClient,  $datafilters, $jetNamesGene) : $this->GraphCSATAtributos($db, trim($request->survey), 'csat2',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
-            $datasStatsByTaps   = substr($db, 10, 3) != 'via' ? $this->GraphCSATAtributos($db, trim($request->survey), 'csat3',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters): null;
-            $detailsProcedencia = substr($db, 10, 3) == 'via' ? $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'laboral' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesLab) : $this->GraphCSATAtributos($db, trim($request->survey), 'csat4',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
-            $box14              = substr($db, 10, 3) == 'via' ? $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'frec2' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesFrecVuelo) : $this->GraphCSATAtributos($db, trim($request->survey), 'csat5',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
-            $box15              = substr($db, 10, 3) != 'via' ? $this->GraphCSATAtributos($db, trim($request->survey), 'csat6',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters) : null;
-            $box16              = substr($db, 10, 3) == 'vue' ? $this->GraphCSATAtributos($db, trim($request->survey), 'csat7',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters) : null;
-            $box17              = substr($db, 10, 3) == 'com' ? $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc_1', "Ingreso", 2, 4) : (substr($db, 10, 3) == 'vue' ? $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc_1', "Motivo de Vuelo", 4, 4): null);
-            $box18              = substr($db, 10, 3) == 'vue' ? $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Inconveniente llegada", 2, 4) : null;
-            $box19              = substr($db, 10, 3) == 'vue' ? $this->rankingInconvLlegada($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Tipo Inconveniente", 2, 4) : null;
-            $box20              = substr($db, 10, 3) == 'vue' ? $this->statsJetSmartResp($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, $datafilters) : null;
+            $detailGender       = $detGend;
+            $detailGeneration   = $detGene;
+            $datasStatsByTaps   = $datasSBT;
+            $detailsProcedencia = $detailsProc;
+            $box14              = $bo14; 
+            $box15              = $bo15;
+            $box16              = $bo16;
+            $box17              = $bo17;
+            $box18              = $bo18;
+            $box19              = $bo19;
+            $box20              = $bo20;
             $box21              = $aerolineas;
             $box22              = $brandAwareness;
             $npsBan             = null;
