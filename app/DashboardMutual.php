@@ -7,9 +7,9 @@ use DB;
 
 class DashboardMutual extends Dashboard
 {
-    private $filterZona = '';
-    private $filterCentro = '';
-    private $filterGerencia = '';
+    public $filterZona = '';
+    public $filterCentro = '';
+    public $filterGerencia = '';
     private $whereCons = '';
     private $_activeSurvey = 'mutamb';
     private $_suveysConsolidado = ['mutamb', 'muthos', 'muturg', 'mutreh', 'mutimg'];
@@ -93,7 +93,7 @@ class DashboardMutual extends Dashboard
 
     private function whereConsolidado($base,$jwt){
         $this->whereCons = '';
-        if ($base == 'mutcon' || $base == 'mutcop'){
+        if ($base == 'mutcon'){
             if (isset($jwt[env('AUTH0_AUD')]->surveysActive)){
                 $surveys = $jwt[env('AUTH0_AUD')]->surveysActive;
                 $text = "'".$surveys[0]."'";
@@ -884,7 +884,7 @@ class DashboardMutual extends Dashboard
         return  ['mutcon','mutamb','muturg','mutimg','mutreh','muthos', 'mutcop'];
     }
 
-    private function surveyFilterZona($survey, $jwt, $request){
+    public function surveyFilterZona($survey, $jwt, $request){
         $this->filterZona = '';
         if(isset($jwt[env('AUTH0_AUD')]->zona)){
             if(in_array( $survey,$this->surveysConsolidado())){
@@ -901,7 +901,7 @@ class DashboardMutual extends Dashboard
             return $jwt[env('AUTH0_AUD')]->zona;
     } 
 
-    private function surveyFilterCentro($survey, $jwt, $request){
+    public function surveyFilterCentro($survey, $jwt, $request){
         $this->filterCentro = '';
         if(isset($jwt[env('AUTH0_AUD')]->centros)){
             if(in_array( $survey,$this->surveysConsolidado())){
@@ -931,7 +931,7 @@ class DashboardMutual extends Dashboard
         return $centros;
     } 
 
-    private function surveyFilterGerencia($survey, $jwt, $request){
+    public function surveyFilterGerencia($survey, $jwt, $request){
         $this->filterGerencia = '';
         if(isset($jwt[env('AUTH0_AUD')]->gerenciaMedica)){
             if(in_array( $survey,$this->surveysConsolidado())){
@@ -1729,7 +1729,7 @@ class DashboardMutual extends Dashboard
 
         if(!isset($request->Gerencia_Medica)){
             $gerencia=$this->setFilterGerencia($jwt, $request);
-            if(isset($jwt[env('AUTH0_AUD')]->gerenciaMendica)){
+            if(isset($jwt[env('AUTH0_AUD')]->gerenciaMedica)){
                 $request->merge(['Gerencia_Medica'=>$gerencia]);
             }
         }
