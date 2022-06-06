@@ -637,7 +637,6 @@ class DashboardMutual extends Dashboard
                                 ORDER BY date_survey ASC");
             }
             if($consolidadoTotal == true){
-                $struct = 'two';
                 $query =   ("SELECT sum(NPS) as NPS, sum(Cdet) as Cdet, sum(Cpro) as Cpro, sum(Cneu) as Cneu, sum(detractor) as detractor, sum(promotor) as promotor, sum(neutral) as neutral, sum(total)as total,
                                         mes , annio, WEEK(date_survey) AS week, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek,".$this->getValueParams('_fieldSelectInQuery')." from ( select
                                         ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) - 
@@ -740,6 +739,7 @@ class DashboardMutual extends Dashboard
 
                 }
             }
+          
             if ($data[0]->total !== null) {
                 foreach ($data as $key => $value) {
                     if ($struct != 'one') {
@@ -1855,7 +1855,7 @@ class DashboardMutual extends Dashboard
 
             $dataIsn     = $this->graphCsatMutual($db, 'csat', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
             $dataIsnP    = $this->graphInsMutual($db, 'csat',  $endDateFilterMonth, $startDateFilterMonth, 'all',  $datafilters);
-            $dataNPSGraph         = $this->graphNps($db, 'nps', $dateIni, '2022-04-18', 'one', $this->consolidadoTotal, $datafilters, $group);
+            $dataNPSGraph         = $this->graphNps($db, 'nps', $dateIni, '2022-04-18', 'two', $this->consolidadoTotal, $datafilters, $group);
             
             $datasStatsByTaps     = null;
 
