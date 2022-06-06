@@ -236,7 +236,7 @@ class PeriodCompare
                     }
                 }
 
-                $data = DB::select("SELECT $query, fechaservicio, MONTH(fechaservicio) as mes, WEEK(fechaservicio) AS week
+                $data = DB::select("SELECT $query, fechaservicio, MONTH(fechaservicio) as mes, WEEK(SUBDATE(fechaservicio, WEEKDAY(fechaservicio))) AS week
                                 FROM $dbSelected.$db as a
                                 LEFT JOIN  $dbSelected." . $db . "_start as b
                                 on a.token = b.token

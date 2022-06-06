@@ -3021,7 +3021,7 @@ class Dashboard extends Generic
             if($group != null){
                 $where = $datafilters;
                 $datafilters = '';
-                $group = "mondayWeek";
+                $group = "week";
             }
     
             if ($group == null) {
@@ -3035,7 +3035,7 @@ class Dashboard extends Generic
             $data = DB::select("SELECT COUNT(CASE WHEN a.$indicadorNPS BETWEEN 0 AND 10 THEN 1 END) as Total, 
                                 ROUND(((COUNT(CASE WHEN a.$indicadorNPS BETWEEN 9 AND 10 THEN 1 END) - COUNT(CASE WHEN a.$indicadorNPS BETWEEN 0 AND 6 THEN 1 END)) / (COUNT(CASE WHEN a.$indicadorNPS!=99 THEN 1 END)) * 100),1) AS NPS, 
                                 ROUND(((COUNT(CASE WHEN a.$indicadorINS BETWEEN 6 AND 7 THEN 1 END) - COUNT(CASE WHEN a.$indicadorINS BETWEEN 1 AND 4 THEN 1 END)) / (COUNT(CASE WHEN a.$indicadorINS!=99 THEN 1 END)) * 100),1) AS INS,
-                                MONTH(fechaservicio) as mes, YEAR(fechaservicio) as annio, fechaservicio, WEEK(fechaservicio) AS week, SUBDATE(fechaservicio, WEEKDAY(fechaservicio)) as mondayWeek
+                                MONTH(fechaservicio) as mes, YEAR(fechaservicio) as annio, fechaservicio, WEEK(SUBDATE(fechaservicio, WEEKDAY(fechaservicio))) AS week, SUBDATE(fechaservicio, WEEKDAY(fechaservicio)) as mondayWeek
                                 from $this->_dbSelected.$table as a
                                 left join $this->_dbSelected." . $table . "_start as b
                                 on a.token = b.token
@@ -3043,7 +3043,7 @@ class Dashboard extends Generic
                                 GROUP BY $group
                                 ORDER by fechaservicio ASC"); 
         }
-
+        
         if(count($data) != 0)
         {
             foreach ($data as $key => $value) {
@@ -3186,6 +3186,7 @@ class Dashboard extends Generic
         $startDate  = $request->get('startDate');
         $endDate    = $request->get('endDate');
         $survey     = $request->get('survey');
+
         if (!isset($startDate) && !isset($endDate) && !isset($survey)) {
             return ['datas' => 'unauthorized', 'status' => Response::HTTP_NOT_ACCEPTABLE];
         }
@@ -6998,7 +6999,7 @@ class Dashboard extends Generic
             $name = 'JetSmart';
             $detGend = $detGene = $datasSBT = $detailsProc = $bo14 = null;
             $bo15 = $bo16 = $bo17 = $bo18 = $bo19 = $bo20 = null;
-            $brandAwareness = $aerolineas = null;
+            $brandAwareness = $aerolineas = $csatDrv = null;
 
             if ($db == 'adata_jet_via') {
                 $jetNamesFrecVuelo = [
@@ -7044,12 +7045,13 @@ class Dashboard extends Generic
 
             if ($db == 'adata_jet_com') {
                 $bo17 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc_1', "Ingreso", 2, 4);
+                $dataCesGraph       = $this->graphCes($db, date('m'), date('Y'), 'ces', $dateIni, $dateEnd,  $filterClient, 'two' ,$datafilters);
+                $csatDrv =  $this->cardNpsBanmedica($this->_nameClient, $dataCesGraph, 'CES');
             }
 
             $dataCes            = $this->ces($db, $dateIni, $dateEndIndicatorPrincipal, 'ces', $datafilters);
             $dataNPSGraph       = $this->graphNps($db, $npsInDb, $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
             $dataCsatGraph      = $this->graphCsat($db, $csatInDb, $dateIni, $dateEnd,  $filterClient, 'two' ,$datafilters);
-            $dataCesGraph       = $this->graphCes($db, date('m'), date('Y'), 'ces', $dateIni, $dateEnd,  $filterClient, 'two' ,$datafilters);
             $dataCbi            = $this->cbiResp($db, '', $dateIni, $dateEndIndicatorPrincipal);
             $graphCSATDrivers   = $this->GraphCSATDrivers($db, '', trim($request->survey), $csatInDb, $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters, $group);
             $dataisn            = $this->graphCbi($db, date('m'), date('Y'), 'cbi', $dateIni, $dateEnd, $datafilters, 'two');
@@ -7058,7 +7060,7 @@ class Dashboard extends Generic
             $npsConsolidado     = $this->graphsStruct($dataisn, 12, 'cbi');
             $npsVid             = $this->cardNpsBanmedica($this->_nameClient, $dataNPSGraph); //NPS
             $csatJourney        = $this->cardNpsBanmedica($this->_nameClient , $dataCsatGraph, 'CSAT');//Csat
-            $csatDrivers        = substr($db, 10, 3) == 'com' ?  $this->cardNpsBanmedica($this->_nameClient, $dataCesGraph, 'CES') : null; //Ces
+            $csatDrivers        = $csatDrv; //Ces
             $wordCloud          = $this->CSATJourney($graphCSATDrivers);;
             $closedLoop         = null; 
             $detailGender       = $detGend;
