@@ -280,7 +280,7 @@ class DashboardMutual extends Dashboard
                             FROM ".$this->getValueParams('_dbSelected').".adata_mut_hos as a
                             INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_hos_start as b on a.token = b. token 
                             WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND etapaencuesta = 'P2' $datafilters  ".$this->filterZona." ". $this->filterCentro." 
-                            ".$this->whereCons ." ".$this->filterGerencia."
+                            ".$this->filterGerencia."
                             GROUP BY a.mes, a.annio
                             union
                             SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
@@ -290,7 +290,7 @@ class DashboardMutual extends Dashboard
                             FROM ".$this->getValueParams('_dbSelected').".adata_mut_urg as a
                             INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_urg_start as b on a.token = b. token 
                             WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND etapaencuesta = 'P2' $datafilters  ".$this->filterZona." ". $this->filterCentro." 
-                            ".$this->whereCons ." ".$this->filterGerencia."
+                             ".$this->filterGerencia."
                             GROUP BY a.mes, a.annio
                             union
                             SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
@@ -300,7 +300,7 @@ class DashboardMutual extends Dashboard
                             FROM ".$this->getValueParams('_dbSelected').".adata_mut_reh as a
                             INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_reh_start as b on a.token = b. token 
                             WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND etapaencuesta = 'P2' $datafilters  ".$this->filterZona." ". $this->filterCentro." 
-                            ".$this->whereCons ." ".$this->filterGerencia."
+                             ".$this->filterGerencia."
                             GROUP BY a.mes, a.annio
                             union
                             SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
@@ -310,7 +310,7 @@ class DashboardMutual extends Dashboard
                             FROM ".$this->getValueParams('_dbSelected').".adata_mut_img as a
                             INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_img_start as b on a.token = b. token 
                             WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND etapaencuesta = 'P2' $datafilters  ".$this->filterZona." ". $this->filterCentro." 
-                            ".$this->whereCons ." ".$this->filterGerencia."
+                             ".$this->filterGerencia."
                             GROUP BY a.mes, a.annio) as A
                             GROUP BY mes, annio
                             ORDER BY date_survey asc");
@@ -358,7 +358,7 @@ class DashboardMutual extends Dashboard
                                 FROM ".$this->getValueParams('_dbSelected').".adata_mut_amb as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_amb_start as b ON a.token = b.token
                                 WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and etapaencuesta = 'P2'  ".$this->filterZona." 
-                                ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia." 
+                                ". $this->filterCentro."  ".$this->filterGerencia." 
                                 union
                                 SELECT count(*) as total,
                                 ((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN $indicador  END))-
@@ -367,7 +367,7 @@ class DashboardMutual extends Dashboard
                                 FROM ".$this->getValueParams('_dbSelected').".adata_mut_hos as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_hos_start as b ON a.token = b.token
                                 WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and etapaencuesta = 'P2'  ".$this->filterZona." 
-                                ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                                ". $this->filterCentro." ".$this->filterGerencia."
                                 union
                                 SELECT count(*) as total,
                                 ((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN $indicador  END))-
@@ -376,7 +376,7 @@ class DashboardMutual extends Dashboard
                                 FROM ".$this->getValueParams('_dbSelected').".adata_mut_urg as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_urg_start as b ON a.token = b.token
                                 WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and etapaencuesta = 'P2'  ".$this->filterZona." 
-                                ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                                ". $this->filterCentro."  ".$this->filterGerencia."
                                 union
                                 SELECT count(*) as total,
                                 ((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN $indicador  END))-
@@ -385,7 +385,7 @@ class DashboardMutual extends Dashboard
                                 FROM ".$this->getValueParams('_dbSelected').".adata_mut_reh as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_reh_start as b ON a.token = b.token
                                 WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and etapaencuesta = 'P2'  ".$this->filterZona." 
-                                ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                                ". $this->filterCentro."  ".$this->filterGerencia."
                                 union
                                 SELECT count(*) as total,
                                 ((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN $indicador  END))-
@@ -394,7 +394,7 @@ class DashboardMutual extends Dashboard
                                 FROM ".$this->getValueParams('_dbSelected').".adata_mut_img as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_img_start as b ON a.token = b.token
                                 WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and etapaencuesta = 'P2'  ".$this->filterZona." 
-                                ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia.") AS A ");
+                                ". $this->filterCentro."  ".$this->filterGerencia.") AS A ");
         }
 
         $isnPreviousPeriod = $this->isnPreviousPeriod($table,$dateIni, $dateEnd, $indicador, $filter,  $datafilters);
@@ -460,7 +460,7 @@ class DashboardMutual extends Dashboard
             FROM ".$this->getValueParams('_dbSelected').".adata_mut_amb as a
             LEFT JOIN ".$this->getValueParams('_dbSelected').".adata_mut_amb_start as b
             on a.token = b.token
-            WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'  $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+            WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'  $datafilters ".$this->filterZona." ". $this->filterCentro."  ".$this->filterGerencia."
             GROUP BY a.mes, a.annio
             union
             SELECT count(*) as total, 
@@ -473,7 +473,7 @@ class DashboardMutual extends Dashboard
             FROM ".$this->getValueParams('_dbSelected').".adata_mut_hos as a
             LEFT JOIN ".$this->getValueParams('_dbSelected').".adata_mut_hos_start as b
             on a.token = b.token
-            WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'  $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+            WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'  $datafilters ".$this->filterZona." ". $this->filterCentro."  ".$this->filterGerencia."
             GROUP BY a.mes, a.annio
             union
             SELECT count(*) as total, 
@@ -486,7 +486,7 @@ class DashboardMutual extends Dashboard
             FROM ".$this->getValueParams('_dbSelected').".adata_mut_urg as a
             LEFT JOIN ".$this->getValueParams('_dbSelected').".adata_mut_urg_start as b
             on a.token = b.token
-            WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'  $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+            WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'  $datafilters ".$this->filterZona." ". $this->filterCentro."  ".$this->filterGerencia."
             GROUP BY a.mes, a.annio
             union
             SELECT count(*) as total, 
@@ -499,7 +499,7 @@ class DashboardMutual extends Dashboard
             FROM ".$this->getValueParams('_dbSelected').".adata_mut_reh as a
             LEFT JOIN ".$this->getValueParams('_dbSelected').".adata_mut_reh_start as b
             on a.token = b.token
-            WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'  $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+            WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'  $datafilters ".$this->filterZona." ". $this->filterCentro."  ".$this->filterGerencia."
             GROUP BY a.mes, a.annio
             union
             SELECT count(*) as total, 
@@ -512,7 +512,7 @@ class DashboardMutual extends Dashboard
             FROM ".$this->getValueParams('_dbSelected').".adata_mut_img as a
             LEFT JOIN ".$this->getValueParams('_dbSelected').".adata_mut_img_start as b
             on a.token = b.token
-            WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'  $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+            WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'  $datafilters ".$this->filterZona." ". $this->filterCentro."  ".$this->filterGerencia."
             GROUP BY a.mes, a.annio) as A GROUP BY mes, annio
             ORDER BY date_survey ASC";
            
@@ -651,7 +651,7 @@ class DashboardMutual extends Dashboard
                                         count(*) as total, a.mes, a.annio, date_survey, WEEK(date_survey) AS week, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek,".$this->getValueParams('_fieldSelectInQuery')."  
                                         FROM ".$this->getValueParams('_dbSelected').".adata_mut_amb as a
                                         INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_amb_start as b ON a.token = b.token 
-                                        WHERE  $where  $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                                        WHERE  $where  $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->filterGerencia."
                                         GROUP BY $group2
                                         UNION
                                         SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) - 
@@ -666,7 +666,7 @@ class DashboardMutual extends Dashboard
                                         count(*) as total, a.mes, a.annio, date_survey,WEEK(date_survey) AS week, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek,".$this->getValueParams('_fieldSelectInQuery')."  
                                         FROM ".$this->getValueParams('_dbSelected').".adata_mut_hos as a
                                         INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_hos_start as b ON a.token = b.token 
-                                        WHERE  $where  $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                                        WHERE  $where  $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->filterGerencia."
                                         GROUP BY $group2
                                         UNION
                                         SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) - 
@@ -681,7 +681,7 @@ class DashboardMutual extends Dashboard
                                         count(*) as total, a.mes, a.annio, date_survey,WEEK(date_survey) AS week, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek,".$this->getValueParams('_fieldSelectInQuery')."  
                                         FROM ".$this->getValueParams('_dbSelected').".adata_mut_urg as a
                                         INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_urg_start as b ON a.token = b.token 
-                                        WHERE  $where  $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                                        WHERE  $where  $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->filterGerencia."
                                         GROUP BY $group2
                                         UNION
                                         SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) - 
@@ -696,7 +696,7 @@ class DashboardMutual extends Dashboard
                                         count(*) as total, a.mes, a.annio, date_survey,WEEK(date_survey) AS week, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek,".$this->getValueParams('_fieldSelectInQuery')."  
                                         FROM ".$this->getValueParams('_dbSelected').".adata_mut_reh as a
                                         INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_reh_start as b ON a.token = b.token 
-                                        WHERE  $where  $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                                        WHERE  $where  $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->filterGerencia."
                                         GROUP BY $group2
                                         UNION
                                         SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) - 
@@ -711,7 +711,7 @@ class DashboardMutual extends Dashboard
                                         count(*) as total, a.mes, a.annio, date_survey,WEEK(date_survey) AS week, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek,".$this->getValueParams('_fieldSelectInQuery')."  
                                         FROM ".$this->getValueParams('_dbSelected').".adata_mut_img as a
                                         INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_img_start as b ON a.token = b.token 
-                                        WHERE  $where  $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                                        WHERE  $where  $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->filterGerencia."
                                         GROUP BY $group2) as a GROUP BY $group2 order by date_survey ASC");
                                      
             $data = DB::select($query);
@@ -838,7 +838,7 @@ class DashboardMutual extends Dashboard
                             left join ".$this->getValueParams('_dbSelected').".adata_mut_amb_start as b
                             on a.token = b.token
                             WHERE a.mes = $mes and a.annio = $annio $datafilters ". $this->filterZona." 
-                            ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                            ". $this->filterCentro." ".$this->filterGerencia."
                             union
                             SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
                             COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) /
@@ -847,7 +847,7 @@ class DashboardMutual extends Dashboard
                             left join ".$this->getValueParams('_dbSelected').".adata_mut_hos_start as b
                             on a.token = b.token
                             WHERE a.mes = $mes and a.annio = $annio $datafilters ". $this->filterZona." 
-                            ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                            ". $this->filterCentro." ".$this->filterGerencia."
                             union
                             SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
                             COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) /
@@ -856,7 +856,7 @@ class DashboardMutual extends Dashboard
                             left join ".$this->getValueParams('_dbSelected').".adata_mut_urg_start as b
                             on a.token = b.token
                             WHERE a.mes = $mes and a.annio = $annio $datafilters ". $this->filterZona." 
-                            ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                            ". $this->filterCentro." ".$this->filterGerencia."
                             union
                             SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
                             COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) /
@@ -865,7 +865,7 @@ class DashboardMutual extends Dashboard
                             left join ".$this->getValueParams('_dbSelected').".adata_mut_reh_start as b
                             on a.token = b.token
                             WHERE a.mes = $mes and a.annio = $annio $datafilters ". $this->filterZona." 
-                            ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                            ". $this->filterCentro." ".$this->filterGerencia."
                             union
                             SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
                             COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) /
@@ -874,7 +874,7 @@ class DashboardMutual extends Dashboard
                             left join ".$this->getValueParams('_dbSelected').".adata_mut_img_start as b
                             on a.token = b.token
                             WHERE a.mes = $mes and a.annio = $annio $datafilters ". $this->filterZona." 
-                            ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia.") AS A");
+                            ". $this->filterCentro." ".$this->filterGerencia.") AS A");
         }
 
         return $data[0]->NPS;
@@ -1074,7 +1074,7 @@ class DashboardMutual extends Dashboard
                                 FROM ".$this->getValueParams('_dbSelected').".adata_mut_amb as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_amb_start as b ON a.token = b.token 
                                 WHERE  date_survey BETWEEN '$dateEnd' AND '$dateIni' AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." 
-                                ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                                ". $this->filterCentro." ".$this->filterGerencia."
                                 GROUP BY  a.mes, a.annio
                                 union
                                 SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
@@ -1084,7 +1084,7 @@ class DashboardMutual extends Dashboard
                                 FROM ".$this->getValueParams('_dbSelected').".adata_mut_hos as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_hos_start as b ON a.token = b.token 
                                 WHERE  date_survey BETWEEN '$dateEnd' AND '$dateIni' AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." 
-                                ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                                ". $this->filterCentro." ".$this->filterGerencia."
                                 GROUP BY  a.mes, a.annio
                                 union
                                 SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
@@ -1094,7 +1094,7 @@ class DashboardMutual extends Dashboard
                                 FROM ".$this->getValueParams('_dbSelected').".adata_mut_urg as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_urg_start as b ON a.token = b.token 
                                 WHERE  date_survey BETWEEN '$dateEnd' AND '$dateIni' AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." 
-                                ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                                ". $this->filterCentro." ".$this->filterGerencia."
                                 GROUP BY  a.mes, a.annio
                                 union
                                 SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
@@ -1104,7 +1104,7 @@ class DashboardMutual extends Dashboard
                                 FROM ".$this->getValueParams('_dbSelected').".adata_mut_reh as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_reh_start as b ON a.token = b.token 
                                 WHERE  date_survey BETWEEN '$dateEnd' AND '$dateIni' AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." 
-                                ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                                ". $this->filterCentro." ".$this->filterGerencia."
                                 GROUP BY  a.mes, a.annio
                                 union
                                 SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
@@ -1114,7 +1114,7 @@ class DashboardMutual extends Dashboard
                                 FROM ".$this->getValueParams('_dbSelected').".adata_mut_img as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_img_start as b ON a.token = b.token 
                                 WHERE  date_survey BETWEEN '$dateEnd' AND '$dateIni' AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." 
-                                ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                                ". $this->filterCentro." ".$this->filterGerencia."
                                 GROUP BY  a.mes, a.annio) as A GROUP BY  mes, annio 
                                 ORDER BY date_survey ASC");
 
@@ -1126,7 +1126,7 @@ class DashboardMutual extends Dashboard
                                 FROM ".$this->getValueParams('_dbSelected').".adata_mut_amb as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_amb_start as b ON a.token = b.token 
                                 WHERE  a.mes = $mes  AND a.annio = $annio AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." 
-                                ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                                ". $this->filterCentro."  ".$this->filterGerencia."
                                 GROUP BY  a.mes, a.annio
                                 union
                                 SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
@@ -1136,7 +1136,7 @@ class DashboardMutual extends Dashboard
                                 FROM ".$this->getValueParams('_dbSelected').".adata_mut_hos as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_hos_start as b ON a.token = b.token 
                                 WHERE  a.mes = $mes  AND a.annio = $annio AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." 
-                                ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                                ". $this->filterCentro."  ".$this->filterGerencia."
                                 GROUP BY  a.mes, a.annio
                                 union
                                 SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
@@ -1146,7 +1146,7 @@ class DashboardMutual extends Dashboard
                                 FROM ".$this->getValueParams('_dbSelected').".adata_mut_urg as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_urg_start as b ON a.token = b.token 
                                 WHERE  a.mes = $mes  AND a.annio = $annio AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." 
-                                ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                                ". $this->filterCentro."  ".$this->filterGerencia."
                                 GROUP BY  a.mes, a.annio
                                 union
                                 SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
@@ -1156,7 +1156,7 @@ class DashboardMutual extends Dashboard
                                 FROM ".$this->getValueParams('_dbSelected').".adata_mut_reh as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_reh_start as b ON a.token = b.token 
                                 WHERE  a.mes = $mes  AND a.annio = $annio AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." 
-                                ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                                ". $this->filterCentro."  ".$this->filterGerencia."
                                 GROUP BY  a.mes, a.annio
                                 union
                                 SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
@@ -1166,7 +1166,7 @@ class DashboardMutual extends Dashboard
                                 FROM ".$this->getValueParams('_dbSelected').".adata_mut_img as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_img_start as b ON a.token = b.token 
                                 WHERE  a.mes = $mes  AND a.annio = $annio AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." 
-                                ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                                ". $this->filterCentro." ".$this->filterGerencia."
                                 GROUP BY  a.mes, a.annio) as A GROUP BY  mes, annio 
                                 ORDER BY date_survey ASC");
         }
@@ -1239,7 +1239,7 @@ class DashboardMutual extends Dashboard
                                 a.mes, a.annio, date_survey,WEEK(date_survey) AS week, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek,".$this->getValueParams('_fieldSelectInQuery')."  
                                 FROM ".$this->getValueParams('_dbSelected').".adata_mut_amb as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_amb_start as b ON a.token = b.token 
-                                WHERE  $where AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                                WHERE  $where AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." ". $this->filterCentro." ".$this->filterGerencia."
                                 GROUP BY $group
                                 union
                                 SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
@@ -1255,7 +1255,7 @@ class DashboardMutual extends Dashboard
                                 a.mes, a.annio, date_survey,WEEK(date_survey) AS week, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek,".$this->getValueParams('_fieldSelectInQuery')."  
                                 FROM ".$this->getValueParams('_dbSelected').".adata_mut_hos as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_hos_start as b ON a.token = b.token 
-                                WHERE  $where AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                                WHERE  $where AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." ". $this->filterCentro." ".$this->filterGerencia."
                                 GROUP BY $group
                                 union
                                 SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
@@ -1271,7 +1271,7 @@ class DashboardMutual extends Dashboard
                                 a.mes, a.annio,date_survey, WEEK(date_survey) AS week, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek,".$this->getValueParams('_fieldSelectInQuery')."  
                                 FROM ".$this->getValueParams('_dbSelected').".adata_mut_urg as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_urg_start as b ON a.token = b.token 
-                                WHERE  $where AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                                WHERE  $where AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." ". $this->filterCentro." ".$this->filterGerencia."
                                 GROUP BY $group
                                 union
                                 SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
@@ -1287,7 +1287,7 @@ class DashboardMutual extends Dashboard
                                 a.mes, a.annio,date_survey, WEEK(date_survey) AS week, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek,".$this->getValueParams('_fieldSelectInQuery')."  
                                 FROM ".$this->getValueParams('_dbSelected').".adata_mut_reh as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_reh_start as b ON a.token = b.token 
-                                WHERE  $where AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                                WHERE  $where AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." ". $this->filterCentro." ".$this->filterGerencia."
                                 GROUP BY $group
                                 union
                                 SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
@@ -1303,7 +1303,7 @@ class DashboardMutual extends Dashboard
                                 a.mes, a.annio,date_survey, WEEK(date_survey) AS week, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek,".$this->getValueParams('_fieldSelectInQuery')."  
                                 FROM ".$this->getValueParams('_dbSelected').".adata_mut_img as a
                                 INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_img_start as b ON a.token = b.token 
-                                WHERE  $where AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+                                WHERE  $where AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." ". $this->filterCentro." ".$this->filterGerencia."
                                 GROUP BY $group)as A GROUP BY mes, annio
                                 ORDER BY date_survey ASC");
         }
