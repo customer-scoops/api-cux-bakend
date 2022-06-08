@@ -270,7 +270,7 @@ class DashboardMutual extends Dashboard
                             FROM ".$this->getValueParams('_dbSelected').".adata_mut_amb as a
                             INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_amb_start as b on a.token = b. token 
                             WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND etapaencuesta = 'P2' $datafilters  ".$this->filterZona." ". $this->filterCentro." 
-                            ".$this->whereCons ." ".$this->filterGerencia."
+                             ".$this->filterGerencia."
                             GROUP BY a.mes, a.annio
                             union
                             SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
