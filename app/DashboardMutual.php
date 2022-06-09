@@ -754,7 +754,7 @@ class DashboardMutual extends Dashboard
           
             if ($data[0]->total !== null) {
                 foreach ($data as $key => $value) {
-                    if ($struct == 'one') {
+                    if ($struct != 'one') {
                         $graphNPS[] = [
                            'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('d',strtotime($value->mondayWeek)). '-' .date('m',strtotime($value->mondayWeek)) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                             'values' => [
@@ -765,7 +765,7 @@ class DashboardMutual extends Dashboard
                             ],
                         ];
                     }
-                    if ($struct != 'one') {
+                    if ($struct == 'one') {
                         $graphNPS[] = [
                             "value" => $value->NPS
                         ];
