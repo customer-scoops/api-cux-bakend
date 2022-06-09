@@ -729,6 +729,7 @@ class Dashboard extends Generic
             "jetvia" => "10",
             "jetcom" => "6",
             "jetvue" => "6",
+            "jetcpe" => "6",
         ];
         if (array_key_exists($survey, $datas)) {
             return $datas[$survey];
@@ -3884,7 +3885,7 @@ class Dashboard extends Generic
         if ($filter != 'all') {
             $fieldBd = $this->getFielInDbCsat($survey);
             $query = "";
-            if(substr($db, 6, 7) != 'jet_com' && substr($db, 6, 7) != 'jet_vue'){
+            if(substr($db, 6, 7) != 'jet_com' && substr($db, 6, 7) != 'jet_vue' && substr($db, 6, 7) != 'jet_cpe'){
             
                 for ($i = 1; $i <= $endCsat; $i++) {
 
@@ -3903,7 +3904,7 @@ class Dashboard extends Generic
                 }
             }
 
-            if(substr($db, 6, 7) == 'jet_com' || substr($db, 6, 7) == 'jet_vue'){
+            if(substr($db, 6, 7) == 'jet_com' || substr($db, 6, 7) == 'jet_vue' || substr($db, 6, 7) == 'jet_cpe'){
 
                 for ($i = 1; $i <= $endCsat; $i++) {
 
@@ -6289,7 +6290,7 @@ class Dashboard extends Generic
         }
         if ($this->_dbSelected == 'customer_jetsmart') { 
             $width = 12;
-            if(substr($survey, 3, 3) == 'com'){
+            if(substr($survey, 3, 3) == 'com' || substr($survey, 3, 3) == 'cpe'){
 
               $resp = [
                             [
@@ -6936,7 +6937,7 @@ class Dashboard extends Generic
                 $bo14 = $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'frec2' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesFrecVuelo);
             }
 
-            if ($db != 'adata_jet_via') {
+            if ($db == 'adata_jet_vue' || $db == 'adata_jet_com') {
                 $detGend = $this->GraphCSATAtributos($db, trim($request->survey), 'csat1',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
                 $detGene = $this->GraphCSATAtributos($db, trim($request->survey), 'csat2',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
                 $datasSBT = $this->GraphCSATAtributos($db, trim($request->survey), 'csat3',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);

@@ -664,6 +664,13 @@ class Suite
             "jetvue_csat4"  => "Selección de asientos",
             "jetvue_csat5"  => "Proceso de pago",
             "jetvue_csat6"  => "Información email",
+
+            "jetcpe_csat1"  => "jetcpe_csat1",
+            "jetcpe_csat2"  => "jetcpe_csat2",
+            "jetcpe_csat3"  => "jetcpe_csat3",
+            "jetcpe_csat4"  => "jetcpe_csat4",
+            "jetcpe_csat5"  => "jetcpe_csat5",
+            "jetcpe_csat6"  => "jetcpe_csat6",
         
         ];
         
