@@ -3851,17 +3851,17 @@ class Dashboard extends Generic
 
             for ($i = 1; $i <= $endCsat; $i++) {
                 if ($i != $endCsat) {
-                    $query2 .= " ROUND((COUNT(if($fieldBd$i = $this->_minMaxCsat  OR $fieldBd$i = $this->_maxMaxCsat, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL ))*$this->_porcentageVid,0)  AS csat$i, 
-                                 ROUND((count(if(csat$i between $this->_minCsat and $this->_maxCsat, csat$i, NULL))*100))/count(if($fieldBd$i !=99,1,NULL )*$this->_porcentageVid,0) as detractor$i, 
-                                 ROUND((count(if(csat$i  = $this->_minMaxCsat  OR csat$i = $this->_maxMaxCsat, csat$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL))*$this->_porcentageVid,0) as promotor$i, 
-                                 ROUND((count(if(csat$i = $this->_maxMediumCsat  or csat$i = $this->_minMediumCsat, csat$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL))*$this->_porcentageVid,0) as neutral$i,";
+                    $query2 .= " ROUND((COUNT(if($fieldBd$i = $this->_minMaxCsat  OR $fieldBd$i = $this->_maxMaxCsat, $fieldBd$i, NULL))* 100 / COUNT(if($fieldBd$i !=99,1,NULL )))*$this->_porcentageVid,0)  AS csat$i, 
+                                 ROUND((count(if(csat$i between $this->_minCsat and $this->_maxCsat, csat$i, NULL))*100 / count(if($fieldBd$i !=99,1,NULL)))*$this->_porcentageVid,0) as detractor$i, 
+                                 ROUND((count(if(csat$i  = $this->_minMaxCsat  OR csat$i = $this->_maxMaxCsat, csat$i, NULL))*100/count(if($fieldBd$i !=99,1,NULL)))*$this->_porcentageVid,0) as promotor$i, 
+                                 ROUND((count(if(csat$i = $this->_maxMediumCsat  or csat$i = $this->_minMediumCsat, csat$i, NULL))*100/count(if($fieldBd$i !=99,1,NULL)))*$this->_porcentageVid,0) as neutral$i,";
                 }
 
                 if ($i == $endCsat) {
-                    $query2 .= " ROUND((COUNT(if($fieldBd$i = $this->_minMaxCsat  OR $fieldBd$i = $this->_maxMaxCsat, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL ))*$this->_porcentageVid,0)  AS csat$i, 
-                                 ROUND((count(if(csat$i between $this->_minCsat and $this->_maxCsat, csat$i, NULL))*100))/count(if($fieldBd$i !=99,1,NULL )*$this->_porcentageVid,0) as detractor$i, 
-                                 ROUND((count(if(csat$i  = $this->_minMaxCsat  OR csat$i = $this->_maxMaxCsat, csat$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL))*$this->_porcentageVid,0) as promotor$i, 
-                                 ROUND((count(if(csat$i = $this->_maxMediumCsat  or csat$i = $this->_minMediumCsat, csat$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL))*$this->_porcentageVid,0) as neutral$i ";
+                    $query2 .= " ROUND((COUNT(if($fieldBd$i = $this->_minMaxCsat  OR $fieldBd$i = $this->_maxMaxCsat, $fieldBd$i, NULL))* 100 / COUNT(if($fieldBd$i !=99,1,NULL )))*$this->_porcentageVid,0)  AS csat$i, 
+                                 ROUND((count(if(csat$i between $this->_minCsat and $this->_maxCsat, csat$i, NULL))*100 / count(if($fieldBd$i !=99,1,NULL)))*$this->_porcentageVid,0) as detractor$i, 
+                                 ROUND((count(if(csat$i  = $this->_minMaxCsat  OR csat$i = $this->_maxMaxCsat, csat$i, NULL))*100/count(if($fieldBd$i !=99,1,NULL)))*$this->_porcentageVid,0) as promotor$i, 
+                                 ROUND((count(if(csat$i = $this->_maxMediumCsat  or csat$i = $this->_minMediumCsat, csat$i, NULL))*100/count(if($fieldBd$i !=99,1,NULL)))*$this->_porcentageVid,0) as neutral$i ";
                 }
             }
 
