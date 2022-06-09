@@ -5992,10 +5992,10 @@ class Dashboard extends Generic
         $aero = 6;
         for($i = 1; $i<= $aero; $i++ ){
             if($i != $aero)
-                $query .= " round(COUNT(if(aero1_$i = 1,1,NULL)))  AS  aero$i, ";
+                $query .= " round(COUNT(if(aero1_$i = 1,1,NULL)),0)  AS  aero$i, ";
 
             if($i == $aero)    
-                $query .= " round(COUNT(if(aero1_$i = 1,1,NULL)))  AS  aero$i ";
+                $query .= " round(COUNT(if(aero1_$i = 1,1,NULL)),0)  AS  aero$i ";
         }
 
         $data = DB::select("SELECT $query, mes 
@@ -6089,14 +6089,26 @@ class Dashboard extends Generic
     }
 
     private function BrandAwareness($db, $dateIni, $dateEnd){
+        $aerolineas = [
+            "jetsmart"          => "JetSMART", 
+            "skyAirlines"       => "Sky Airlines", 
+            "latamAirlines"     => "LATAM Airlines", 
+            "americanAirlines"  => "American Airlines", 
+            "copaAirlines"      => "Copa Airlines", 
+            "avianca"           => "Avianca"
+        ];
         $query = '';
-        $aero = 6;
-        for($i = 1; $i<= $aero; $i++ ){
-            if($i != $aero)
-                $query .= " round(COUNT(if(aero2_$i = 1,1,NULL)))  AS  aero$i, ";
+        //$aero = 6;
+        // for($i = 1; $i<= $aero; $i++ ){
+        //     if($i != $aero)
+        //         $query .= " round(COUNT(if(aero2_$i = 1,1,NULL)),0)  AS  aero$i, ";
 
-            if($i == $aero)    
-                $query .= " round(COUNT(if(aero2_$i = 1,1,NULL)))  AS  aero$i ";
+        //     if($i == $aero)    
+        //         $query .= " round(COUNT(if(aero2_$i = 1,1,NULL)),0)  AS  aero$i ";
+        // }
+
+        foreach($aerolineas as $key => $value){
+            $query .= " COUNT(CASE WHEN json_contains(`aero2`, '" . '"'. $value . '"'. "', '$') THEN 1 END) AS " . $key ." ";
         }
 
         $data = DB::select("SELECT $query, mes 
@@ -6105,7 +6117,7 @@ class Dashboard extends Generic
 
         $lastSentido  = '';
         $values = [];
-        $meses = [];
+        //$meses = [];
         $suma = 0;
         $resultado1 = 0;
         $resultado2 = 0;
@@ -6114,12 +6126,12 @@ class Dashboard extends Generic
         $resultado5 = 0;
         $resultado6 = 0;
 
-        for ($i = -11; $i < 1; $i++) {
-            array_push(
-                $meses,
-                (int)date("m", mktime(0, 0, 0, date("m") + $i, date("d"), date("Y")))
-            );
-        }
+        // for ($i = -11; $i < 1; $i++) {
+        //     array_push(
+        //         $meses,
+        //         (int)date("m", mktime(0, 0, 0, date("m") + $i, date("d"), date("Y")))
+        //     );
+        // }
         
         foreach ($data as $key => $value) {
                 $suma += $value->aero1;
