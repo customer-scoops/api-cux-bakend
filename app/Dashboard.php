@@ -6089,16 +6089,17 @@ class Dashboard extends Generic
     }
 
     private function BrandAwareness($db, $dateIni, $dateEnd){
-        $aerolineas = [
-            "jetsmart"          => "JetSMART", 
-            "skyAirlines"       => "Sky Airlines", 
-            "latamAirlines"     => "LATAM Airlines", 
-            "americanAirlines"  => "American Airlines", 
-            "copaAirlines"      => "Copa Airlines", 
-            "avianca"           => "Avianca"
-        ];
+        // $aerolineas = [
+        //     "jetsmart"          => "JetSMART", 
+        //     "skyAirlines"       => "Sky Airlines", 
+        //     "latamAirlines"     => "LATAM Airlines", 
+        //     "americanAirlines"  => "American Airlines", 
+        //     "copaAirlines"      => "Copa Airlines", 
+        //     "avianca"           => "Avianca"
+        // ];
+        $aerolineas = ["JetSMART", "Sky Airlines", "LATAM Airlines", "American Airlines", "Copa Airlines", "Avianca"];
         $query = '';
-        //$aero = 6;
+        // $aero = 6;
         // for($i = 1; $i<= $aero; $i++ ){
         //     if($i != $aero)
         //         $query .= " round(COUNT(if(aero2_$i = 1,1,NULL)),0)  AS  aero$i, ";
@@ -6106,12 +6107,17 @@ class Dashboard extends Generic
         //     if($i == $aero)    
         //         $query .= " round(COUNT(if(aero2_$i = 1,1,NULL)),0)  AS  aero$i ";
         // }
-
+        
+        $count = 0;    
         foreach($aerolineas as $key => $value){
-            $query .= " COUNT(CASE WHEN json_contains(`aero2`, '" . '"'. $value . '"'. "', '$') THEN 1 END) AS " . $key ." ";
+            if($count != (count($aerolineas)-1))
+                $query .= " COUNT(CASE WHEN json_contains(`aero2`, '" . '"'. $value . '"'. "', '$') THEN 1 END) AS " . "'". $value ."'".", ";
+            if($count == (count($aerolineas)-1))
+                $query .= " COUNT(CASE WHEN json_contains(`aero2`, '" . '"'. $value . '"'. "', '$') THEN 1 END) AS " ."'". $value ."'"." ";
+            $count++;
         }
 
-        $data = DB::select("SELECT $query, mes 
+        $data = DB::select("SELECT $query 
                             FROM $this->_dbSelected.$db 
                             WHERE  date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'");
 
@@ -6125,58 +6131,32 @@ class Dashboard extends Generic
         $resultado4 = 0;
         $resultado5 = 0;
         $resultado6 = 0;
-
-        // for ($i = -11; $i < 1; $i++) {
-        //     array_push(
-        //         $meses,
-        //         (int)date("m", mktime(0, 0, 0, date("m") + $i, date("d"), date("Y")))
-        //     );
-        // }
         
-        foreach ($data as $key => $value) {
-                $suma += $value->aero1;
-                $suma += $value->aero2;
-                $suma += $value->aero3;
-                $suma += $value->aero4;
-                $suma += $value->aero5;
-                $suma += $value->aero6;
-                if($suma != 0){
-                    $resultado1 = ROUND(($value->aero1*100)/$suma);
-                    $resultado2 = ROUND(($value->aero2*100)/$suma);
-                    $resultado3 = ROUND(($value->aero3*100)/$suma);
-                    $resultado4 = ROUND(($value->aero4*100)/$suma);
-                    $resultado5 = ROUND(($value->aero5*100)/$suma);
-                    $resultado6 = ROUND(($value->aero6*100)/$suma);
-                }
-        
-            if ('Reconocimiento' != $lastSentido) {
-                $lastSentido = 'Reconocimiento';
-                $values[$lastSentido] = [];
-
-                array_push(
-                    $values['Reconocimiento'],
-                    [
-                        array_merge(
-                            ['Indicator' => 'Resultado']
-                        )
-                    ]
-                );
-                
-            };
-
-            foreach ($data as $index => $dato) {              
-                if ($lastSentido == 'Reconocimiento') {
-                    $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['Total']                = $suma;
-                    $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['Jetsmart']             = $resultado1.'%';
-                    $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['SKY']                  = $resultado2.'%';
-                    $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['LATAM']                = $resultado3.'%';
-                    $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['American Airlines']    = $resultado4.'%';
-                    $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['COPA']                 = $resultado5.'%';
-                    $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['IBERIA']               = $resultado6.'%';
-                    $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['rowSpan']              = ['cells' => 3, 'key' => "Total"];
-                }
-            }
+        foreach ($data[0] as $key => $value) {
+            $suma += $value;
         }
+
+        foreach ($data as $index => $dato) {              
+            // //if ($lastSentido == 'Reconocimiento') {
+            //     $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['Total']                = $suma;
+            //     $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['Jetsmart']             = $resultado1.'%';
+            //     $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['SKY']                  = $resultado2.'%';
+            //     $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['LATAM']                = $resultado3.'%';
+            //     $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['American Airlines']    = $resultado4.'%';
+            //     $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['COPA']                 = $resultado5.'%';
+            //     $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['IBERIA']               = $resultado6.'%';
+            //     $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['rowSpan']              = ['cells' => 3, 'key' => "Total"];
+            // //}
+            $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['Total']                = $suma;
+            $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['Jetsmart']             = $resultado1.'%';
+            $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['SKY']                  = $resultado2.'%';
+            $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['LATAM']                = $resultado3.'%';
+            $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['American Airlines']    = $resultado4.'%';
+            $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['COPA']                 = $resultado5.'%';
+            $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['IBERIA']               = $resultado6.'%';
+            $values[$lastSentido][sizeof($values[$lastSentido]) - 1][0]['rowSpan']              = ['cells' => 3, 'key' => "Total"];
+        }
+        
 
         $colums = [
             'BrandAwareness' => 'Brand Awareness',
@@ -7038,7 +7018,7 @@ class Dashboard extends Generic
 
                 $structGAPJetSmart =  $this->arrayPushToValues([],['Compra', 'Pago', 'N/A', 'Confirmación', 'Check in', 'Registro equipaje', 'Abordaje', 'Vuelo', 'Llegada', 'Atención cliente',],'GAP', [], [], 9);
                 //$aerolineas = $this->OrdenAerolineas($db, $startDateFilterMonth, $endDateFilterMonth);
-                //$brandAwareness = $this->BrandAwareness($db, $startDateFilterMonth, $endDateFilterMonth);
+                $brandAwareness = $this->BrandAwareness($db, $startDateFilterMonth, $endDateFilterMonth);
                 $detGend = $this->gapJetsmart($db, $request->survey,'csat', $dateIni, $dateEndIndicatorPrincipal, $structGAPJetSmart, $datafilters);
                 $detGene = $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'gene', $endDateFilterMonth, $startDateFilterMonth,  $filterClient,  $datafilters, $jetNamesGene);
                 $detailsProc = $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'laboral' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesLab);
