@@ -113,10 +113,24 @@ class DashboardMutual extends Dashboard
     {
         $generalDataNps             = $this->resumenNpsM($table,  $dateIni, $dateEnd, $indicador, $filter, '', $consolidadoTotal);
         $generalDataNps['graph']    = $this->graphNps($table,  $indicador, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), 'one', $consolidadoTotal);
-                                                    
+        //$generalDataNps             = $this->resumenNpsM2($generalDataNps['graph']);                                
 
         return $generalDataNps;
     }
+
+    // private function resumenNpsM2($resp){
+    //     //print_r($resp);
+    //     return [
+    //         "name"              => "nps",
+    //         "value"             => $resp[sizeof($resp)-1]['value'],
+    //         "percentageGraph"   => true,
+    //         "promotors"         => 0,
+    //         "neutrals"          => 0,
+    //         "detractors"        => 0,
+    //         "percentage"        => $npsActive - $npsPreviousPeriod,
+    //         "smAvg"             => $this->AVGLast6MonthNPS($table, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter)
+    //     ];
+    // }
 
     protected function infoISNMutual($table, $dateIni, $dateEnd, $indicador,$consolidadoTotal)
     {
@@ -598,8 +612,7 @@ class DashboardMutual extends Dashboard
         }
     }
 
-    private function graphNps($table, $indicador, $dateIni, $dateEnd, $struct = 'two',$consolidadoTotal, $datafilters = null, $group = null)
-                        
+    private function graphNps($table, $indicador, $dateIni, $dateEnd, $struct = 'two',$consolidadoTotal, $datafilters = null, $group = null)               
     {
         $graphNPS  = [];
         $sumaNps = 0;
@@ -723,7 +736,7 @@ class DashboardMutual extends Dashboard
                     if ($struct != 'one') {
                         $graphNPS[] = [
                             'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('d',strtotime($value->mondayWeek)). '-' .date('m',strtotime($value->mondayWeek)) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
-                            'values' => [
+                            'values'   => [
                                 "promoters"     => round($value->promotor),
                                 "neutrals"      => ((round($value->promotor) == 0) && (round($value->detractor) == 0)) ? round($value->neutral) : 100 - (round($value->detractor) + round($value->promotor)),//100 - (round($value->promotor) + round($value->detractor)),
                                 "detractors"    => round($value->detractor),
@@ -736,7 +749,6 @@ class DashboardMutual extends Dashboard
                             "value" => $value->NPS
                         ];
                     }
-
                 }
             }
           
@@ -1436,97 +1448,113 @@ class DashboardMutual extends Dashboard
             return ['filters' => [(object)$tipoCliente, (object)$macrosegmento, (object)$tipoCanal], 'status' => Response::HTTP_OK];
         }
 
-        if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
-            $data = DB::select("SELECT DISTINCT(tatencion)
-                            FROM ".$this->getValueParams('_dbSelected').".adata_mut_" . $dbC . "_start
-                            where tatencion != '0'");
+       
 
-            $this->_fieldSelectInQuery = 'tatencion';
 
-            $tipAtencion = ['filter' => 'Tipo_Atencion', 'datas' => $this->contentfilter($data, 'tatencion')];
-        }
-
-        if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh'|| $dbC == 'img' || $dbC == 'con' || $dbC == 'cop') {
-            $cond = '';
-            if ($datafilters != null && strpos($datafilters,'zonal') != false)
-            {
-                $cond = " AND zonal = '". $request->get('Zona')."'"; 
-            }
-
-            if(isset($jwt[env('AUTH0_AUD')]->centros)){
-                $long = sizeof($jwt[env('AUTH0_AUD')]->centros);
-                //print_r($jwt[env('AUTH0_AUD')]->centros);exit;
-    
-                if($long == 1){ 
-                    $obj = [$jwt[env('AUTH0_AUD')]->centros[0] =>  $jwt[env('AUTH0_AUD')]->centros[0]];
+        //
+            if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh'|| $dbC == 'img' || $dbC == 'con') {
+                $cond = '';
+                if ($datafilters != null && strpos($datafilters,'zonal') != false)
+                {
+                    $cond = " AND zonal = '". $request->get('Zona')."'"; 
                 }
-                
-                if($long > 1){
-                    $obj = array($jwt[env('AUTH0_AUD')]->centros[0] =>  $jwt[env('AUTH0_AUD')]->centros[0]);
-                    for($i=1; $i<$long; $i++){
-                        $obj = array_merge($obj,array($jwt[env('AUTH0_AUD')]->centros[$i] =>  $jwt[env('AUTH0_AUD')]->centros[$i]));
+                if(isset($jwt[env('AUTH0_AUD')]->zona) || (in_array('Manager', $jwt[env('AUTH0_AUD')]->roles)) || isset($jwt[env('AUTH0_AUD')]->centros)){
+
+                    if(isset($jwt[env('AUTH0_AUD')]->zona)){
+                        $cond = " AND zonal = '". $jwt[env('AUTH0_AUD')]->zona."'"; 
                     }
+
+                    if(isset($jwt[env('AUTH0_AUD')]->centros)){
+                        $long = sizeof($jwt[env('AUTH0_AUD')]->centros);
+                        //print_r($jwt[env('AUTH0_AUD')]->centros);exit;
+            
+                        if($long == 1){ 
+                            $obj = [$jwt[env('AUTH0_AUD')]->centros[0] =>  $jwt[env('AUTH0_AUD')]->centros[0]];
+                        }
+                        
+                        if($long > 1){
+                            $obj = array($jwt[env('AUTH0_AUD')]->centros[0] =>  $jwt[env('AUTH0_AUD')]->centros[0]);
+                            for($i=1; $i<$long; $i++){
+                                $obj = array_merge($obj,array($jwt[env('AUTH0_AUD')]->centros[$i] =>  $jwt[env('AUTH0_AUD')]->centros[$i]));
+                            }
+                        }
+                        
+                        $CenAtencionn = ['filter' => 'Centro_Atencion', 'datas' => $obj];
+                    }
+
+                    if(empty($jwt[env('AUTH0_AUD')]->centros)){            
+                        $data = DB::select("SELECT DISTINCT((catencion))
+                                        FROM ".$this->getValueParams('_dbSelected').".adata_mut_" . $dbC . "_start
+                                        WHERE catencion != '' and catencion != '0' $cond");
+                        $this->_fieldSelectInQuery = 'catencion';
+
+                        $CenAtencionn = ['filter' => 'Centro_Atencion', 'datas' => $this->contentfilter($data, 'catencion')];
+                    }
+            }
+            return ['filters' => [(object)$CenAtencionn], 'status' => Response::HTTP_OK];
+        } 
+
+        if((empty($jwt[env('AUTH0_AUD')]->zona)) && (in_array('Manager', $jwt[env('AUTH0_AUD')]->roles))){
+
+            if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
+                $data = DB::select("SELECT DISTINCT(tatencion)
+                                FROM ".$this->getValueParams('_dbSelected').".adata_mut_" . $dbC . "_start
+                                where tatencion != '0'");
+    
+                $this->_fieldSelectInQuery = 'tatencion';
+    
+                $tipAtencion = ['filter' => 'Tipo_Atencion', 'datas' => $this->contentfilter($data, 'tatencion')];
+            }
+
+
+
+            if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img' || $dbC == 'con') {
+                if(isset($jwt[env('AUTH0_AUD')]->gerenciaMedica)){
+                    $Gerencia = null;
                 }
-                
-                $CenAtencionn = ['filter' => 'Centro_Atencion', 'datas' => $obj];
-            }
-
-            if(empty($jwt[env('AUTH0_AUD')]->centros)){
-                $data = DB::select("SELECT DISTINCT(catencion)
-                                FROM ".$this->getValueParams('_dbSelected').".adata_mut_" . $dbC . "_start
-                                WHERE catencion != '' and catencion != '0' $cond");
-                $this->_fieldSelectInQuery = 'catencion';
-
-                $CenAtencionn = ['filter' => 'Centro_Atencion', 'datas' => $this->contentfilter($data, 'catencion')];
-            }
-        }
-
-        if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img' || $dbC == 'con' || $dbC == 'cop') {
-            if(isset($jwt[env('AUTH0_AUD')]->gerenciaMedica)){
-                $Gerencia = null;
-            }
 
 
-            if(empty($jwt[env('AUTH0_AUD')]->gerenciaMedica)){
-            $data = DB::select("SELECT DISTINCT(gerenciamedica)
-                                FROM ".$this->getValueParams('_dbSelected').".adata_mut_" . $dbC . "_start
-                                WHERE gerenciamedica != '' and gerenciamedica != '1' and gerenciamedica != '0'");
-                                
-            $this->_fieldSelectInQuery = 'gerenciamedica';
-
-            $Gerencia = ['filter' => 'Gerencia_Medica', 'datas' => $this->contentfilter($data, 'gerenciamedica')];
-            }
-        }
-
-        if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
-            $data = DB::select("SELECT DISTINCT(aatencion)
-                                FROM ".$this->getValueParams('_dbSelected').".adata_mut_" . $dbC . "_start
-                                WHERE aatencion != '0' AND aatencion != '9' AND aatencion != ''");
-                                
-            $this->_fieldSelectInQuery = 'aatencion';
-
-            $AreaAten = ['filter' => 'Area_Atencion', 'datas' => $this->contentfilter($data, 'aatencion')];
-        }
-
-        if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img'|| $dbC == 'con'|| $dbC == 'cop') {
-            if(isset($jwt[env('AUTH0_AUD')]->zona)){
-                $ZonaHos = null;
-            }
-
-            if(empty($jwt[env('AUTH0_AUD')]->zona)){
-                $data = DB::select("SELECT DISTINCT(zonal)
+                if(empty($jwt[env('AUTH0_AUD')]->gerenciaMedica)){
+                $data = DB::select("SELECT DISTINCT(gerenciamedica)
                                     FROM ".$this->getValueParams('_dbSelected').".adata_mut_" . $dbC . "_start
-                                    WHERE zonal != '0' AND zonal != ''");
+                                    WHERE gerenciamedica != '' and gerenciamedica != '1' and gerenciamedica != '0'");
                                     
-                $this->_fieldSelectInQuery = 'zonal';
+                $this->_fieldSelectInQuery = 'gerenciamedica';
 
-                $ZonaHos = ['filter' => 'Zona', 'datas' => $this->contentfilter($data, 'zonal')];
+                $Gerencia = ['filter' => 'Gerencia_Medica', 'datas' => $this->contentfilter($data, 'gerenciamedica')];
+                }
             }
 
-            return ['filters' => [ (object)$tipAtencion, (object)$CenAtencionn, (object)$Gerencia,  (object)$AreaAten,  (object)$ZonaHos], 'status' => Response::HTTP_OK];
-        }
+            if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
+                $data = DB::select("SELECT DISTINCT(aatencion)
+                                    FROM ".$this->getValueParams('_dbSelected').".adata_mut_" . $dbC . "_start
+                                    WHERE aatencion != '0' AND aatencion != '9' AND aatencion != ''");
+                                    
+                $this->_fieldSelectInQuery = 'aatencion';
 
-        return ['filters' => [(object)$macrosegmento], 'status' => Response::HTTP_OK];
+                $AreaAten = ['filter' => 'Area_Atencion', 'datas' => $this->contentfilter($data, 'aatencion')];
+            }
+
+            if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img'|| $dbC == 'con'|| $dbC == 'cop') {
+                if(isset($jwt[env('AUTH0_AUD')]->zona)){
+                    $ZonaHos = null;
+                }
+
+                if(empty($jwt[env('AUTH0_AUD')]->zona)){
+                    $data = DB::select("SELECT DISTINCT(zonal)
+                                        FROM ".$this->getValueParams('_dbSelected').".adata_mut_" . $dbC . "_start
+                                        WHERE zonal != '0' AND zonal != ''");
+                                        
+                    $this->_fieldSelectInQuery = 'zonal';
+
+                    $ZonaHos = ['filter' => 'Zona', 'datas' => $this->contentfilter($data, 'zonal')];
+                }
+
+                return ['filters' => [ (object)$tipAtencion, (object)$CenAtencionn, (object)$Gerencia,  (object)$AreaAten,  (object)$ZonaHos], 'status' => Response::HTTP_OK];
+            }
+        }
+            return ['filters' => [(object)$macrosegmento], 'status' => Response::HTTP_OK];
+            
         }
     }
 
@@ -1716,7 +1744,7 @@ class DashboardMutual extends Dashboard
     {
         //$closedMutual = false;
 
-        
+        $rank = false;
         
         if(!isset($request->Centro_Atencion)){
             $centros=$this->setFilterCentro($jwt, $request);
@@ -1724,7 +1752,10 @@ class DashboardMutual extends Dashboard
             if(isset($jwt[env('AUTH0_AUD')]->centros)){
                 $request->merge(['Centro_Atencion'=>$centros]);
             }
-            
+        }
+
+        if(in_array('Manager',$jwt[env('AUTH0_AUD')]->roles)){
+            $rank = true;
         }
 
         if(!isset($request->Gerencia_Medica)){
@@ -1872,9 +1903,11 @@ class DashboardMutual extends Dashboard
             }
 
             if ($db == 'adata_mut_reh' || $db == 'adata_mut_amb' || $db == 'adata_mut_urg') {
-                $rankingSuc = $this->ranking($db, 'catencion', 'CentroAtencion', $endDateFilterMonth, $startDateFilterMonth, 'one',$datafilters, 6,4);
+                if($rank == true){
+                    $rankingSuc = $this->ranking($db, 'catencion', 'CentroAtencion', $endDateFilterMonth, $startDateFilterMonth, 'one',$datafilters, 6,4);
+                }
             }
-            //echo $this->consolidadoTotal;exit;
+     
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient,$request->survey, $db);
             $performance        = $this->cardsPerformace($dataNps, $dataIsnP , $dateEnd, $dateIni, $request->survey, $datafilters);
             $npsConsolidado     = $this->cardCsatDriversMutual('ISN', $name, $dataIsn , $this->ButFilterWeeks, 12, 4);

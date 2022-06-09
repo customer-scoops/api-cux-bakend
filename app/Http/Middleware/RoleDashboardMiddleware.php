@@ -12,7 +12,7 @@ use Illuminate\Http\Response;
 
 use App\Traits\ApiResponser;
 
-class RoleDashOrSuiteMiddleware
+class RoleDashboardMiddleware
 {
     use ApiResponser;
     /**
