@@ -2195,7 +2195,7 @@ class Dashboard extends Generic
         $query = '';
 
         $endCsat = $this->getEndCsat($survey);
-
+ 
         for($i = 1; $i <=  $endCsat; $i++)
         {
             if ($i != $endCsat)
@@ -2205,7 +2205,7 @@ class Dashboard extends Generic
                 $query .= "ROUND(AVG(CASE WHEN $indicador$i != 99 THEN $indicador$i END), 1) AS $indicador$i";
 
         }
-
+        
         $data = DB::select("SELECT $query FROM $this->_dbSelected.$db WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND etapaencuesta = 'P2' $datafilters"); //Cambiar mes = 3 por la variable $mes
 
         for($i = 1; $i <= $endCsat; $i++)
@@ -7037,9 +7037,9 @@ class Dashboard extends Generic
                 ];
 
                 $structGAPJetSmart =  $this->arrayPushToValues([],['Compra', 'Pago', 'N/A', 'Confirmación', 'Check in', 'Registro equipaje', 'Abordaje', 'Vuelo', 'Llegada', 'Atención cliente',],'GAP', [], [], 9);
-                $aerolineas = $this->OrdenAerolineas($db, $startDateFilterMonth, $endDateFilterMonth);
-                $brandAwareness = $this->BrandAwareness($db, $startDateFilterMonth, $endDateFilterMonth);
-                $detGend = $this->gapJetsmart($db, $request->survey,'csat', $dateIni, $dateEnd, $structGAPJetSmart, $datafilters);
+                //$aerolineas = $this->OrdenAerolineas($db, $startDateFilterMonth, $endDateFilterMonth);
+                //$brandAwareness = $this->BrandAwareness($db, $startDateFilterMonth, $endDateFilterMonth);
+                $detGend = $this->gapJetsmart($db, $request->survey,'csat', $dateIni, $dateEndIndicatorPrincipal, $structGAPJetSmart, $datafilters);
                 $detGene = $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'gene', $endDateFilterMonth, $startDateFilterMonth,  $filterClient,  $datafilters, $jetNamesGene);
                 $detailsProc = $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'laboral' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesLab);
                 $bo14 = $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'frec2' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesFrecVuelo);
