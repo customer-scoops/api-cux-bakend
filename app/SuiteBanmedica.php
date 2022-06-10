@@ -26,7 +26,7 @@ class SuiteBanmedica extends Suite
            "subStatus1" => 'required|string',
            "subStatus2" => 'required|string',
            "caso" => 'required|string',
-           "nps" => 'required|numeric',
+           "nps" => 'numeric',
            "dateSchedule" => 'date_format:Y-m-d',
            "timeSchedule" => 'date_format:H:i'
        ];
