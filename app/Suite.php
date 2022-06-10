@@ -344,7 +344,7 @@ class Suite
                         'rut2'  => (isset($value->rut2)) ? $value->rut2 : '',
                         'phone' => (isset($value->phone)) ?  $value->phone : '',
                         'celu' => (isset($value->celu)) ?  $value->celu : '',
-                        'dateSchedule' =>  (isset($value->dateSchedule)) ?  $value->dateSchedule : '',
+                        'dateSchedule' =>  (isset($value->dateSchedule)) ? date('d-m-Y', strtotime($value->dateSchedule)) : '',
                         'timeSchedule' =>(isset($value->timeSchedule)) ?  $value->timeSchedule : ''
                     ),
                     "ltv"       => 'N/A',
@@ -665,12 +665,12 @@ class Suite
             "jetvue_csat5"  => "Proceso de pago",
             "jetvue_csat6"  => "Información email",
 
-            "jetcpe_csat1"  => "jetcpe_csat1",
-            "jetcpe_csat2"  => "jetcpe_csat2",
-            "jetcpe_csat3"  => "jetcpe_csat3",
-            "jetcpe_csat4"  => "jetcpe_csat4",
-            "jetcpe_csat5"  => "jetcpe_csat5",
-            "jetcpe_csat6"  => "jetcpe_csat6",
+            "jetcpe_csat1"  => "Utilizar el sitio web",
+            "jetcpe_csat2"  => "Selección de pasajes",
+            "jetcpe_csat3"  => "Selección y compra de equipaje",
+            "jetcpe_csat4"  => "Selección de asientos",
+            "jetcpe_csat5"  => "Proceso de pago",
+            "jetcpe_csat6"  => "Información en email de confirmación de compra",
         
         ];
         

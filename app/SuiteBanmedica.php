@@ -26,6 +26,7 @@ class SuiteBanmedica extends Suite
            "subStatus1" => 'required|string',
            "subStatus2" => 'required|string',
            "caso" => 'required|string',
+           "nps" => 'required|numeric',
            "dateSchedule" => 'date_format:Y-m-d',
            "timeSchedule" => 'date_format:H:i'
        ];
@@ -56,9 +57,9 @@ class SuiteBanmedica extends Suite
                     ]
                 );
                 
-           if($resp===1 && $request->subStatus1 != 'Agendar llamada' && $request->subStatus1 != 'Desafiliado' && $request->subStatus1 != 'Pendiente'){
-               $namev = DB::table($this->getDBSelected().'.'.'adata_'.substr($request->survey,0,3).'_'.substr($request->survey,3,6).'_start')->where('id', $request->ticket)->first();
-               //$this->sendedEmail($namev->nom, $namev->mail, $namev->token, $request->survey); // Cuando se pruebe hay que comentar esto para que no le mande le mail al cliente.
+           if($resp===1 && $request->subStatus1 != 'Agendar llamada' && $request->subStatus1 != 'Desafiliado' && $request->subStatus1 != 'Pendiente' && $request->nps <= 6){
+                $namev = DB::table($this->getDBSelected().'.'.'adata_'.substr($request->survey,0,3).'_'.substr($request->survey,3,6).'_start')->where('id', $request->ticket)->first();
+                $this->sendedEmail($namev->nom, $namev->mail, $namev->token, $request->survey); // Cuando se pruebe hay que comentar esto para que no le mande le mail al cliente.
            }
            return[
                'datas'  => 'complet',
