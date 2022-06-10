@@ -6872,7 +6872,7 @@ class Dashboard extends Generic
             $detailGender       = $this->detailsGender($db, $npsInDb, $csatInDb, $endDateFilterMonth, $startDateFilterMonth,  $filterClient, $datafilters, $indetifyClient);
             $detailGeneration   = $this->detailGeneration($db, $npsInDb, $csatInDb, $endDateFilterMonth, $startDateFilterMonth, $filterClient,  $datafilters, $indetifyClient);
             $datasStatsByTaps   = $this->statsByTaps($db, $db2, date('m'), date('Y'), $npsInDb, $csatInDb, $startDateFilterMonth, $endDateFilterMonth, $datafilters, $filterClient, $indetifyClient);
-            $wordCloud          = null;//$this->wordCloud($request); //null; 
+            $wordCloud          = $this->wordCloud($request); //null; 
             $detailsProcedencia = $super;
             $box14              = $venta;
             $box15              = $call;
