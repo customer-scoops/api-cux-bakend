@@ -109,33 +109,57 @@ class DashboardMutual extends Dashboard
         }
     }
 
-    protected function infoNpsMutual($table,  $dateIni, $dateEnd, $indicador, $filter, $dataFilter,$consolidadoTotal)
-    {
-        $generalDataNps             = $this->resumenNpsM($table,  $dateIni, $dateEnd, $indicador, $filter, '', $consolidadoTotal);
+    protected function infoNpsMutual($table,  $dateIni, $dateEnd, $indicador, $filter, $dataFilter,$consolidadoTotal){
         $generalDataNps['graph']    = $this->graphNps($table,  $indicador, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), 'one', $consolidadoTotal);
-        //$generalDataNps             = $this->resumenNpsM2($generalDataNps['graph']);                                
+        $generalDataNps             = $this->resumenNpsM2($generalDataNps['graph']);                                
 
         return $generalDataNps;
     }
 
-    // private function resumenNpsM2($resp){
-    //     //print_r($resp);
-    //     return [
-    //         "name"              => "nps",
-    //         "value"             => $resp[sizeof($resp)-1]['value'],
-    //         "percentageGraph"   => true,
-    //         "promotors"         => 0,
-    //         "neutrals"          => 0,
-    //         "detractors"        => 0,
-    //         "percentage"        => $npsActive - $npsPreviousPeriod,
-    //         "smAvg"             => $this->AVGLast6MonthNPS($table, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter)
-    //     ];
-    // }
+    private function resumenNpsM2($resp){
+        //print_r($resp[sizeof($resp)-1]['values']['nps']);
+        $sum = $count = 0;
+        foreach ($resp as $key => $value) {
+            $count++;
+            $sum += $value['values']['nps'];
+
+            $graphNPS[] = [
+                "value" => $value['values']['nps']
+            ];
+        }
+        if($resp != null){
+            return [
+                "name"              => "nps",
+                "value"             => $resp[sizeof($resp)-1]['values']['nps'] != null ? $resp[sizeof($resp)-1]['values']['nps'] : 'N/A',
+                "percentageGraph"   => true,
+                "promotors"         => $resp[sizeof($resp)-1]['values']['promoters'],
+                "neutrals"          => $resp[sizeof($resp)-1]['values']['neutrals'],
+                "detractors"        => $resp[sizeof($resp)-1]['values']['detractors'],
+                "percentage"        => round($resp[sizeof($resp)-1]['values']['nps']-$resp[sizeof($resp)-2]['values']['nps'],0),
+                "smAvg"             => round($sum / $count ,0),
+                "graph"             => $graphNPS
+            ];
+        }
+        if($resp == null){
+            return [
+                "name"              => "nps",
+                "value"             => 'N/A',
+                "percentageGraph"   => true,
+                "promotors"         => 0,
+                "neutrals"          => 0,
+                "detractors"        => 0,
+                "percentage"        => 0,
+                "smAvg"             => 0
+            ];
+        }
+
+    }
 
     protected function infoISNMutual($table, $dateIni, $dateEnd, $indicador,$consolidadoTotal)
     {
-        $generalDataCsat            = $this->resumenISN($table, $dateIni, $dateEnd, $indicador, $this->getValueParams('_initialFilter'),$consolidadoTotal);
         $generalDataCsat['graph']   = $this->graphIsn($table,  $indicador, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $this->getValueParams('_initialFilter'), 'one',$consolidadoTotal);
+        //$generalDataCsat            = $this->resumenISN($table, $dateIni, $dateEnd, $indicador, $this->getValueParams('_initialFilter'),$consolidadoTotal);
+        $generalDataCsat            = $this->resumenISN2($generalDataCsat['graph']);
         return $generalDataCsat;
     }
 
@@ -332,7 +356,7 @@ class DashboardMutual extends Dashboard
 
         if (!empty($data)) {
             foreach ($data as $key => $value) {
-                if ($struct != 'one') {
+                if ($struct == 'one') {
                     $graphCSAT[] = [
                         'xLegend'  => (string)$value->mes . '-' . $value->annio,
                         'values'   => [
@@ -341,7 +365,7 @@ class DashboardMutual extends Dashboard
                     ];
                 }
                 
-                if ($struct == 'one') {
+                if ($struct != 'one') {
                     $graphCSAT[] = [
                         "value" => (string)ROUND($value->csat)
                     ];
@@ -352,89 +376,116 @@ class DashboardMutual extends Dashboard
         return $graphCSAT;
     }
 
-    private function resumenISN($table, $dateIni, $dateEnd, $indicador, $filter, $consolidadoTotal,$datafilters = null){
-        if($consolidadoTotal == false){
-        $data = DB::select("SELECT count(*) as total,
-                            ((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN $indicador  END))-
-                            (COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minCsat')." AND ".$this->getValueParams('_maxCsat')." THEN $indicador  END)))*100/count(CASE WHEN $indicador  != 99 THEN csat END) as isn, 
-                            ".$this->getValueParams('_fieldSelectInQuery')."
-                            FROM ".$this->getValueParams('_dbSelected').".$table as a
-                            INNER JOIN ".$this->getValueParams('_dbSelected')."." . $table . "_start as b ON a.token = b.token
-                            WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and etapaencuesta = 'P2'  ".$this->filterZona." 
-                            ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia." ");
+    private function resumenISN2($resp){
+        //print_r($resp);exit;
+        $graphCSAT = [];
+        foreach($resp as $key => $value){
+            $graphCSAT[] = [
+                "value" => (string)ROUND($value['values']['csat'])
+            ];
         }
-        if($consolidadoTotal == true){
-            $data = DB::select("SELECT sum(total) as total, sum(isn) as isn, ".$this->getValueParams('_fieldSelectInQuery')." from 
-                                (SELECT count(*) as total,
-                                ((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN $indicador  END))-
-                                (COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minCsat')." AND ".$this->getValueParams('_maxCsat')." THEN $indicador  END)))*100/count(CASE WHEN $indicador  != 99 THEN csat END)*0.3 as isn, 
-                                ".$this->getValueParams('_fieldSelectInQuery')."
-                                FROM ".$this->getValueParams('_dbSelected').".adata_mut_amb as a
-                                INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_amb_start as b ON a.token = b.token
-                                WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and etapaencuesta = 'P2'  ".$this->filterZona." 
-                                ". $this->filterCentro."  ".$this->filterGerencia." 
-                                union
-                                SELECT count(*) as total,
-                                ((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN $indicador  END))-
-                                (COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minCsat')." AND ".$this->getValueParams('_maxCsat')." THEN $indicador  END)))*100/count(CASE WHEN $indicador  != 99 THEN csat END)*0.08 as isn, 
-                                ".$this->getValueParams('_fieldSelectInQuery')."
-                                FROM ".$this->getValueParams('_dbSelected').".adata_mut_hos as a
-                                INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_hos_start as b ON a.token = b.token
-                                WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and etapaencuesta = 'P2'  ".$this->filterZona." 
-                                ". $this->filterCentro." ".$this->filterGerencia."
-                                union
-                                SELECT count(*) as total,
-                                ((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN $indicador  END))-
-                                (COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minCsat')." AND ".$this->getValueParams('_maxCsat')." THEN $indicador  END)))*100/count(CASE WHEN $indicador  != 99 THEN csat END)*0.17 as isn, 
-                                ".$this->getValueParams('_fieldSelectInQuery')."
-                                FROM ".$this->getValueParams('_dbSelected').".adata_mut_urg as a
-                                INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_urg_start as b ON a.token = b.token
-                                WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and etapaencuesta = 'P2'  ".$this->filterZona." 
-                                ". $this->filterCentro."  ".$this->filterGerencia."
-                                union
-                                SELECT count(*) as total,
-                                ((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN $indicador  END))-
-                                (COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minCsat')." AND ".$this->getValueParams('_maxCsat')." THEN $indicador  END)))*100/count(CASE WHEN $indicador  != 99 THEN csat END)*0.29 as isn, 
-                                ".$this->getValueParams('_fieldSelectInQuery')."
-                                FROM ".$this->getValueParams('_dbSelected').".adata_mut_reh as a
-                                INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_reh_start as b ON a.token = b.token
-                                WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and etapaencuesta = 'P2'  ".$this->filterZona." 
-                                ". $this->filterCentro."  ".$this->filterGerencia."
-                                union
-                                SELECT count(*) as total,
-                                ((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN $indicador  END))-
-                                (COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minCsat')." AND ".$this->getValueParams('_maxCsat')." THEN $indicador  END)))*100/count(CASE WHEN $indicador  != 99 THEN csat END)*0.16 as isn, 
-                                ".$this->getValueParams('_fieldSelectInQuery')."
-                                FROM ".$this->getValueParams('_dbSelected').".adata_mut_img as a
-                                INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_img_start as b ON a.token = b.token
-                                WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and etapaencuesta = 'P2'  ".$this->filterZona." 
-                                ". $this->filterCentro."  ".$this->filterGerencia.") AS A ");
+        if($resp != null){
+            return [
+                "name"          => 'isn',
+                "value"         => ROUND($resp[sizeof($resp)-1]['values']['csat']),
+                "percentage"    => ROUND(($resp[sizeof($resp)-1]['values']['csat']) - ROUND($resp[sizeof($resp)-2]['values']['csat'])), 
+                "graph"         => $graphCSAT
+            ];
         }
 
-        $isnPreviousPeriod = $this->isnPreviousPeriod($table,$dateIni, $dateEnd, $indicador, $filter,  $datafilters);
-
-        $isnActive = 0;
-        if (($data == null) || $data[0]->total == null || $data[0]->isn == null) {
-            
-            $isnActive =  $isnActive;
+        if($resp == null){
             return [
                 "name"          => 'isn',
                 "value"         => 'N/A',
-                "percentage"    => (string)Round($isnActive-$isnPreviousPeriod),
-                "smAvg"         => '',
-            ];
-        }
-
-        if ($data[0]->total != null) {
-            
-            $isnActive = $data[0]->isn;
-            return [
-                "name"          => 'isn',
-                "value"         => ROUND($data[0]->isn),
-                "percentage"    => ROUND($data[0]->isn) - ROUND($isnPreviousPeriod),
+                "percentage"    => 0, 
+                "graph"         => $graphCSAT
             ];
         }
     }
+
+    // private function resumenISN($table, $dateIni, $dateEnd, $indicador, $filter, $consolidadoTotal,$datafilters = null){
+    //     if($consolidadoTotal == false){
+    //     $data = DB::select("SELECT count(*) as total,
+    //                         ((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN $indicador  END))-
+    //                         (COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minCsat')." AND ".$this->getValueParams('_maxCsat')." THEN $indicador  END)))*100/count(CASE WHEN $indicador  != 99 THEN csat END) as isn, 
+    //                         ".$this->getValueParams('_fieldSelectInQuery')."
+    //                         FROM ".$this->getValueParams('_dbSelected').".$table as a
+    //                         INNER JOIN ".$this->getValueParams('_dbSelected')."." . $table . "_start as b ON a.token = b.token
+    //                         WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and etapaencuesta = 'P2'  ".$this->filterZona." 
+    //                         ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia." ");
+    //     }
+    //     if($consolidadoTotal == true){
+    //         $data = DB::select("SELECT sum(total) as total, sum(isn) as isn, ".$this->getValueParams('_fieldSelectInQuery')." from 
+    //                             (SELECT count(*) as total,
+    //                             ((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN $indicador  END))-
+    //                             (COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minCsat')." AND ".$this->getValueParams('_maxCsat')." THEN $indicador  END)))*100/count(CASE WHEN $indicador  != 99 THEN csat END)*0.3 as isn, 
+    //                             ".$this->getValueParams('_fieldSelectInQuery')."
+    //                             FROM ".$this->getValueParams('_dbSelected').".adata_mut_amb as a
+    //                             INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_amb_start as b ON a.token = b.token
+    //                             WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and etapaencuesta = 'P2'  ".$this->filterZona." 
+    //                             ". $this->filterCentro."  ".$this->filterGerencia." 
+    //                             union
+    //                             SELECT count(*) as total,
+    //                             ((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN $indicador  END))-
+    //                             (COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minCsat')." AND ".$this->getValueParams('_maxCsat')." THEN $indicador  END)))*100/count(CASE WHEN $indicador  != 99 THEN csat END)*0.08 as isn, 
+    //                             ".$this->getValueParams('_fieldSelectInQuery')."
+    //                             FROM ".$this->getValueParams('_dbSelected').".adata_mut_hos as a
+    //                             INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_hos_start as b ON a.token = b.token
+    //                             WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and etapaencuesta = 'P2'  ".$this->filterZona." 
+    //                             ". $this->filterCentro." ".$this->filterGerencia."
+    //                             union
+    //                             SELECT count(*) as total,
+    //                             ((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN $indicador  END))-
+    //                             (COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minCsat')." AND ".$this->getValueParams('_maxCsat')." THEN $indicador  END)))*100/count(CASE WHEN $indicador  != 99 THEN csat END)*0.17 as isn, 
+    //                             ".$this->getValueParams('_fieldSelectInQuery')."
+    //                             FROM ".$this->getValueParams('_dbSelected').".adata_mut_urg as a
+    //                             INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_urg_start as b ON a.token = b.token
+    //                             WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and etapaencuesta = 'P2'  ".$this->filterZona." 
+    //                             ". $this->filterCentro."  ".$this->filterGerencia."
+    //                             union
+    //                             SELECT count(*) as total,
+    //                             ((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN $indicador  END))-
+    //                             (COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minCsat')." AND ".$this->getValueParams('_maxCsat')." THEN $indicador  END)))*100/count(CASE WHEN $indicador  != 99 THEN csat END)*0.29 as isn, 
+    //                             ".$this->getValueParams('_fieldSelectInQuery')."
+    //                             FROM ".$this->getValueParams('_dbSelected').".adata_mut_reh as a
+    //                             INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_reh_start as b ON a.token = b.token
+    //                             WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and etapaencuesta = 'P2'  ".$this->filterZona." 
+    //                             ". $this->filterCentro."  ".$this->filterGerencia."
+    //                             union
+    //                             SELECT count(*) as total,
+    //                             ((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN $indicador  END))-
+    //                             (COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minCsat')." AND ".$this->getValueParams('_maxCsat')." THEN $indicador  END)))*100/count(CASE WHEN $indicador  != 99 THEN csat END)*0.16 as isn, 
+    //                             ".$this->getValueParams('_fieldSelectInQuery')."
+    //                             FROM ".$this->getValueParams('_dbSelected').".adata_mut_img as a
+    //                             INNER JOIN ".$this->getValueParams('_dbSelected').".adata_mut_img_start as b ON a.token = b.token
+    //                             WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and etapaencuesta = 'P2'  ".$this->filterZona." 
+    //                             ". $this->filterCentro."  ".$this->filterGerencia.") AS A ");
+    //     }
+
+    //     $isnPreviousPeriod = $this->isnPreviousPeriod($table,$dateIni, $dateEnd, $indicador, $filter,  $datafilters);
+
+    //     $isnActive = 0;
+    //     if (($data == null) || $data[0]->total == null || $data[0]->isn == null) {
+            
+    //         $isnActive =  $isnActive;
+    //         return [
+    //             "name"          => 'isn',
+    //             "value"         => 'N/A',
+    //             "percentage"    => (string)Round($isnActive-$isnPreviousPeriod),
+    //             "smAvg"         => '',
+    //         ];
+    //     }
+
+    //     if ($data[0]->total != null) {
+            
+    //         $isnActive = $data[0]->isn;
+    //         return [
+    //             "name"          => 'isn',
+    //             "value"         => ROUND($data[0]->isn),
+    //             "percentage"    => ROUND($data[0]->isn) - ROUND($isnPreviousPeriod),
+    //         ];
+    //     }
+    // }
 
     private function dbResumenNps1 ($table,$indicador,$dateIni,$dateEnd, $filter, $datafilters,$consolidadoTotal)
     {
@@ -537,35 +588,35 @@ class DashboardMutual extends Dashboard
         return $data;
     }
 
-    private function isnPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $filter, $datafilters){
-        $monthAntEnd = date('m') - 1; 
-        $annio = date('Y'); 
-        $monthActualEnd= substr($dateIni, 5,2); 
+    // private function isnPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $filter, $datafilters){
+    //     $monthAntEnd = date('m') - 1; 
+    //     $annio = date('Y'); 
+    //     $monthActualEnd= substr($dateIni, 5,2); 
     
-        if($monthActualEnd > 1 && $monthActualEnd < 11){
-            $monthAntEnd = '0'.($monthActualEnd - 1);
-        }
-        if($monthActualEnd == 1){
-            $monthAntEnd = 12;
-            $annio = date('Y') - 1;
-        }
-        if($monthActualEnd > 10){
-            $monthAntEnd = $monthActualEnd - 1;
-        }
+    //     if($monthActualEnd > 1 && $monthActualEnd < 11){
+    //         $monthAntEnd = '0'.($monthActualEnd - 1);
+    //     }
+    //     if($monthActualEnd == 1){
+    //         $monthAntEnd = 12;
+    //         $annio = date('Y') - 1;
+    //     }
+    //     if($monthActualEnd > 10){
+    //         $monthAntEnd = $monthActualEnd - 1;
+    //     }
 
-        $mes = $monthAntEnd;
+    //     $mes = $monthAntEnd;
 
-        if ($filter != 'all') {
-                $data = DB::select("SELECT ((COUNT(CASE WHEN $indicador  BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN $indicador END)) -
-                                    (COUNT(CASE WHEN $indicador  BETWEEN ".$this->getValueParams('_minCsat')." AND ".$this->getValueParams('_maxCsat')." THEN $indicador  END)))*100/count(CASE WHEN $indicador  != 99 THEN csat END) as isn
-                                    FROM ".$this->getValueParams('_dbSelected').".$table as a
-                                    LEFT JOIN ".$this->getValueParams('_dbSelected')."." . $table . "_start as b
-                                    on a.token = b.token
-                                    WHERE a.mes = $mes AND a.annio = $annio AND etapaencuesta = 'P2'  ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."");
-        }
+    //     if ($filter != 'all') {
+    //             $data = DB::select("SELECT ((COUNT(CASE WHEN $indicador  BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN $indicador END)) -
+    //                                 (COUNT(CASE WHEN $indicador  BETWEEN ".$this->getValueParams('_minCsat')." AND ".$this->getValueParams('_maxCsat')." THEN $indicador  END)))*100/count(CASE WHEN $indicador  != 99 THEN csat END) as isn
+    //                                 FROM ".$this->getValueParams('_dbSelected').".$table as a
+    //                                 LEFT JOIN ".$this->getValueParams('_dbSelected')."." . $table . "_start as b
+    //                                 on a.token = b.token
+    //                                 WHERE a.mes = $mes AND a.annio = $annio AND etapaencuesta = 'P2'  ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."");
+    //     }
 
-        return $data[0]->isn;
-    }
+    //     return $data[0]->isn;
+    // }
               
     private function resumenNpsM($table,  $dateEnd, $dateIni, $indicador, $filter, $datafilters,$consolidadoTotal)
     {
@@ -576,7 +627,7 @@ class DashboardMutual extends Dashboard
     
         if (($data == null) || $data[0]->total == null || $data[0]->total == 0) {
             $npsActive = (isset($data[0]->NPS)) ? $data[0]->NPS : 0;
-            $npsPreviousPeriod = $this->npsPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $datafilters,$consolidadoTotal);
+            //$npsPreviousPeriod = $this->npsPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $datafilters,$consolidadoTotal);
             
             return [
                 "name"              => "nps",
@@ -585,18 +636,18 @@ class DashboardMutual extends Dashboard
                 "promotors"         => 0,
                 "neutrals"          => 0,
                 "detractors"        => 0,
-                "percentage"        => $npsActive - $npsPreviousPeriod,
-                "smAvg"             => $this->AVGLast6MonthNPS($table, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter)
+                "percentage"        => $npsActive, //- $npsPreviousPeriod,
+                "smAvg"             => 0//$this->AVGLast6MonthNPS($table, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter)
             ];
         }
 
         if ($data[0]->total != 0) {
             $npsActive = (isset($data[0]->NPS)) ? $data[0]->NPS : 0;
-            $npsPreviousPeriod = $this->npsPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $datafilters,$consolidadoTotal);
+            //$npsPreviousPeriod = $this->npsPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $datafilters,$consolidadoTotal);
             
-            if ($npsPreviousPeriod  === null) {
-                $npsPreviousPeriod = 0;
-            }
+            // if ($npsPreviousPeriod  === null) {
+            //     $npsPreviousPeriod = 0;
+            // }
            
             return [
                 "name"              => "nps",
@@ -605,9 +656,9 @@ class DashboardMutual extends Dashboard
                 "promotors"         => round($data[0]->promotor),
                 "neutrals"          => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - round(($data[0]->detractor) + ($data[0]->promotor)),
                 "detractors"        => round($data[0]->detractor),
-                "percentage"        => $npsActive - $npsPreviousPeriod,
-                "smAvg"             => $this->AVGLast6MonthNPS($table, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 1 month")), $indicador, $filter),
-                'NPSPReV'           => $npsPreviousPeriod,
+                "percentage"        => $npsActive, //$npsPreviousPeriod,
+                "smAvg"             => 0//$this->AVGLast6MonthNPS($table, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 1 month")), $indicador, $filter),
+              
             ];
         }
     }
@@ -754,7 +805,7 @@ class DashboardMutual extends Dashboard
           
             if ($data[0]->total !== null) {
                 foreach ($data as $key => $value) {
-                    if ($struct != 'one') {
+                    if ($struct == 'one') {
                         $graphNPS[] = [
                            'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('d',strtotime($value->mondayWeek)). '-' .date('m',strtotime($value->mondayWeek)) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                             'values' => [
@@ -765,7 +816,7 @@ class DashboardMutual extends Dashboard
                             ],
                         ];
                     }
-                    if ($struct == 'one') {
+                    if ($struct != 'one') {
                         $graphNPS[] = [
                             "value" => $value->NPS
                         ];
@@ -796,101 +847,101 @@ class DashboardMutual extends Dashboard
         return $graphNPS;
     }
 
-    private function AVGLast6MonthNPS($table,$dateIni,$dateEnd,$indicador, $filter){
-        if ($filter != 'all') {
-            $data = DB::select("SELECT sum(NPS) as total, COUNT(distinct mes) as meses from 
-                                (SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
-                                COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) /
-                                COUNT(CASE WHEN nps != 99 THEN 1 END) * 100),1) AS NPS, a.mes as mes, a.annio
-                                FROM ".$this->getValueParams('_dbSelected').".$table as a
-                                INNER JOIN ".$this->getValueParams('_dbSelected').".".$table."_start as b ON a.token = b.token 
-                                WHERE date_survey BETWEEN '2022-05-01' AND '$dateIni' ". $this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
-                                group by a.annio, a.mes) as a");
-        }
-        if($data[0]->meses == '0')
-            return '';
-        return (string)(round($data[0]->total / $data[0]->meses));
-    }
+    // private function AVGLast6MonthNPS($table,$dateIni,$dateEnd,$indicador, $filter){
+    //     if ($filter != 'all') {
+    //         $data = DB::select("SELECT sum(NPS) as total, COUNT(distinct mes) as meses from 
+    //                             (SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
+    //                             COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) /
+    //                             COUNT(CASE WHEN nps != 99 THEN 1 END) * 100),1) AS NPS, a.mes as mes, a.annio
+    //                             FROM ".$this->getValueParams('_dbSelected').".$table as a
+    //                             INNER JOIN ".$this->getValueParams('_dbSelected').".".$table."_start as b ON a.token = b.token 
+    //                             WHERE date_survey BETWEEN '2022-05-01' AND '$dateIni' ". $this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+    //                             group by a.annio, a.mes) as a");
+    //     }
+    //     if($data[0]->meses == '0')
+    //         return '';
+    //     return (string)(round($data[0]->total / $data[0]->meses));
+    // }
 
-    private function npsPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $datafilters,$consolidadoTotal)
-    {
-        $datafilters = str_replace(' AND date_survey between date_sub(NOW(), interval 9 week) and NOW()', '', $datafilters);
-        $monthAntEnd = date('m') - 1;
-        $annio = date('Y');
-        $monthActualEnd= substr($dateIni, 5,2); 
+    // private function npsPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $datafilters,$consolidadoTotal)
+    // {
+    //     $datafilters = str_replace(' AND date_survey between date_sub(NOW(), interval 9 week) and NOW()', '', $datafilters);
+    //     $monthAntEnd = date('m') - 1;
+    //     $annio = date('Y');
+    //     $monthActualEnd= substr($dateIni, 5,2); 
     
-        if($monthActualEnd > 1 && $monthActualEnd < 11){
-            $monthAntEnd = '0'.($monthActualEnd - 1);
-        }
-        if($monthActualEnd == 1){
-            $monthAntEnd = 12;
-            $annio = date('Y') - 1;
-        }
-        if($monthActualEnd > 10){
-            $monthAntEnd = $monthActualEnd - 1;
-        }
+    //     if($monthActualEnd > 1 && $monthActualEnd < 11){
+    //         $monthAntEnd = '0'.($monthActualEnd - 1);
+    //     }
+    //     if($monthActualEnd == 1){
+    //         $monthAntEnd = 12;
+    //         $annio = date('Y') - 1;
+    //     }
+    //     if($monthActualEnd > 10){
+    //         $monthAntEnd = $monthActualEnd - 1;
+    //     }
 
-        $mes = $monthAntEnd;
-        if($consolidadoTotal == false){
-            $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
-                            COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) /
-                            (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1) AS NPS
-                            FROM ".$this->getValueParams('_dbSelected').".$table as a
-                            left join ".$this->getValueParams('_dbSelected').".".$table."_start as b
-                            on a.token = b.token
-                            WHERE a.mes = $mes and a.annio = $annio $datafilters ". $this->filterZona." 
-                            ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia." ");
-        }
-        if($consolidadoTotal == true){
-            $data = DB::select("SELECT SUM(NPS) AS NPS FROM(
-                            SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
-                            COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) /
-                            (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1)*0.3 AS NPS
-                            FROM ".$this->getValueParams('_dbSelected').".adata_mut_amb as a
-                            left join ".$this->getValueParams('_dbSelected').".adata_mut_amb_start as b
-                            on a.token = b.token
-                            WHERE a.mes = $mes and a.annio = $annio $datafilters ". $this->filterZona." 
-                            ". $this->filterCentro." ".$this->filterGerencia."
-                            union
-                            SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
-                            COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) /
-                            (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1)*0.08 AS NPS
-                            FROM ".$this->getValueParams('_dbSelected').".adata_mut_hos as a
-                            left join ".$this->getValueParams('_dbSelected').".adata_mut_hos_start as b
-                            on a.token = b.token
-                            WHERE a.mes = $mes and a.annio = $annio $datafilters ". $this->filterZona." 
-                            ". $this->filterCentro." ".$this->filterGerencia."
-                            union
-                            SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
-                            COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) /
-                            (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1)*0.17 AS NPS
-                            FROM ".$this->getValueParams('_dbSelected').".adata_mut_urg as a
-                            left join ".$this->getValueParams('_dbSelected').".adata_mut_urg_start as b
-                            on a.token = b.token
-                            WHERE a.mes = $mes and a.annio = $annio $datafilters ". $this->filterZona." 
-                            ". $this->filterCentro." ".$this->filterGerencia."
-                            union
-                            SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
-                            COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) /
-                            (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1)*0.29 AS NPS
-                            FROM ".$this->getValueParams('_dbSelected').".adata_mut_reh as a
-                            left join ".$this->getValueParams('_dbSelected').".adata_mut_reh_start as b
-                            on a.token = b.token
-                            WHERE a.mes = $mes and a.annio = $annio $datafilters ". $this->filterZona." 
-                            ". $this->filterCentro." ".$this->filterGerencia."
-                            union
-                            SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
-                            COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) /
-                            (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1)*0.16 AS NPS
-                            FROM ".$this->getValueParams('_dbSelected').".adata_mut_img as a
-                            left join ".$this->getValueParams('_dbSelected').".adata_mut_img_start as b
-                            on a.token = b.token
-                            WHERE a.mes = $mes and a.annio = $annio $datafilters ". $this->filterZona." 
-                            ". $this->filterCentro." ".$this->filterGerencia.") AS A");
-        }
+    //     $mes = $monthAntEnd;
+    //     if($consolidadoTotal == false){
+    //         $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
+    //                         COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) /
+    //                         (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1) AS NPS
+    //                         FROM ".$this->getValueParams('_dbSelected').".$table as a
+    //                         left join ".$this->getValueParams('_dbSelected').".".$table."_start as b
+    //                         on a.token = b.token
+    //                         WHERE a.mes = $mes and a.annio = $annio $datafilters ". $this->filterZona." 
+    //                         ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia." ");
+    //     }
+    //     if($consolidadoTotal == true){
+    //         $data = DB::select("SELECT SUM(NPS) AS NPS FROM(
+    //                         SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
+    //                         COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) /
+    //                         (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1)*0.3 AS NPS
+    //                         FROM ".$this->getValueParams('_dbSelected').".adata_mut_amb as a
+    //                         left join ".$this->getValueParams('_dbSelected').".adata_mut_amb_start as b
+    //                         on a.token = b.token
+    //                         WHERE a.mes = $mes and a.annio = $annio $datafilters ". $this->filterZona." 
+    //                         ". $this->filterCentro." ".$this->filterGerencia."
+    //                         union
+    //                         SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
+    //                         COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) /
+    //                         (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1)*0.08 AS NPS
+    //                         FROM ".$this->getValueParams('_dbSelected').".adata_mut_hos as a
+    //                         left join ".$this->getValueParams('_dbSelected').".adata_mut_hos_start as b
+    //                         on a.token = b.token
+    //                         WHERE a.mes = $mes and a.annio = $annio $datafilters ". $this->filterZona." 
+    //                         ". $this->filterCentro." ".$this->filterGerencia."
+    //                         union
+    //                         SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
+    //                         COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) /
+    //                         (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1)*0.17 AS NPS
+    //                         FROM ".$this->getValueParams('_dbSelected').".adata_mut_urg as a
+    //                         left join ".$this->getValueParams('_dbSelected').".adata_mut_urg_start as b
+    //                         on a.token = b.token
+    //                         WHERE a.mes = $mes and a.annio = $annio $datafilters ". $this->filterZona." 
+    //                         ". $this->filterCentro." ".$this->filterGerencia."
+    //                         union
+    //                         SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
+    //                         COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) /
+    //                         (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1)*0.29 AS NPS
+    //                         FROM ".$this->getValueParams('_dbSelected').".adata_mut_reh as a
+    //                         left join ".$this->getValueParams('_dbSelected').".adata_mut_reh_start as b
+    //                         on a.token = b.token
+    //                         WHERE a.mes = $mes and a.annio = $annio $datafilters ". $this->filterZona." 
+    //                         ". $this->filterCentro." ".$this->filterGerencia."
+    //                         union
+    //                         SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) -
+    //                         COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) /
+    //                         (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),1)*0.16 AS NPS
+    //                         FROM ".$this->getValueParams('_dbSelected').".adata_mut_img as a
+    //                         left join ".$this->getValueParams('_dbSelected').".adata_mut_img_start as b
+    //                         on a.token = b.token
+    //                         WHERE a.mes = $mes and a.annio = $annio $datafilters ". $this->filterZona." 
+    //                         ". $this->filterCentro." ".$this->filterGerencia.") AS A");
+    //     }
 
-        return $data[0]->NPS;
-    }
+    //     return $data[0]->NPS;
+    // }
 
     private function surveysConsolidado(){
         return  ['mutcon','mutamb','muturg','mutimg','mutreh','muthos', 'mutcop'];
@@ -1448,10 +1499,6 @@ class DashboardMutual extends Dashboard
             return ['filters' => [(object)$tipoCliente, (object)$macrosegmento, (object)$tipoCanal], 'status' => Response::HTTP_OK];
         }
 
-       
-
-
-        //
             if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh'|| $dbC == 'img' || $dbC == 'con') {
                 $cond = '';
                 if ($datafilters != null && strpos($datafilters,'zonal') != false)
@@ -1495,7 +1542,6 @@ class DashboardMutual extends Dashboard
         } 
 
         if((empty($jwt[env('AUTH0_AUD')]->zona)) && (in_array('Manager', $jwt[env('AUTH0_AUD')]->roles))){
-
             if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img') {
                 $data = DB::select("SELECT DISTINCT(tatencion)
                                 FROM ".$this->getValueParams('_dbSelected').".adata_mut_" . $dbC . "_start
@@ -1506,13 +1552,10 @@ class DashboardMutual extends Dashboard
                 $tipAtencion = ['filter' => 'Tipo_Atencion', 'datas' => $this->contentfilter($data, 'tatencion')];
             }
 
-
-
             if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img' || $dbC == 'con') {
                 if(isset($jwt[env('AUTH0_AUD')]->gerenciaMedica)){
                     $Gerencia = null;
                 }
-
 
                 if(empty($jwt[env('AUTH0_AUD')]->gerenciaMedica)){
                 $data = DB::select("SELECT DISTINCT(gerenciamedica)
@@ -1549,12 +1592,10 @@ class DashboardMutual extends Dashboard
 
                     $ZonaHos = ['filter' => 'Zona', 'datas' => $this->contentfilter($data, 'zonal')];
                 }
-
                 return ['filters' => [ (object)$tipAtencion, (object)$CenAtencionn, (object)$Gerencia,  (object)$AreaAten,  (object)$ZonaHos], 'status' => Response::HTTP_OK];
             }
         }
             return ['filters' => [(object)$macrosegmento], 'status' => Response::HTTP_OK];
-            
         }
     }
 
