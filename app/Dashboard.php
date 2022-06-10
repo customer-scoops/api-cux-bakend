@@ -729,6 +729,7 @@ class Dashboard extends Generic
             "jetvia" => "10",
             "jetcom" => "6",
             "jetvue" => "6",
+            "jetcpe" => "6",
         ];
         if (array_key_exists($survey, $datas)) {
             return $datas[$survey];
@@ -1027,7 +1028,7 @@ class Dashboard extends Generic
         if ($this->_dbSelected == 'customer_jetsmart') {
 
             $data = DB::select("SELECT ROUND((COUNT(CASE WHEN $indicador BETWEEN 4 AND 5 THEN 1 END)  /
-                                (COUNT(CASE WHEN $indicador != 99 THEN $indicador END)) * 100)) AS CBI
+                                (COUNT(CASE WHEN $indicador != 99 THEN $indicador END)) * 100)) AS $indicador
                                 FROM $this->_dbSelected.$table 
                                 WHERE mes = $mes AND annio = $annio $datafilters");
                                 return $data;
@@ -1037,9 +1038,9 @@ class Dashboard extends Generic
     //Función promedio 6 mese CBI
 
     private function AVGLast6MonthCBI($table,$dateIni,$dateEnd,$indicador){
-            $data = DB::select("SELECT sum(CBI) as total, COUNT(distinct mes) as meses from (SELECT 
+            $data = DB::select("SELECT sum($indicador) as total, COUNT(distinct mes) as meses from (SELECT 
                                 ROUND(((COUNT(CASE WHEN $indicador BETWEEN 4 AND  5 THEN 1 END)) 
-                                /(COUNT($indicador) - COUNT(CASE WHEN $indicador=99 THEN 1 END)) * 100)) AS CBI, mes, annio
+                                /(COUNT($indicador) - COUNT(CASE WHEN $indicador=99 THEN 1 END)) * 100)) AS $indicador, mes, annio
                                 FROM $this->_dbSelected.$table
                                 WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' 
                                 group by annio, mes) as a");
@@ -1893,7 +1894,7 @@ class Dashboard extends Generic
         if(substr($table, 6, 3) == 'ban' || substr($table, 6, 3) == 'vid')
             $activeP2 ='';
 
-        $data = DB::select("SELECT COUNT(CASE WHEN $indicador = 4 OR $indicador = 5 THEN 1 END)/COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END)*100 AS cbi,
+        $data = DB::select("SELECT COUNT(CASE WHEN $indicador = 4 OR $indicador = 5 THEN 1 END)/COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END)*100 AS $indicador,
                             COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END) as total,
                             COUNT(CASE WHEN $indicador BETWEEN 1 AND 2 THEN 1 END) as Cnretorna,
                             COUNT(CASE WHEN $indicador = 3 THEN 1 END) as Cnsabe,
@@ -1916,7 +1917,7 @@ class Dashboard extends Generic
                         //'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                         'xLegend'  => (string)$value->mes . '-' . $value->annio . ' (' . $value->total . ')',
                         'values'   => [
-                            'cbi' => (string)ROUND($value->cbi),
+                            $indicador => (string)ROUND($value->$indicador),
                             'promoters' => (string)ROUND($value->retorna),
                             'neutrals' => (ROUND($value->retorna) == 0 && ROUND($value->nretorna) == 0) ? (string)ROUND($value->nsabe) : (string)(100 - ROUND($value->nretorna) - ROUND($value->retorna)),
                             'detractors' => (string)ROUND($value->nretorna)
@@ -1925,7 +1926,7 @@ class Dashboard extends Generic
                 }
                 if ($struct == 'one') {
                     $graphCBI[] = [
-                        "value" => (string)ROUND($value->cbi)
+                        "value" => (string)ROUND($value->$indicador)
                     ];
                 }
             }
@@ -2020,7 +2021,7 @@ class Dashboard extends Generic
 
     // Graph CBI propiedades para mandar al front
 
-    private function graphsStruct($data, $width, $key)
+    private function graphsStruct($data, $width, $key, $texts)
     {
         return [
             "height" => 3,
@@ -2029,38 +2030,32 @@ class Dashboard extends Generic
             "props" => [
                 "callToAction" => null,
                 "icon" => "arrow-right",
-                "text" => strtoupper($key),
+                "text" => strtoupper($texts[3]),
                 "chart" => [
                     "fields" => [
-                        // [
-                        //     "type" => "bar",
-                        //     "key" => $key,
-                        //     "text" => strtoupper($key),
-                        //     "bgColor" => "#FFB203",
-                        // ],
                         [
                             "type" => "stacked-bar",
                             "key" => "detractors",
-                            "text" => 'No Volverían',
+                            "text" => $texts[0],
                             "bgColor" => "#fe4560",
                         ],
 
                         [
                             "type" => "stacked-bar",
                             "key" => "neutrals",
-                            "text" => "Neutro",
+                            "text" => $texts[1],
                             "bgColor" => "#FFC700",
                         ],
                         [
                             "type" => "stacked-bar",
                             "key" => "promoters",
-                            "text" => "Volverían",
+                            "text" => $texts[2],
                             "bgColor" => "#17C784",
                         ],
                         [
                             "type" => "line",
-                            "key" => "cbi",
-                            "text" => 'CBI',
+                            "key" => $key,
+                            "text" => $texts[3],
                             "bgColor" => "#1a90ff",
                         ],
                     ],
@@ -2636,7 +2631,7 @@ class Dashboard extends Generic
 
     //Fin funciones para Transvip
 
-    private function cbiResp($db, $datafilters, $dateIni, $dateEnd)
+    private function cbiResp($db, $datafilters, $dateIni, $dateEnd, $key = 'cbi', $name = 'CBI')
     {
         $activeP2 = " etapaencuesta = 'P2' AND ";
         if(substr($db, 6, 3) == 'ban' || substr($db, 6, 3) == 'vid')
@@ -2711,39 +2706,39 @@ class Dashboard extends Generic
             $monthAct = date('m');
             $annioAct = date('Y');
             
-            $cbiSmAvg = $this->AVGLast6MonthCBI($db, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), 'cbi', $datafilters);
+            $cbiSmAvg = $this->AVGLast6MonthCBI($db, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $key, $datafilters);
 
-            $data = DB::select("SELECT ROUND((COUNT(CASE WHEN cbi BETWEEN 4 AND 5 THEN 1 END)  /
-                                    (COUNT(CASE WHEN cbi != 99 THEN 'cbi' END)) * 100)) AS CBI
+            $data = DB::select("SELECT ROUND((COUNT(CASE WHEN $key BETWEEN 4 AND 5 THEN 1 END)  /
+                                    (COUNT(CASE WHEN $key BETWEEN 1 AND 5 THEN 1 END)) * 100)) AS $key
                                     from $this->_dbSelected.$db as a
                                     left join $this->_dbSelected." . $db . "_start as b 
                                     on a.token = b.token  
                                     WHERE $activeP2 date_survey BETWEEN '$dateEnd' AND '$dateIni' AND etapaencuesta = 'P2' $datafilters
                                     "); // Ver si group by a.mes, a.annio se agrega despues de $datafilters
 
-            $cbiPreviousPeriod = $this->cbiPreviousPeriod($db, $dateIni, $dateEnd, 'cbi', $datafilters);
+            $cbiPreviousPeriod = $this->cbiPreviousPeriod($db, $dateIni, $dateEnd, $key, $datafilters);
            
-
-            if($data && $data[0]->CBI != NULL){
-                foreach ($data as $key => $value) { 
+            //dd($data);exit;
+            if($data && $data[0]->$key != NULL){
+                foreach ($data as $prop => $value) { 
                     $generalDataCbi = [                 
-                        "name"          => "cbi", //Ver después como hacemos
-                        "value"         => (int)$value->CBI,
-                        "percentage"    => ROUND($value->CBI - $cbiPreviousPeriod[0]->CBI),                 
+                        "name"          => $name, //Ver después como hacemos
+                        "value"         => (int)$value->$key,
+                        "percentage"    => ROUND($value->$key - $cbiPreviousPeriod[0]->$key),                 
                         "smAvg"         => $cbiSmAvg,
                     ];
                 }
             }
 
-            if(!$data || $data[0]->CBI == NULL){
+            if(!$data || $data[0]->$key == NULL){
                 $generalDataCbi = [                 
-                    "name"          => "cbi", //Ver después como hacemos
+                    "name"          => $key, //Ver después como hacemos
                     "value"         => 'N/A',
-                    "percentage"    => ROUND(- $cbiPreviousPeriod[0]->CBI),                 
+                    "percentage"    => ROUND(- $cbiPreviousPeriod[0]->$key),                 
                     "smAvg"         => $cbiSmAvg,
                 ];
             }
-            $generalDataCbi['graph'] = $this->graphCbi($db, date('m'), date('Y'), 'cbi', date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")),  $datafilters, 'one');
+            $generalDataCbi['graph'] = $this->graphCbi($db, date('m'), date('Y'), $key, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")),  $datafilters, 'one');
             //print_r($generalDataCbi);
             return $generalDataCbi;
         }
@@ -3884,7 +3879,7 @@ class Dashboard extends Generic
         if ($filter != 'all') {
             $fieldBd = $this->getFielInDbCsat($survey);
             $query = "";
-            if(substr($db, 6, 7) != 'jet_com' && substr($db, 6, 7) != 'jet_vue'){
+            if(substr($db, 6, 7) != 'jet_com' && substr($db, 6, 7) != 'jet_vue' && substr($db, 6, 7) != 'jet_cpe'){
             
                 for ($i = 1; $i <= $endCsat; $i++) {
 
@@ -3903,7 +3898,7 @@ class Dashboard extends Generic
                 }
             }
 
-            if(substr($db, 6, 7) == 'jet_com' || substr($db, 6, 7) == 'jet_vue'){
+            if(substr($db, 6, 7) == 'jet_com' || substr($db, 6, 7) == 'jet_vue' || substr($db, 6, 7) == 'jet_cpe'){
 
                 for ($i = 1; $i <= $endCsat; $i++) {
 
@@ -6289,7 +6284,7 @@ class Dashboard extends Generic
         }
         if ($this->_dbSelected == 'customer_jetsmart') { 
             $width = 12;
-            if(substr($survey, 3, 3) == 'com'){
+            if(substr($survey, 3, 3) == 'com' || substr($survey, 3, 3) == 'cpe'){
 
               $resp = [
                             [
@@ -6909,7 +6904,8 @@ class Dashboard extends Generic
             $name = 'JetSmart';
             $detGend = $detGene = $datasSBT = $detailsProc = $bo14 = null;
             $bo15 = $bo16 = $bo17 = $bo18 = $bo19 = $bo20 = null;
-            $brandAwareness = $aerolineas = $csatDrv = null;
+            $brandAwareness = $aerolineas = $csatDrv = $ccsGraph = null;
+            $dataCCSCard = null;
 
             if ($db == 'adata_jet_via') {
                 $jetNamesFrecVuelo = [
@@ -6936,7 +6932,7 @@ class Dashboard extends Generic
                 $bo14 = $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'frec2' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesFrecVuelo);
             }
 
-            if ($db != 'adata_jet_via') {
+            if ($db == 'adata_jet_vue' || $db == 'adata_jet_com') {
                 $detGend = $this->GraphCSATAtributos($db, trim($request->survey), 'csat1',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
                 $detGene = $this->GraphCSATAtributos($db, trim($request->survey), 'csat2',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
                 $datasSBT = $this->GraphCSATAtributos($db, trim($request->survey), 'csat3',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
@@ -6951,6 +6947,9 @@ class Dashboard extends Generic
                 $bo18 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Inconveniente llegada", 2, 4);
                 $bo19 = $this->rankingInconvLlegada($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Tipo Inconveniente", 2, 4);
                 $bo20 = $this->statsJetSmartResp($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, $datafilters);
+                $dataCCS = $this->graphCbi($db, date('m'), date('Y'), 'csat8', $dateIni, $dateEnd, $datafilters, 'two');
+                $ccsGraph = $this->graphsStruct($dataCCS, 12, 'cbi', ["No Confían", "Neutro", "Confían" ,"CCS"]);
+                $dataCCSCard = $this->cbiResp($db, '', $dateIni, $dateEndIndicatorPrincipal, 'csat8', 'CCS');
             }
 
             if ($db == 'adata_jet_com') {
@@ -6966,27 +6965,27 @@ class Dashboard extends Generic
             $graphCSATDrivers   = $this->GraphCSATDrivers($db, '', trim($request->survey), $csatInDb, $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters, $group);
             $dataisn            = $this->graphCbi($db, date('m'), date('Y'), 'cbi', $dateIni, $dateEnd, $datafilters, 'two');
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient,$request->survey, $db);
-            $performance        = $this->cardsPerformace($dataNps, $dataCsat, $dateEnd, $dateIni, $request->survey, $datafilters,  $dataCes, $dataCbi);
-            $npsConsolidado     = $this->graphsStruct($dataisn, 12, 'cbi');
+            $performance        = $this->cardsPerformace($dataNps, $dataCsat, $dateEnd, $dateIni, $request->survey, $datafilters, $dataCes, $dataCbi, $dataCCSCard);
+            $npsConsolidado     = $this->graphsStruct($dataisn, 12, 'cbi', ["No Volverían", "Neutro", "Volverían" ,"CBI"]);
             $npsVid             = $this->cardNpsBanmedica($this->_nameClient, $dataNPSGraph); //NPS
             $csatJourney        = $this->cardNpsBanmedica($this->_nameClient , $dataCsatGraph, 'CSAT');//Csat
-            $csatDrivers        = $csatDrv; //Ces
-            $wordCloud          = $this->CSATJourney($graphCSATDrivers);;
-            $closedLoop         = null; 
-            $detailGender       = $detGend;
-            $detailGeneration   = $detGene;
-            $datasStatsByTaps   = $datasSBT;
-            $detailsProcedencia = $detailsProc;
-            $box14              = $bo14; 
-            $box15              = $bo15;
-            $box16              = $bo16;
-            $box17              = $bo17;
-            $box18              = $bo18;
-            $box19              = $bo19;
-            $box20              = $bo20;
-            $box21              = $aerolineas;
-            $box22              = $brandAwareness;
-            $npsBan             = null;
+            $csatDrivers        = $ccsGraph;
+            $wordCloud          = $csatDrv; //Ces
+            $closedLoop         = $this->CSATJourney($graphCSATDrivers);;
+            $detailGender       = null; 
+            $detailGeneration   = $detGend;
+            $datasStatsByTaps   = $detGene;
+            $detailsProcedencia = $datasSBT;
+            $box14              = $detailsProc;
+            $box15              = $bo14; 
+            $box16              = $bo15;
+            $box17              = $bo16;
+            $box18              = $bo17;
+            $box19              = $bo18;
+            $box20              = $bo19;
+            $box21              = $bo20;
+            $box22              = $aerolineas;
+            $npsBan             = $brandAwareness;
             $cx                 = $this->cxIntelligence($request);
         }
 
