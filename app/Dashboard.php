@@ -1933,58 +1933,6 @@ class Dashboard extends Generic
         }
         return $graphCBI;
     }
-    //Funciones para gráfico CCS
-
-    // private function graphCcs($table, $mes, $annio, $indicador, $dateIni, $dateEnd, $filter, $struct = 'two', $datafilters = null)
-    // {
-    //     if ($datafilters)
-    //     $datafilters = " AND $datafilters";
-    //     $graphCCS = [];
-    //     $activeP2 ='';
-
-    //     $activeP2 = " AND etapaencuesta = 'P2' ";
-    //     if(substr($table, 6, 3) == 'ban' || substr($table, 6, 3) == 'vid')
-    //         $activeP2 ='';
-
-    //     $data = DB::select("SELECT COUNT(CASE WHEN $indicador = 4 OR $indicador = 5 THEN 1 END)/COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END)*100 AS ccs,
-    //                         COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END) as total,
-    //                         COUNT(CASE WHEN $indicador BETWEEN 1 AND 2 THEN 1 END) as Cncofia,
-    //                         COUNT(CASE WHEN $indicador = 3 THEN 1 END) as Cneutro,
-    //                         COUNT(CASE WHEN $indicador BETWEEN 4 AND 5 THEN 1 END) as Cconfia,
-    //                         ROUND(COUNT(CASE WHEN $indicador BETWEEN 1 AND 2 THEN 1 END)/COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END)*100) as nconfia,
-    //                         ROUND(COUNT(CASE WHEN $indicador = 3 THEN 1 END)/COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END)*100) as neutro,
-    //                         ROUND(COUNT(CASE WHEN $indicador BETWEEN 4 AND 5 THEN 1 END)/COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END)*100) as confia,
-    //                         a.mes, a.annio, date_survey, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek, $this->_fieldSelectInQuery 
-    //                         FROM $this->_dbSelected.$table as a
-    //                         INNER JOIN $this->_dbSelected." . $table . "_start as b on a.token = b. token 
-    //                         WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' $activeP2 $datafilters
-    //                         GROUP BY a.mes
-    //                         ORDER BY date_survey asc");
-        
-    //     if (!empty($data)) {
-    //         foreach ($data as $key => $value) {
-            
-    //             if ($struct != 'one') {
-    //                 $graphCCS[] = [
-    //                     //'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
-    //                     'xLegend'  => (string)$value->mes . '-' . $value->annio . ' (' . $value->total . ')',
-    //                     'values'   => [
-    //                         'ccs' => (string)ROUND($value->ccs),
-    //                         'promoters' => (string)ROUND($value->confia),
-    //                         'neutrals' => (ROUND($value->confia) == 0 && ROUND($value->nconfia) == 0) ? (string)ROUND($value->neutro) : (string)(100 - ROUND($value->nconfia) - ROUND($value->confia)),
-    //                         'detractors' => (string)ROUND($value->nconfia)
-    //                     ]
-    //                 ];
-    //             }
-    //             if ($struct == 'one') {
-    //                 $graphCCS[] = [
-    //                     "value" => (string)ROUND($value->ccs)
-    //                 ];
-    //             }
-    //         }
-    //     }
-    //     return $graphCCS;
-    // }
 
     //Función para valores de los gráficos de CES
 
