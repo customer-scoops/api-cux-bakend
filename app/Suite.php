@@ -345,7 +345,7 @@ class Suite
                         'phone' => (isset($value->phone)) ?  $value->phone : '',
                         'celu' => (isset($value->celu)) ?  $value->celu : '',
                         'dateSchedule' =>  (isset($value->dateSchedule)) ? date('d-m-Y', strtotime($value->dateSchedule)) : '',
-                        'timeSchedule' =>(isset($value->timeSchedule)) ?  $value->timeSchedule : ''
+                        'timeSchedule' =>(isset($value->timeSchedule)) ?  date('H:i', strtotime($value->timeSchedule)) : ''
                     ),
                     "ltv"       => 'N/A',
                     "canal"     => $value->canal,
