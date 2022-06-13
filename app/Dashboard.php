@@ -56,38 +56,6 @@ class Dashboard extends Generic
     private $_valueMaxAnomaliasText = 30;
     private $_valueAnomaliasPorcentajeText = 30;
 
-    /* Función para saber el dia */
-
-    protected function getFirstMond()
-    {
-        $day = date("N");
-        $resta = 0;
-        switch ($day) 
-        {
-            case 1:
-                $resta = 1;
-                break;
-            case 2:
-                $resta = 2;
-                break;
-            case 3:
-                $resta = 3;
-                break;
-            case 4:
-                $resta = 4;
-                break;
-            case 5:
-                $resta = 5;
-                break;
-            case 6:
-                $resta = 6;
-                break;
-        }
-        return date('Y-m-d', strtotime(date('Y-m-d') . "- $resta day")); //Aca obtengo la fecha del lunes de la semana
-    }
-
-    /* Fin funcion para saber el dia */
-
     public function getDBSelect()
     {
         return $this->_dbSelected;

@@ -104,11 +104,11 @@ class PeriodCompare
         $minMaxCsat    = $dash->getParams('_minMaxCsat');
         $maxMaxCsat    = $dash->getParams('_maxMaxCsat');
 
-        $maxCes       = $dash->getParams('_maxCes');
-        $minCes       = $dash->getParams('_minCes');
-        $minMediumCes = $dash->getParams('_minMediumCes');
-        $minMaxCes    = $dash->getParams('_minMaxCes');
-        $maxMaxCes    = $dash->getParams('_maxMaxCes');
+        // $maxCes       = $dash->getParams('_maxCes');
+        // $minCes       = $dash->getParams('_minCes');
+        // $minMediumCes = $dash->getParams('_minMediumCes');
+        // $minMaxCes    = $dash->getParams('_minMaxCes');
+        
        
         $endCsat = $dash->getEndCsat($survey);
         $fieldBd = $dash->getFielInDbCsat($survey);
@@ -171,7 +171,8 @@ class PeriodCompare
                     {
                         if($i != $endCsat)
                         {
-                            $query .= " ROUND(COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL))-count(if($fieldBd$i <=  $maxCsat, $fieldBd$i, NULL)))* 100/COUNT(if($fieldBd$i !=99,1,NULL )),0) AS csat$i, ";
+                            $query .= " ROUND(
+                                            (COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL)) - count(if($fieldBd$i <=  $maxCsat, $fieldBd$i, NULL))* 100) / COUNT(if($fieldBd$i !=99,1,NULL )), 0) AS csat$i, ";
                         }
                         
                         if($i == $endCsat)
@@ -188,6 +189,7 @@ class PeriodCompare
 
                 if(substr($db, 6, 7) == 'jet_com' || substr($db, 6, 7) == 'jet_vue')
                 {
+                    $maxMaxCes    = $dash->getParams('_maxMaxCes');
                     for ($i = 1; $i <= $endCsat; $i++) {
 
                         if ($i != $endCsat) {
