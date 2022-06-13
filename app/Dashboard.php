@@ -56,38 +56,6 @@ class Dashboard extends Generic
     private $_valueMaxAnomaliasText = 30;
     private $_valueAnomaliasPorcentajeText = 30;
 
-    /* Función para saber el dia */
-
-    protected function getFirstMond()
-    {
-        $day = date("N");
-        $resta = 0;
-        switch ($day) 
-        {
-            case 1:
-                $resta = 1;
-                break;
-            case 2:
-                $resta = 2;
-                break;
-            case 3:
-                $resta = 3;
-                break;
-            case 4:
-                $resta = 4;
-                break;
-            case 5:
-                $resta = 5;
-                break;
-            case 6:
-                $resta = 6;
-                break;
-        }
-        return date('Y-m-d', strtotime(date('Y-m-d') . "- $resta day")); //Aca obtengo la fecha del lunes de la semana
-    }
-
-    /* Fin funcion para saber el dia */
-
     public function getDBSelect()
     {
         return $this->_dbSelected;
@@ -6902,10 +6870,9 @@ class Dashboard extends Generic
 
         if ($this->_dbSelected  == 'customer_jetsmart') {
             $name = 'JetSmart';
-            $detGend = $detGene = $datasSBT = $detailsProc = $bo14 = null;
-            $bo15 = $bo16 = $bo17 = $bo18 = $bo19 = $bo20 = null;
-            $brandAwareness = $aerolineas = $csatDrv = $ccsGraph = null;
-            $dataCCSCard = null;
+            $detGend = $detGene = $datasSBT = $detailsProc = $detailsTaps = null;
+            $bo14 = $bo15 = $bo16 = $bo17 = $bo18 = null;
+            $bo19 = $csatDrv = $dataCCSCard = null;
 
             if ($db == 'adata_jet_via') {
                 $jetNamesFrecVuelo = [
@@ -6924,37 +6891,40 @@ class Dashboard extends Generic
                 ];
 
                 $structGAPJetSmart =  $this->arrayPushToValues([],['Compra', 'Pago', 'N/A', 'Confirmación', 'Check in', 'Registro equipaje', 'Abordaje', 'Vuelo', 'Llegada', 'Atención cliente',],'GAP', [], [], 9);
-                $aerolineas = $this->OrdenAerolineas($db, $startDateFilterMonth, $endDateFilterMonth);
-                $brandAwareness = $this->BrandAwareness($db, $startDateFilterMonth, $endDateFilterMonth);
+                $detailsProc = $this->OrdenAerolineas($db, $startDateFilterMonth, $endDateFilterMonth);
+                $bo14 = $this->BrandAwareness($db, $startDateFilterMonth, $endDateFilterMonth);
                 $detGend = $this->gapJetsmart($db, $request->survey,'csat', $dateIni, $dateEndIndicatorPrincipal, $structGAPJetSmart, $datafilters);
                 $detGene = $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'gene', $endDateFilterMonth, $startDateFilterMonth,  $filterClient,  $datafilters, $jetNamesGene);
-                $detailsProc = $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'laboral' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesLab);
-                $bo14 = $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'frec2' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesFrecVuelo);
+                $datasSBT = $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'laboral' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesLab);
+                $detailsTaps = $this->detailStats($db, 'cbi', $npsInDb, $csatInDb, 'frec2' , $endDateFilterMonth,$startDateFilterMonth, $filterClient, $datafilters, $jetNamesFrecVuelo);
             }
 
             if ($db == 'adata_jet_vue' || $db == 'adata_jet_com') {
                 $detGend = $this->GraphCSATAtributos($db, trim($request->survey), 'csat1',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
                 $detGene = $this->GraphCSATAtributos($db, trim($request->survey), 'csat2',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
                 $datasSBT = $this->GraphCSATAtributos($db, trim($request->survey), 'csat3',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
-                $detailsProc = $this->GraphCSATAtributos($db, trim($request->survey), 'csat4',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
-                $bo14 = $this->GraphCSATAtributos($db, trim($request->survey), 'csat5',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
-                $bo15 = $this->GraphCSATAtributos($db, trim($request->survey), 'csat6',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
+                $detailsTaps = $this->GraphCSATAtributos($db, trim($request->survey), 'csat4',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
+                $detailsProc = $this->GraphCSATAtributos($db, trim($request->survey), 'csat5',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
+                $bo14 = $this->GraphCSATAtributos($db, trim($request->survey), 'csat6',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
             }
 
             if ($db == 'adata_jet_vue') {
-                $bo16 = $this->GraphCSATAtributos($db, trim($request->survey), 'csat7',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
-                $bo17 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc_1', "Motivo de Vuelo", 4, 4);
-                $bo18 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Inconveniente llegada", 2, 4);
-                $bo19 = $this->rankingInconvLlegada($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Tipo Inconveniente", 2, 4);
-                $bo20 = $this->statsJetSmartResp($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, $datafilters);
+                $bo15 = $this->GraphCSATAtributos($db, trim($request->survey), 'csat7',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
+                $bo16 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc_1', "Motivo de Vuelo", 4, 4);
+                $bo17 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Inconveniente llegada", 2, 4);
+                $bo18 = $this->rankingInconvLlegada($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Tipo Inconveniente", 2, 4);
+                $bo19 = $this->statsJetSmartResp($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, $datafilters);
                 $dataCCS = $this->graphCbi($db, date('m'), date('Y'), 'csat8', $dateIni, $dateEnd, $datafilters, 'two');
-                $ccsGraph = $this->graphsStruct($dataCCS, 12, 'cbi', ["No Confían", "Neutro", "Confían" ,"CCS"]);
+                $csatDrv = $this->graphsStruct($dataCCS, 12, 'cbi', ["No Confían", "Neutro", "Confían" ,"CCS"]);
                 $dataCCSCard = $this->cbiResp($db, '', $dateIni, $dateEndIndicatorPrincipal, 'csat8', 'CCS');
             }
 
             if ($db == 'adata_jet_com') {
-                $bo17 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc_1', "Ingreso", 2, 4);
-                $dataCesGraph       = $this->graphCes($db, date('m'), date('Y'), 'ces', $dateIni, $dateEnd,  $filterClient, 'two' ,$datafilters);
+                $bo15 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc_1', "Ingreso", 2, 4);
+            }
+
+            if ($db == 'adata_jet_com' || $db == 'adata_jet_cpe') {
+                $dataCesGraph = $this->graphCes($db, date('m'), date('Y'), 'ces', $dateIni, $dateEnd,  $filterClient, 'two' ,$datafilters);
                 $csatDrv =  $this->cardNpsBanmedica($this->_nameClient, $dataCesGraph, 'CES');
             }
 
@@ -6964,29 +6934,30 @@ class Dashboard extends Generic
             $dataCbi            = $this->cbiResp($db, '', $dateIni, $dateEndIndicatorPrincipal);
             $graphCSATDrivers   = $this->GraphCSATDrivers($db, '', trim($request->survey), $csatInDb, $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters, $group);
             $dataisn            = $this->graphCbi($db, date('m'), date('Y'), 'cbi', $dateIni, $dateEnd, $datafilters, 'two');
+            
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient,$request->survey, $db);
             $performance        = $this->cardsPerformace($dataNps, $dataCsat, $dateEnd, $dateIni, $request->survey, $datafilters, $dataCes, $dataCbi, $dataCCSCard);
             $npsConsolidado     = $this->graphsStruct($dataisn, 12, 'cbi', ["No Volverían", "Neutro", "Volverían" ,"CBI"]);
-            $npsVid             = $this->cardNpsBanmedica($this->_nameClient, $dataNPSGraph); //NPS
-            $csatJourney        = $this->cardNpsBanmedica($this->_nameClient , $dataCsatGraph, 'CSAT');//Csat
-            $csatDrivers        = $ccsGraph;
-            $wordCloud          = $csatDrv; //Ces
-            $closedLoop         = $this->CSATJourney($graphCSATDrivers);;
-            $detailGender       = null; 
-            $detailGeneration   = $detGend;
-            $datasStatsByTaps   = $detGene;
-            $detailsProcedencia = $datasSBT;
-            $box14              = $detailsProc;
-            $box15              = $bo14; 
-            $box16              = $bo15;
-            $box17              = $bo16;
-            $box18              = $bo17;
-            $box19              = $bo18;
-            $box20              = $bo19;
-            $box21              = $bo20;
-            $box22              = $aerolineas;
-            $npsBan             = $brandAwareness;
+            $npsBan             = $this->cardNpsBanmedica($this->_nameClient, $dataNPSGraph); //NPS
+            $npsVid             = $this->cardNpsBanmedica($this->_nameClient , $dataCsatGraph, 'CSAT');//Csat
+            $csatJourney        = $csatDrv; //Ces o CCS
+            $csatDrivers        = null;
             $cx                 = $this->cxIntelligence($request);
+            $wordCloud          = $this->CSATJourney($graphCSATDrivers);
+            $closedLoop         = $detGend; // gap o csat1
+            $detailGender       = $detGene; 
+            $detailGeneration   = $datasSBT;
+            $datasStatsByTaps   = $detailsTaps;
+            $detailsProcedencia = $detailsProc;
+            $box14              = $bo14;
+            $box15              = $bo15;
+            $box16              = $bo16;
+            $box17              = $bo17;
+            $box18              = $bo18;
+            $box19              = $bo19;
+            $box20              = null;
+            $box21              = null;
+            $box22              = null;
         }
 
         $filters = $this->filters($request, $jwt, $datafilters);
