@@ -295,8 +295,7 @@ class DashboardMutual extends Dashboard
                             ORDER BY date_survey asc"); 
         }
    
-        if($consolidadoTotal == true){
-       
+        if($consolidadoTotal == true){     
             $data = DB::select("SELECT sum(csat) as csat, mes, annio  from (
                             select ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
                             COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minCsat')." AND ".$this->getValueParams('_maxCsat')." THEN 1 END)) / 
@@ -385,7 +384,7 @@ class DashboardMutual extends Dashboard
             return [
                 "name"          => 'isn',
                 "value"         => ROUND($resp[sizeof($resp)-1]['values']['csat']),
-                "percentage"    => ROUND(($resp[sizeof($resp)-1]['values']['csat']) - ROUND($resp[sizeof($resp)-2]['values']['csat'])), 
+                "percentage"    => isset($resp[sizeof($resp)-1]['values']['csat']) && isset ($resp[sizeof($resp)-2]['values']['csat']) ?  ROUND(($resp[sizeof($resp)-1]['values']['csat']) - ROUND($resp[sizeof($resp)-2]['values']['csat'])) : 0, 
                 "graph"         => $graphCSAT
             ];
         }
@@ -823,13 +822,18 @@ class DashboardMutual extends Dashboard
                                 ((count(if( $fieldBd$i <= ".$this->getValueParams('_maxMediumCsat')." AND  $fieldBd$i >= ".$this->getValueParams('_minMediumCsat').",  $fieldBd$i, NULL))*100)/count(case when  $fieldBd$i != 99 THEN  $fieldBd$i END)) as neutral$i ";
                 }
             }
-         
-            $data = DB::select("SELECT $query,date_survey, WEEK(date_survey) AS week, a.mes
-                                FROM ".$this->getValueParams('_dbSelected').".$db as a
-                                LEFT JOIN ".$this->getValueParams('_dbSelected')."." . $db . "_start as b
-                                on a.token = b.token 
-                                WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." ". $this->filterCentro."
-                                ".$this->whereCons ." ".$this->filterGerencia."  ORDER BY date_survey");
+        //  echo "SELECT $query,date_survey, WEEK(date_survey) AS week, a.mes
+        //  FROM ".$this->getValueParams('_dbSelected').".$db as a
+        //  LEFT JOIN ".$this->getValueParams('_dbSelected')."." . $db . "_start as b
+        //  on a.token = b.token 
+        //  WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." ". $this->filterCentro."
+        //  ".$this->whereCons ." ".$this->filterGerencia."  ORDER BY date_survey";exit;
+        $data = DB::select("SELECT $query,date_survey, WEEK(date_survey) AS week, a.mes
+                            FROM ".$this->getValueParams('_dbSelected').".$db as a
+                            LEFT JOIN ".$this->getValueParams('_dbSelected')."." . $db . "_start as b
+                            on a.token = b.token 
+                            WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2' $datafilters ".$this->filterZona." 
+                            ".$this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia." ORDER BY date_survey");
                         
         $suite = new Suite($this->getValueParams('_jwt'));
         foreach ($data as $key => $value) {
@@ -854,6 +858,7 @@ class DashboardMutual extends Dashboard
                 }
 
                 if ($struct == 'one') {
+                
                     $graphCSAT[] =
                         [
                             'text'  =>  $suite->getInformationDriver($survey . '_' . $r),
@@ -1051,6 +1056,22 @@ class DashboardMutual extends Dashboard
 
         $graphCsatM  = [];
         if($this->consolidadoTotal  == false){
+            echo "SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
+            COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minCsat')." AND ".$this->getValueParams('_maxCsat')." THEN 1 END)) / 
+            (COUNT(CASE WHEN $indicador!=99 THEN 1 END)) * 100),1) AS ISN, 
+            count(if($indicador < ".$this->getValueParams('_minMediumCsat').", $indicador, NULL)) as Cdet,
+            count(if($indicador = ".$this->getValueParams('_minMaxCsat')." OR $indicador = ".$this->getValueParams('_maxMaxCsat').", $indicador, NULL)) as Cpro,
+            count(if($indicador = ".$this->getValueParams('_maxMediumCsat')." OR $indicador = ".$this->getValueParams('_minMediumCsat').", $indicador, NULL)) as Cneu,              
+            COUNT(CASE WHEN $indicador!=99 THEN 1 END) as total, 
+            ((count(if($indicador < ".$this->getValueParams('_minMediumCsat').", $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as detractor, 
+            ((count(if($indicador = ".$this->getValueParams('_minMaxCsat')." OR $indicador = ".$this->getValueParams('_maxMaxCsat').", $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as promotor, 
+            ((count(if($indicador = ".$this->getValueParams('_maxMediumCsat')." OR $indicador =".$this->getValueParams('_minMediumCsat').", $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as neutral,              
+            a.mes, a.annio, WEEK(date_survey) AS week, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek,".$this->getValueParams('_fieldSelectInQuery')."  
+            FROM ".$this->getValueParams('_dbSelected').".$table as a
+            INNER JOIN ".$this->getValueParams('_dbSelected')."." . $table . "_start as b ON a.token = b.token 
+            WHERE  $where AND etapaencuesta = 'P2' $datafilters ". $this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
+            GROUP BY $group
+            ORDER BY date_survey ASC";
             $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
                                 COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minCsat')." AND ".$this->getValueParams('_maxCsat')." THEN 1 END)) / 
                                 (COUNT(CASE WHEN $indicador!=99 THEN 1 END)) * 100),1) AS ISN, 
@@ -1285,7 +1306,7 @@ class DashboardMutual extends Dashboard
                 {
                     $cond = " AND zonal = '". $request->get('Zona')."'"; 
                 }
-                if(isset($jwt[env('AUTH0_AUD')]->zona) || (in_array('Manager', $jwt[env('AUTH0_AUD')]->roles)) || isset($jwt[env('AUTH0_AUD')]->centros)){
+                if(isset($jwt[env('AUTH0_AUD')]->zona) || (in_array('Manager', $jwt[env('AUTH0_AUD')]->roles)) || isset($jwt[env('AUTH0_AUD')]->centros) || $jwt[env('AUTH0_AUD')]->gerenciaMedica == 'CAS'){
 
                     if(isset($jwt[env('AUTH0_AUD')]->zona)){
                         $cond = " AND zonal = '". $jwt[env('AUTH0_AUD')]->zona."'"; 
@@ -1514,6 +1535,7 @@ class DashboardMutual extends Dashboard
             'customer'  => 'MUT001',
         ];
     }
+    
 
     private function cardNpsBanmedica($dataNPSGraph)
     {
@@ -1694,7 +1716,7 @@ class DashboardMutual extends Dashboard
                 $nameCsat5 = "Claridad información entregada";
             }
 
-            if(substr($request->survey, 3, 3) != 'con' && substr($request->survey, 3, 3) != 'cop'){
+            if(substr($request->survey, 3, 3) != 'con'){
                 $dataCsat1Graph       = $this->graphCsatMutual($db, 'csat1', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
                 $dataCsat2Graph       = $this->graphCsatMutual($db, 'csat2', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
                 $dataCsat3Graph       = $this->graphCsatMutual($db, 'csat3', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
