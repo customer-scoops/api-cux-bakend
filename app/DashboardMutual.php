@@ -132,7 +132,7 @@ class DashboardMutual extends Dashboard
                 "neutrals"          => $resp[sizeof($resp)-1]['values']['neutrals'],
                 "detractors"        => $resp[sizeof($resp)-1]['values']['detractors'],
                 "percentage"        => round($resp[sizeof($resp)-1]['values']['nps']-$resp[sizeof($resp)-2]['values']['nps'],0),
-                "smAvg"             => round($sum / $count ,0),
+                "smAvg"             => $count != 0 ? round($sum / $count ,0) : 0,
                 "graph"             => $graphNPS
             ];
         }
