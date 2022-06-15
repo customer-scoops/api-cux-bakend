@@ -13,6 +13,7 @@ use App\Generic;
 use ArrayObject;
 use Carbon\Carbon;
 use Mockery\Undefined;
+use phpDocumentor\Reflection\Types\Object_;
 
 class Dashboard extends Generic
 {
@@ -2378,44 +2379,82 @@ class Dashboard extends Generic
         return $graphCSAT;
     }
 
+    protected function build_sorter($key) {
+        return function ($a, $b) use ($key) {
+            return strnatcmp($b[$key], $a[$key]);
+        };
+    }
+
     private function rankingTransvipData($db, $datafilters, $dateIni, $dateEnd, $indicador, $text)
     {
         $values = [];
+        $indicadorVacio = " AND $indicador != '' ";
+
         if (substr($datafilters, 30, 3) == 'NOW') {
             $datafilters = '';
         }
 
         if ($datafilters)
             $datafilters = " AND $datafilters";
+        
+        if($text == "Inconveniente antes de llegar al aeropuerto"){
+            $indicadorVacio = " ";
+        }
 
-        if($text != "Atributos más importantes")
-        {
-            $query = "SELECT $indicador AS nombre, COUNT(CASE WHEN $indicador != 99 AND $indicador != '' THEN 1 END) AS total
-                      FROM $this->_dbSelected.$db AS a
-                      LEFT JOIN $this->_dbSelected." . $db . "_start AS b 
-                      ON a.token = b.token 
-                      WHERE etapaencuesta = 'P2' AND date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters AND $indicador != 99 AND $indicador != '' 
-                      GROUP BY  $indicador
-                      ORDER BY total DESC";
-         
+        if($text != "Atributos más importantes"){
+    
+            $query = "SELECT $indicador AS nombre, COUNT(CASE WHEN $indicador != 99 $indicadorVacio THEN 1 END) AS total
+                    FROM $this->_dbSelected.$db AS a
+                    LEFT JOIN $this->_dbSelected." . $db . "_start AS b 
+                    ON a.token = b.token 
+                    WHERE etapaencuesta = 'P2' AND date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters AND $indicador != 99 $indicadorVacio 
+                    GROUP BY  $indicador
+                    ORDER BY total DESC";
+
             $data = DB::select($query);
-
             $totalAcum = 0;
-    
-            foreach ($data as $key => $value) {
-                $totalAcum = $totalAcum + $value->total;
+            
+            if($text != "Motivo de Vuelo"){
+                foreach ($data as $key => $value) {
+                    $totalAcum = $totalAcum + $value->total;
+                }
+                $resp = $data;
             }
-    
-            foreach ($data as $key => $value) {
+
+            if($text == "Motivo de Vuelo"){
+                $resp = [];
+                $resp[0] =(object) [
+                    "nombre" => "Otros",
+                    "total" => 0,
+                ];
+                
+                $cont = 1;
+                foreach ($data as $key => $value) {
+                    $totalAcum = $totalAcum + $value->total;
+                    if(json_decode($value->nombre)[0] != "Vacaciones" && json_decode($value->nombre)[0] != "Estudios" && json_decode($value->nombre)[0] != "Laboral" && json_decode($value->nombre)[0] != "Familiar"){
+                        $resp[0]->total += $value->total;
+                    }
+                    if(json_decode($value->nombre)[0] == "Vacaciones" || json_decode($value->nombre)[0] == "Estudios" || json_decode($value->nombre)[0] == "Laboral" || json_decode($value->nombre)[0] == "Familiar"){
+                        $resp[$cont] =(object) [
+                            "nombre" => json_decode($value->nombre)[0],
+                            "total" => $value->total,
+                        ];
+                        $cont++;
+                    }
+                }
+            }
+
+            foreach ($resp as $key => $value) {
                 $values[] = [
                     'text'  => $value->nombre == "0" ? "No" : ($value->nombre == "1" ? "Si" : str_replace("u00f3", "ó", str_replace("&nt", "ños", html_entity_decode(str_replace("&amp;","&",$value->nombre))))),
                     'cant'   => $value->total,
                     'porcentaje'   => ROUND($value->total * 100 / $totalAcum) . " %",
-                    ];
-            
+                ];
             }
+
+            usort($values, $this->build_sorter('porcentaje'));  
         }
-        
+
         if($text == "Atributos más importantes")
         {
             $query = '';
@@ -3179,7 +3218,6 @@ class Dashboard extends Generic
                 'endDate'   => date('Y-m-d'),
             ]);
         }
-
         if ($request->get('startDate') != null) {
             $request->merge([
                 'startDate' => $request->get('startDate'),
@@ -4358,14 +4396,15 @@ class Dashboard extends Generic
     private function statsJetSmart($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, $fieldFilter, $text, $datafilters = null)
     {
         
-        $query = "SELECT COUNT(*) as Total,
+        $query = "SELECT COUNT($fieldFilter != 0) as Total,
                       ROUND(((COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
                       COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
-                      (COUNT(a.$npsInDb) - COUNT(CASE WHEN a.$npsInDb=99 THEN 1 END)) * 100),1) AS NPS,
-                      ROUND(COUNT(if($csatInDb between  9 and  10 , $csatInDb, NULL))* 100/COUNT(if($csatInDb !=99,1,NULL ))) AS CSAT
+                      COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minNps AND $this->_maxMaxNps THEN 1 END) * 100),0) AS NPS,
+                      ROUND(COUNT(CASE WHEN a.$csatInDb BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN 1 END)* 100/
+                      COUNT(CASE WHEN a.$csatInDb BETWEEN $this->_minCsat AND $this->_maxMaxCsat THEN 1 END),0) AS CSAT
                       FROM $this->_dbSelected.$db as a
                       LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token
-                      WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' and $fieldFilter != 0 and nps!= 99 and csat!= 99  $datafilters";
+                      WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and $fieldFilter != 0 and nps!= 99 and csat!= 99 and etapaencuesta = 'P2' $datafilters";
 
         $data = $data = DB::select($query);
 
@@ -4381,9 +4420,9 @@ class Dashboard extends Generic
 
     private function statsJetSmartResp($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, $datafilters = null)
     {
-        $statsEmbAero   = $this->statsJetSmart($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, 'hasbag', 'Entraga equipaje Aeropuerto',$datafilters);
-        $statsCheckIn   = $this->statsJetSmart($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, 'hasach', 'Check-in Aeropuerto',$datafilters);
-        $statsEmbPriori = $this->statsJetSmart($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, 'haspbd', 'Embarque prioritario',$datafilters);
+        $statsEmbAero   = $this->statsJetSmart($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, 'b.hasbag', 'Entraga equipaje Aeropuerto',$datafilters);
+        $statsCheckIn   = $this->statsJetSmart($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, 'b.hasach', 'Check-in Aeropuerto',$datafilters);
+        $statsEmbPriori = $this->statsJetSmart($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, 'b.haspbd', 'Embarque prioritario',$datafilters);
         $data = [$statsEmbAero, $statsCheckIn, $statsEmbPriori];
         $standarStruct = [
             [
@@ -6911,9 +6950,9 @@ class Dashboard extends Generic
             if ($db == 'adata_jet_vue') {
                 $bo15 = $this->GraphCSATAtributos($db, trim($request->survey), 'csat7',  $endDateFilterMonth, $startDateFilterMonth,  'one', 'two', $datafilters);
                 $bo16 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc_1', "Motivo de Vuelo", 4, 4);
-                $bo17 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Inconveniente llegada", 2, 4);
+                $bo17 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Inconveniente antes de llegar al aeropuerto", 2, 4);
                 $bo18 = $this->rankingInconvLlegada($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Tipo Inconveniente", 2, 4);
-                $bo19 = $this->statsJetSmartResp($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, $datafilters);
+                $bo19 = $this->statsJetSmartResp($db, $npsInDb, $csatInDb, $dateIni, $startDateFilterMonth, $datafilters);
                 $dataCCS = $this->graphCbi($db, date('m'), date('Y'), 'csat8', $dateIni, $dateEnd, $datafilters, 'two');
                 $csatDrv = $this->graphsStruct($dataCCS, 12, 'cbi', ["No Confían", "Neutro", "Confían" ,"CCS"]);
                 $dataCCSCard = $this->cbiResp($db, '', $dateIni, $dateEndIndicatorPrincipal, 'csat8', 'CCS');
