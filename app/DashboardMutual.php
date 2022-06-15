@@ -560,6 +560,10 @@ class DashboardMutual extends Dashboard
             $where = " date_survey BETWEEN '2022-05-01' AND '$dateIni' ";
             $group = " a.mes, a.annio ";
         }
+        //echo substr($table ,10,3);
+        // if(substr($table ,10,3) == 'con'){
+        //     $struct = 'two';
+        // }
 
         if ($datafilters)
             $datafilters = " AND $datafilters";
@@ -1496,7 +1500,7 @@ class DashboardMutual extends Dashboard
             "props" => [
                 "callToAction" => $ButFilterWeeks,
                 "icon" => "arrow-right",
-                "text" => $csat . " • " . $name,
+                "text" => $csat,
                 "chart" => [
                     "fields" => [
                         [
@@ -1728,9 +1732,9 @@ class DashboardMutual extends Dashboard
                 $graphCSATDrivers     = $this->GraphCSATDriversMutual($db, trim($request->survey),  $endDateFilterMonth, $startDateFilterMonth, 'one', 'two', $datafilters);
             }
 
-            $dataIsn     = $this->graphCsatMutual($db, 'csat', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
-            $dataIsnP    = $this->graphInsMutual($db, 'csat',  $endDateFilterMonth, $startDateFilterMonth, 'all',  $datafilters);
-            $dataNPSGraph         = $this->graphNps($db, 'nps', $dateIni, '2022-04-18', 'two', $this->consolidadoTotal, $datafilters, $group);
+            $dataIsn        = $this->graphCsatMutual($db, 'csat', $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
+            $dataIsnP       = $this->graphInsMutual($db, 'csat',  $endDateFilterMonth, $startDateFilterMonth, 'all',  $datafilters);
+            $dataNPSGraph   = $this->graphNps($db, 'nps', $dateIni, '2022-04-18', 'one', $this->consolidadoTotal, $datafilters, $group);
             
             $datasStatsByTaps     = null;
 
@@ -1755,7 +1759,7 @@ class DashboardMutual extends Dashboard
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient,$request->survey, $db);
             $performance        = $this->cardsPerformace($dataNps, $dataIsnP , $dateEnd, $dateIni, $request->survey, $datafilters);
             $npsConsolidado     = $this->cardCsatDriversMutual('ISN', $name, $dataIsn , $this->ButFilterWeeks, 12, 4);
-            $npsBan             = (substr($request->survey, 3, 3) == 'con' || $this->consolidadoTotal == true)? $this->cardNpsBanmedica($dataNPSGraph) : $this->CSATJourney($graphCSATDrivers);
+            $npsBan             = (substr($request->survey, 3, 3) == 'con' || $this->consolidadoTotal == true) ? $this->cardNpsBanmedica($dataNPSGraph) : $this->CSATJourney($graphCSATDrivers);
             $npsVid             = (substr($request->survey, 3, 3) == 'con' || $this->consolidadoTotal == true)? null : $this->CSATDrivers($graphCSATDrivers);
             $csatJourney        = $csat1;
             $csatDrivers        = $csat2;
