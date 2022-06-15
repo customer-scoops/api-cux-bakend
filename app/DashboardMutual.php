@@ -114,6 +114,9 @@ class DashboardMutual extends Dashboard
     }
 
     private function resumenNpsM2($resp){
+        //print_r(substr($resp[sizeof($resp)-1]['xLegend'],4,1));
+        //echo date('m', strtotime('2022-'.substr($resp[sizeof($resp)-1]['xLegend'],4,1)).'-01');
+        //echo date('n');
         $sum = $count = 0;
     
         foreach ($resp as $key => $value) {
@@ -130,10 +133,10 @@ class DashboardMutual extends Dashboard
                 "name"              => "nps",
                 "value"             => $resp[sizeof($resp)-1]['values']['nps'] != null ? $resp[sizeof($resp)-1]['values']['nps'] : 'N/A',
                 "percentageGraph"   => true,
-                "promotors"         => $resp[sizeof($resp)-1]['values']['promoters'],
-                "neutrals"          => $resp[sizeof($resp)-1]['values']['neutrals'],
-                "detractors"        => $resp[sizeof($resp)-1]['values']['detractors'],
-                "percentage"        => isset($resp[sizeof($resp)-2]['values']['nps']) &&  isset($resp[sizeof($resp)-1]['values']['nps']) ? round($resp[sizeof($resp)-1]['values']['nps']-$resp[sizeof($resp)-2]['values']['nps'],0) : 0,
+                "promotors"         => substr($resp[sizeof($resp)-1]['xLegend'],4,1) == date('n') ? $resp[sizeof($resp)-1]['values']['promoters'] : 0,
+                "neutrals"          => substr($resp[sizeof($resp)-1]['xLegend'],4,1) == date('n') ? $resp[sizeof($resp)-1]['values']['neutrals'] : 0,
+                "detractors"        => substr($resp[sizeof($resp)-1]['xLegend'],4,1) == date('n') ? $resp[sizeof($resp)-1]['values']['detractors'] : 0,
+                "percentage"        => substr($resp[sizeof($resp)-1]['xLegend'],4,1) == date('n') ? round($resp[sizeof($resp)-1]['values']['nps']-$resp[sizeof($resp)-2]['values']['nps'],0) : 0,
                 "smAvg"             => isset($count)? round($sum / $count ) : null,
                 "graph"             => $graphNPS
             ];
@@ -561,7 +564,7 @@ class DashboardMutual extends Dashboard
         if ($datafilters)
             $datafilters = " AND $datafilters";
             if($consolidadoTotal == false){
-                $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) - 
+                $query ="SELECT ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) - 
                                 COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) / 
                                 COUNT(CASE WHEN nps!=99 THEN 1 END) * 100),1) AS NPS, 
                                 count(if(nps <= ".$this->getValueParams('_maxNps')." , nps, NULL)) as Cdet,
@@ -576,7 +579,8 @@ class DashboardMutual extends Dashboard
                                 INNER JOIN ".$this->getValueParams('_dbSelected').".".$table."_start as b ON a.token = b.token 
                                 WHERE  $where  $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
                                 GROUP BY $group2
-                                ORDER BY date_survey ASC");
+                                ORDER BY date_survey ASC";
+                $data = DB::select($query);
             }
             if($consolidadoTotal == true){
                 $query =   ("SELECT sum(NPS) as NPS, sum(Cdet) as Cdet, sum(Cpro) as Cpro, sum(Cneu) as Cneu, sum(detractor) as detractor, sum(promotor) as promotor, sum(neutral) as neutral, sum(total)as total,
@@ -669,7 +673,8 @@ class DashboardMutual extends Dashboard
                                 "promoters"     => round($value->promotor),
                                 "neutrals"      => ((round($value->promotor) == 0) && (round($value->detractor) == 0)) ? round($value->neutral) : 100 - (round($value->detractor) + round($value->promotor)),//100 - (round($value->promotor) + round($value->detractor)),
                                 "detractors"    => round($value->detractor),
-                                "nps"           => round($value->NPS)
+                                "nps"           => round($value->NPS),
+                                "mes"           => $value->mes
                             ],
                         ];
                     }
