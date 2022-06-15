@@ -115,6 +115,7 @@ class DashboardMutual extends Dashboard
 
     private function resumenNpsM2($resp){
         $sum = $count = 0;
+    
         foreach ($resp as $key => $value) {
             $count++;
             $sum += $value['values']['nps'];
@@ -123,7 +124,7 @@ class DashboardMutual extends Dashboard
                 "value" => $value['values']['nps']
             ];
         }
-        //print_r($resp[sizeof($resp)-2]['values']['nps']);exit;
+
         if($resp != null){
             return [
                 "name"              => "nps",
@@ -133,10 +134,11 @@ class DashboardMutual extends Dashboard
                 "neutrals"          => $resp[sizeof($resp)-1]['values']['neutrals'],
                 "detractors"        => $resp[sizeof($resp)-1]['values']['detractors'],
                 "percentage"        => isset($resp[sizeof($resp)-2]['values']['nps']) &&  isset($resp[sizeof($resp)-1]['values']['nps']) ? round($resp[sizeof($resp)-1]['values']['nps']-$resp[sizeof($resp)-2]['values']['nps'],0) : 0,
-                "smAvg"             => $count != 0 ? round($sum / $count ,0) : 0,
+                "smAvg"             => isset($count)? round($sum / $count ) : null,
                 "graph"             => $graphNPS
             ];
         }
+
         if($resp == null){
             return [
                 "name"              => "nps",
@@ -146,10 +148,9 @@ class DashboardMutual extends Dashboard
                 "neutrals"          => 0,
                 "detractors"        => 0,
                 "percentage"        => 0,
-                "smAvg"             => 0
+                "smAvg"             => null,
             ];
         }
-
     }
 
     protected function infoISNMutual($table, $dateIni, $dateEnd, $indicador,$consolidadoTotal)
@@ -393,7 +394,7 @@ class DashboardMutual extends Dashboard
             return [
                 "name"          => 'isn',
                 "value"         => 'N/A',
-                "percentage"    => 0, 
+                "percentage"    => '', 
                 "graph"         => $graphCSAT
             ];
         }
@@ -1315,18 +1316,15 @@ class DashboardMutual extends Dashboard
                     if(isset($jwt[env('AUTH0_AUD')]->centros)){
                         $long = sizeof($jwt[env('AUTH0_AUD')]->centros);
                         //print_r($jwt[env('AUTH0_AUD')]->centros);exit;
-            
                         if($long == 1){ 
                             $obj = [$jwt[env('AUTH0_AUD')]->centros[0] =>  $jwt[env('AUTH0_AUD')]->centros[0]];
                         }
-                        
                         if($long > 1){
                             $obj = array($jwt[env('AUTH0_AUD')]->centros[0] =>  $jwt[env('AUTH0_AUD')]->centros[0]);
                             for($i=1; $i<$long; $i++){
                                 $obj = array_merge($obj,array($jwt[env('AUTH0_AUD')]->centros[$i] =>  $jwt[env('AUTH0_AUD')]->centros[$i]));
                             }
                         }
-                        
                         $CenAtencionn = ['filter' => 'Centro_Atencion', 'datas' => $obj];
                     }
 
