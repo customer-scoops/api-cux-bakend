@@ -3211,6 +3211,14 @@ class Dashboard extends Generic
         exit;
     }
 
+    public function downloadExcelLogin(){
+        //echo "SELECT `app`, `rol`, `email`, `date`, `time` FROM customerscoops_general_info.log_users WHERE `date` BETWEEN '".date('Y-m-01')."' AND '".date('Y-m-d')."' ORDER BY `date` ASC"; exit;
+        $data = DB::select("SELECT `app`, `rol`, `email`, `date`, `time` FROM customerscoops_general_info.log_users WHERE `date` BETWEEN '".date('Y-m-01')."' AND '".date('Y-m-d')."' ORDER BY `date` ASC");
+        if($data){
+
+        }
+    }
+
     public function matriz($request)
     {
         if ($request->get('startDate') == null) {
