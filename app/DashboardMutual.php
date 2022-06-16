@@ -1316,7 +1316,7 @@ class DashboardMutual extends Dashboard
                 {
                     $cond = " AND zonal = '". $request->get('Zona')."'"; 
                 }
-                if(isset($jwt[env('AUTH0_AUD')]->zona) || (in_array('Manager', $jwt[env('AUTH0_AUD')]->roles)) || isset($jwt[env('AUTH0_AUD')]->centros) || $jwt[env('AUTH0_AUD')]->gerenciaMedica == 'CAS'){
+                if((in_array('Manager', $jwt[env('AUTH0_AUD')]->roles)) || isset($jwt[env('AUTH0_AUD')]->centros) || $jwt[env('AUTH0_AUD')]->gerenciaMedica == 'CAS'){
 
                     if(isset($jwt[env('AUTH0_AUD')]->zona)){
                         $cond = " AND zonal = '". $jwt[env('AUTH0_AUD')]->zona."'"; 
@@ -1345,8 +1345,19 @@ class DashboardMutual extends Dashboard
 
                         $CenAtencionn = ['filter' => 'Centro_Atencion', 'datas' => $this->contentfilter($data, 'catencion')];
                     }
+
+                    $ZonaHos = null;
+                    if(empty($jwt[env('AUTH0_AUD')]->zona)){
+                        $data = DB::select("SELECT DISTINCT(zonal)
+                                            FROM ".$this->getValueParams('_dbSelected').".adata_mut_" . $dbC . "_start
+                                            WHERE zonal != '0' AND zonal != ''");
+                                            
+                        $this->_fieldSelectInQuery = 'zonal';
+    
+                        $ZonaHos = ['filter' => 'Zona', 'datas' => $this->contentfilter($data, 'zonal')];
+                    }
             }
-            return ['filters' => [(object)$CenAtencionn], 'status' => Response::HTTP_OK];
+            return ['filters' => [(object)$CenAtencionn, (object)$ZonaHos], 'status' => Response::HTTP_OK];
         } 
 
         if((empty($jwt[env('AUTH0_AUD')]->zona)) && (in_array('Manager', $jwt[env('AUTH0_AUD')]->roles))){
@@ -1386,7 +1397,7 @@ class DashboardMutual extends Dashboard
                 $AreaAten = ['filter' => 'Area_Atencion', 'datas' => $this->contentfilter($data, 'aatencion')];
             }
 
-            if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img'|| $dbC == 'con'|| $dbC == 'cop') {
+            if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh' || $dbC == 'img'|| $dbC == 'con') {
                 if(isset($jwt[env('AUTH0_AUD')]->zona)){
                     $ZonaHos = null;
                 }
