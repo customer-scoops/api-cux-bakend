@@ -2572,26 +2572,27 @@ class Dashboard extends Generic
         $sino3 = $this->rankingTransvipData($db, $datafilters, $dateIni, $dateEnd, 'sino3', 'Notificación itinerario vuelo');
         $sino4 = $this->rankingTransvipData($db, $datafilters, $dateIni, $dateEnd, 'sino4', 'Atención Contact Center');
 
-        foreach ($sino2 as $key => $value) {
-            if($value['text'] == 'Si'){
-                $value['text'] = 'Compra equipaje WEB';
-                $values[] = $value;
-            }
-        }
+        $total = $sino2[0]["cant"] + $sino3[0]["cant"] + $sino4[0]["cant"];
 
-        foreach ($sino3 as $key => $value) {
-            if($value['text'] == 'Si'){
-                $value['text'] = 'Notificación itinerario vuelo';
-                $values[] = $value;
-            }
-        }
+        $values[0] = [
+            "porcentaje" => strval(round($sino2[0]["cant"] * 100 / $total, 0))." %",
+            "cant" => $sino2[0]["cant"],
+            "text" => 'Compra equipaje WEB'
+        ];
 
-        foreach ($sino4 as $key => $value) {
-            if($value['text'] == 'Si'){
-                $value['text'] = 'Atención Contact Center';
-                $values[] = $value;
-            }
-        }
+        $values[1] = [
+            "porcentaje" => strval(round($sino3[0]["cant"] * 100 / $total, 0))." %",
+            "cant" => $sino3[0]["cant"],
+            "text" => 'Notificación itinerario vuelo'
+        ];
+
+        $values[2] = [
+            "porcentaje" => strval(round($sino4[0]["cant"] * 100 / $total, 0))." %",
+            "cant" => $sino4[0]["cant"],
+            "text" => 'Atención Contact Center'
+        ];
+
+        usort($values, $this->build_sorter('porcentaje')); 
 
         $standarStruct = [
             [
