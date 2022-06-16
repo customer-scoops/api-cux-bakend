@@ -26,8 +26,9 @@ class SuiteBanmedica extends Suite
            "subStatus1" => 'required|string',
            "subStatus2" => 'required|string',
            "caso" => 'required|string',
+           "nps" => 'numeric',
            "dateSchedule" => 'date_format:Y-m-d',
-           //"timeSchedule" => 'date_format:H:i:s'
+           "timeSchedule" => 'date_format:H:i'
        ];
 
        //print_r($request);
@@ -49,16 +50,16 @@ class SuiteBanmedica extends Suite
                     'det_close' => $request->detail, 
                     'fec_close'=>date('Y-m-d'),
                     'fecha_programa_llamada'=> $request->dateSchedule,
-                    //'hora_programa_llamada'=> $request->timeSchedule,
+                    'hora_programa_llamada'=> $request->timeSchedule,
                     'field_1'=>$request->subStatus1,
                     'field_2'=>$request->subStatus2,
                     'field_3'=>$request->caso,
                     ]
                 );
                 
-           if($resp===1 && $request->subStatus1 != 'Agendar llamada' && $request->subStatus1 != 'Desafiliado' && $request->subStatus1 != 'Pendiente'){
-               $namev = DB::table($this->getDBSelected().'.'.'adata_'.substr($request->survey,0,3).'_'.substr($request->survey,3,6).'_start')->where('id', $request->ticket)->first();
-               $this->sendedEmail($namev->nom, $namev->mail, $namev->token, $request->survey); // Cuando se pruebe hay que comentar esto para que no le mande le mail al cliente.
+           if($resp===1 && $request->subStatus1 != 'Agendar llamada' && $request->subStatus1 != 'Desafiliado' && $request->subStatus1 != 'Pendiente' && $request->nps <= 6){
+                $namev = DB::table($this->getDBSelected().'.'.'adata_'.substr($request->survey,0,3).'_'.substr($request->survey,3,6).'_start')->where('id', $request->ticket)->first();
+                $this->sendedEmail($namev->nom, $namev->mail, $namev->token, $request->survey); // Cuando se pruebe hay que comentar esto para que no le mande le mail al cliente.
            }
            return[
                'datas'  => 'complet',
