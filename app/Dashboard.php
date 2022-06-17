@@ -14,6 +14,11 @@ use ArrayObject;
 use Carbon\Carbon;
 use Mockery\Undefined;
 use phpDocumentor\Reflection\Types\Object_;
+// use PHPExcel;
+// use PHPExcel_IOFactory;
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class Dashboard extends Generic
 {
@@ -3212,11 +3217,60 @@ class Dashboard extends Generic
     }
 
     public function downloadExcelLogin(){
-        //echo "SELECT `app`, `rol`, `email`, `date`, `time` FROM customerscoops_general_info.log_users WHERE `date` BETWEEN '".date('Y-m-01')."' AND '".date('Y-m-d')."' ORDER BY `date` ASC"; exit;
-        $data = DB::select("SELECT `app`, `rol`, `email`, `date`, `time` FROM customerscoops_general_info.log_users WHERE `date` BETWEEN '".date('Y-m-01')."' AND '".date('Y-m-d')."' ORDER BY `date` ASC");
-        if($data){
 
+        /**** Codigo para armar y descargar data pedida por fer ****/
+
+        //$data = DB::select("SELECT * FROM customer_jetsmart.adata_jet_cpe AS a inner join customer_jetsmart.adata_jet_cpe_start AS b ON a.token = b.token");
+
+        //dd($data[0]);
+        // $columns = []; 
+        // $delimiter = ";";
+        // $f = fopen('php://memory', 'w');
+
+        // foreach($data[0] as $key => $value){
+        //     array_push($columns, $key);
+        // }
+        
+        // fputcsv($f, $columns, $delimiter);
+        
+        // foreach($data as $key => $value){
+        //     $dat = [];
+        //     foreach($value as $key => $val){
+            
+        //         //array_push($dat, utf8_decode(html_entity_decode(htmlentities($val))));
+        //         array_push($dat, $val);
+        //     }
+        //     fputcsv($f, $dat, $delimiter);
+        // }
+
+        // fseek($f, 0);
+        // rewind($f);
+        // $output = stream_get_contents($f);
+        // return $output;
+        /**** FIN Codigo para armar y descargar data pedida por fer ****/
+
+        /**** Codigo para armar y descargar el CSV de los logs****/
+        
+        $data = DB::select("SELECT `app`, `rol`, `email`, `date`, `time` FROM customerscoops_general_info.log_users WHERE `date` BETWEEN '".date('Y-m-01')."' AND '".date('Y-m-d')."' ORDER BY `date` ASC");
+
+        if($data){
+            $delimiter = ";";
+
+            $f = fopen('php://memory', 'w'); 
+            
+            $fields = array('APP', 'ROL', 'EMAIL', 'FECHA', 'HORA'); 
+            fputcsv($f, $fields, $delimiter);
+            
+            foreach($data as $key => $value){
+                $lineData = array($value->app, $value->rol, $value->email, $value->date, $value->time);
+                fputcsv($f, $lineData, $delimiter); 
+            }
+            fseek($f, 0);
+            rewind($f);
+            $output = stream_get_contents($f);
+            return $output;
         }
+        /**** FIN Codigo para armar y descargar el CSV de los logs****/
     }
 
     public function matriz($request)

@@ -35,8 +35,7 @@ $router->group(['prefix' => 'dashboard', 'middleware'=> ['auth','throttle:10,1',
     $router->get('/cx-word', 'DashboardController@detailsDashCxWord');
     $router->get('/data-filters', 'DashboardController@filters');
     $router->get('/download-excel',['middleware' => 'download',
-                  'uses' => 'DashboardController@downloadExcel'] );
-    $router->get('/download-excel-login',['middleware' => 'download',
-                  'uses' => 'DashboardController@downloadExcelLogin'] );
+    'uses' => 'DashboardController@downloadExcel'] );
+    $router->get('/download-excel-login','DashboardController@downloadExcelLogin' );
   });
   

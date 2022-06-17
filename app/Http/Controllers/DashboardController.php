@@ -104,9 +104,12 @@ class DashboardController extends Controller
     
         // if(!isset($startDate) && !isset($endDate) && !isset($survey)){return $this->generic('Not datas filters', Response::HTTP_UNPROCESSABLE_ENTITY);}
         $resp = $this->_dashboard->downloadExcelLogin($request, $request->dataJwt);
+        //$filename = "login_" . date('Y-m-d') . ".csv";
+        //$resp = 'hola';
         return response($resp, 200)
-                    ->header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-                    // ->header('Content-Disposition', 'attachment;filename="Periodo de Datos del '.$startDate.' al '.$endDate.' - '.$survey.'.xlsx"')
+                    ->header('Content-Type', 'text/csv')
+                    //->header('Content-Disposition', 'attachment;filename='.$filename)
+                    ->header('Content-Disposition', 'attachment;filename=Data.csv')
                     ->header('Access-Control-Allow-Origin'      , '*')
                     ->header('Access-Control-Allow-Methods'     , 'POST, GET, OPTIONS, PUT')
                     ->header('Access-Control-Allow-Credentials' , 'true')
