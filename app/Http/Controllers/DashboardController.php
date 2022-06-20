@@ -98,17 +98,15 @@ class DashboardController extends Controller
 
     public function downloadExcelLogin(Request $request)
     {  
-        // $startDate  = $request->get('startDate');
-        // $endDate    = $request->get('endDate');
-        // $survey     = $request->get('survey');
-    
-        // if(!isset($startDate) && !isset($endDate) && !isset($survey)){return $this->generic('Not datas filters', Response::HTTP_UNPROCESSABLE_ENTITY);}
-        $resp = $this->_dashboard->downloadExcelLogin($request, $request->dataJwt);
-        //$filename = "login_" . date('Y-m-d') . ".csv";
-        //$resp = 'hola';
+        $startDate  = $request->get('startDate');
+        $endDate    = $request->get('endDate');
+        
+        if(!isset($startDate) && !isset($endDate)){return $this->generic('Not datas filters', Response::HTTP_UNPROCESSABLE_ENTITY);}
+
+        $resp = $this->_dashboard->downloadExcelLogin($request);
+
         return response($resp, 200)
                     ->header('Content-Type', 'text/csv')
-                    //->header('Content-Disposition', 'attachment;filename='.$filename)
                     ->header('Content-Disposition', 'attachment;filename=Data.csv')
                     ->header('Access-Control-Allow-Origin'      , '*')
                     ->header('Access-Control-Allow-Methods'     , 'POST, GET, OPTIONS, PUT')
