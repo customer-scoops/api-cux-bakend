@@ -95,4 +95,23 @@ class DashboardController extends Controller
                     ->header('Access-Control-Max-Age'           , '86400')
                     ->header('Access-Control-Allow-Headers'     , 'Content-Type, Authorization, X-Requested-With');
     }
+
+    public function downloadExcelLogin(Request $request)
+    {  
+        $startDate  = $request->get('startDate');
+        $endDate    = $request->get('endDate');
+        
+        if(!isset($startDate) && !isset($endDate)){return $this->generic('Not datas filters', Response::HTTP_UNPROCESSABLE_ENTITY);}
+
+        $resp = $this->_dashboard->downloadExcelLogin($request);
+
+        return response($resp, 200)
+                    ->header('Content-Type', 'text/csv')
+                    ->header('Content-Disposition', 'attachment;filename=Data.csv')
+                    ->header('Access-Control-Allow-Origin'      , '*')
+                    ->header('Access-Control-Allow-Methods'     , 'POST, GET, OPTIONS, PUT')
+                    ->header('Access-Control-Allow-Credentials' , 'true')
+                    ->header('Access-Control-Max-Age'           , '86400')
+                    ->header('Access-Control-Allow-Headers'     , 'Content-Type, Authorization, X-Requested-With');
+    }
 }
