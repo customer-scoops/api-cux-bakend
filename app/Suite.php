@@ -226,7 +226,7 @@ class Suite
     public function resumenIndicator($request, $jwt)
     {
         //echo $this->_jwt[env('AUTH0_AUD')]->client;
-        $validFilterKeys    = array("nps","csat","estado", "dateSchedule"); // <-- keys habilitadas para filtrar
+        $validFilterKeys    = array("nps","csat","estado", "dateSchedule", "nps_cierre"); // <-- keys habilitadas para filtrar
         $validOrderKeys     = array("nps", "date","csat"); // <-- keys habilitadas para Ordenar
         
         try{
