@@ -403,145 +403,7 @@ class DashboardMutual extends Dashboard
         }
     }
 
-    private function dbResumenNps1($table,$indicador,$dateIni,$dateEnd, $filter, $datafilters,$consolidadoTotal)
-    {
-        if($consolidadoTotal == false){
-            $query = "SELECT count(*) as total, 
-            ((count(if(nps <= ".$this->getValueParams('_maxNps').", nps, NULL))*100)/COUNT(CASE WHEN nps !=99 THEN 1 END)) as detractor, 
-            ((count(if(nps = ".$this->getValueParams('_minMaxNps')." or  nps = ".$this->getValueParams('_maxMaxNps')." , nps, NULL))*100)/COUNT(CASE WHEN nps != 99 THEN 1 END)) as promotor,
-            ((count(if(nps =  ".$this->getValueParams('_maxMediumNps')." OR nps = ".$this->getValueParams('_minMediumNps').", nps, NULL))*100)/COUNT(CASE WHEN nps != 99 THEN 1 END)) as neutral,
-            ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) - 
-            COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) / 
-            (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),0) AS NPS,  ".$this->getValueParams('_fieldSelectInQuery')."
-            FROM ".$this->getValueParams('_dbSelected').".$table as a
-            LEFT JOIN ".$this->getValueParams('_dbSelected')."." . $table . "_start as b
-            on a.token = b.token
-            WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'  $datafilters ".$this->filterZona." ". $this->filterCentro." ".$this->whereCons ." ".$this->filterGerencia."
-            GROUP BY a.mes, a.annio
-            ORDER BY date_survey ASC";
-        }
-
-
-        if($consolidadoTotal == true){
-            $query = "SELECT SUM(NPS) AS NPS,
-            SUM(detractor) AS detractor,
-            SUM(promotor) AS promotor,
-            SUM(neutral) AS neutral,
-            SUM(total) AS total,
-            mes,
-            annio,
-            sexo
-            FROM (SELECT count(*) as total, 
-            ((count(if(nps <= ".$this->getValueParams('_maxNps').", nps, NULL))*100)/COUNT(CASE WHEN nps !=99 THEN 1 END))* 0.30 as detractor, 
-            ((count(if(nps = ".$this->getValueParams('_minMaxNps')." or  nps = ".$this->getValueParams('_maxMaxNps')." , nps, NULL))*100)/COUNT(CASE WHEN nps != 99 THEN 1 END))* 0.30 as promotor,
-            ((count(if(nps =  ".$this->getValueParams('_maxMediumNps')." OR nps = ".$this->getValueParams('_minMediumNps').", nps, NULL))*100)/COUNT(CASE WHEN nps != 99 THEN 1 END))* 0.30 as neutral,
-            ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) - 
-            COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) / 
-            (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),0)* 0.30 AS NPS, date_survey,a.mes, a.annio,  ".$this->getValueParams('_fieldSelectInQuery')."
-            FROM ".$this->getValueParams('_dbSelected').".adata_mut_amb as a
-            LEFT JOIN ".$this->getValueParams('_dbSelected').".adata_mut_amb_start as b
-            on a.token = b.token
-            WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'  $datafilters ".$this->filterZona." ". $this->filterCentro."  ".$this->filterGerencia."
-            GROUP BY a.mes, a.annio
-            union
-            SELECT count(*) as total, 
-            ((count(if(nps <= ".$this->getValueParams('_maxNps').", nps, NULL))*100)/COUNT(CASE WHEN nps !=99 THEN 1 END))*0.08 as detractor, 
-            ((count(if(nps = ".$this->getValueParams('_minMaxNps')." or  nps = ".$this->getValueParams('_maxMaxNps')." , nps, NULL))*100)/COUNT(CASE WHEN nps != 99 THEN 1 END))*0.08 as promotor,
-            ((count(if(nps =  ".$this->getValueParams('_maxMediumNps')." OR nps = ".$this->getValueParams('_minMediumNps').", nps, NULL))*100)/COUNT(CASE WHEN nps != 99 THEN 1 END))*0.08 as neutral,
-            ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) - 
-            COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) / 
-            (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),0)*0.08 AS NPS, date_survey,a.mes, a.annio,  ".$this->getValueParams('_fieldSelectInQuery')."
-            FROM ".$this->getValueParams('_dbSelected').".adata_mut_hos as a
-            LEFT JOIN ".$this->getValueParams('_dbSelected').".adata_mut_hos_start as b
-            on a.token = b.token
-            WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'  $datafilters ".$this->filterZona." ". $this->filterCentro."  ".$this->filterGerencia."
-            GROUP BY a.mes, a.annio
-            union
-            SELECT count(*) as total, 
-            ((count(if(nps <= ".$this->getValueParams('_maxNps').", nps, NULL))*100)/COUNT(CASE WHEN nps !=99 THEN 1 END))* 0.17 as detractor, 
-            ((count(if(nps = ".$this->getValueParams('_minMaxNps')." or  nps = ".$this->getValueParams('_maxMaxNps')." , nps, NULL))*100)/COUNT(CASE WHEN nps != 99 THEN 1 END))* 0.17 as promotor,
-            ((count(if(nps =  ".$this->getValueParams('_maxMediumNps')." OR nps = ".$this->getValueParams('_minMediumNps').", nps, NULL))*100)/COUNT(CASE WHEN nps != 99 THEN 1 END))* 0.17 as neutral,
-            ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) - 
-            COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) / 
-            (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),0)* 0.17 AS NPS, date_survey,a.mes, a.annio,  ".$this->getValueParams('_fieldSelectInQuery')."
-            FROM ".$this->getValueParams('_dbSelected').".adata_mut_urg as a
-            LEFT JOIN ".$this->getValueParams('_dbSelected').".adata_mut_urg_start as b
-            on a.token = b.token
-            WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'  $datafilters ".$this->filterZona." ". $this->filterCentro."  ".$this->filterGerencia."
-            GROUP BY a.mes, a.annio
-            union
-            SELECT count(*) as total, 
-            ((count(if(nps <= ".$this->getValueParams('_maxNps').", nps, NULL))*100)/COUNT(CASE WHEN nps !=99 THEN 1 END))* 0.29 as detractor, 
-            ((count(if(nps = ".$this->getValueParams('_minMaxNps')." or  nps = ".$this->getValueParams('_maxMaxNps')." , nps, NULL))*100)/COUNT(CASE WHEN nps != 99 THEN 1 END))* 0.29 as promotor,
-            ((count(if(nps =  ".$this->getValueParams('_maxMediumNps')." OR nps = ".$this->getValueParams('_minMediumNps').", nps, NULL))*100)/COUNT(CASE WHEN nps != 99 THEN 1 END))* 0.29 as neutral,
-            ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) - 
-            COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) / 
-            (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),0)* 0.29 AS NPS, date_survey, a.mes, a.annio,  ".$this->getValueParams('_fieldSelectInQuery')."
-            FROM ".$this->getValueParams('_dbSelected').".adata_mut_reh as a
-            LEFT JOIN ".$this->getValueParams('_dbSelected').".adata_mut_reh_start as b
-            on a.token = b.token
-            WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'  $datafilters ".$this->filterZona." ". $this->filterCentro."  ".$this->filterGerencia."
-            GROUP BY a.mes, a.annio
-            union
-            SELECT count(*) as total, 
-            ((count(if(nps <= ".$this->getValueParams('_maxNps').", nps, NULL))*100)/COUNT(CASE WHEN nps !=99 THEN 1 END))* 0.16 as detractor, 
-            ((count(if(nps = ".$this->getValueParams('_minMaxNps')." or  nps = ".$this->getValueParams('_maxMaxNps')." , nps, NULL))*100)/COUNT(CASE WHEN nps != 99 THEN 1 END))* 0.16 as promotor,
-            ((count(if(nps =  ".$this->getValueParams('_maxMediumNps')." OR nps = ".$this->getValueParams('_minMediumNps').", nps, NULL))*100)/COUNT(CASE WHEN nps != 99 THEN 1 END))* 0.16 as neutral,
-            ROUND(((COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minMaxNps')." AND ".$this->getValueParams('_maxMaxNps')." THEN 1 END) - 
-            COUNT(CASE WHEN nps BETWEEN ".$this->getValueParams('_minNps')." AND ".$this->getValueParams('_maxNps')." THEN 1 END)) / 
-            (COUNT(CASE WHEN nps != 99 THEN nps END)) * 100),0)* 0.16 AS NPS, date_survey, a.mes, a.annio, ".$this->getValueParams('_fieldSelectInQuery')."
-            FROM ".$this->getValueParams('_dbSelected').".adata_mut_img as a
-            LEFT JOIN ".$this->getValueParams('_dbSelected').".adata_mut_img_start as b
-            on a.token = b.token
-            WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'  $datafilters ".$this->filterZona." ". $this->filterCentro."  ".$this->filterGerencia."
-            GROUP BY a.mes, a.annio) as A GROUP BY mes, annio
-            ORDER BY date_survey ASC";         
-        }
-
-        $data = DB::select($query);
-
-        return $data;
-    }
-              
-    private function resumenNpsM($table,  $dateEnd, $dateIni, $indicador, $filter, $datafilters,$consolidadoTotal)
-    {
-        if ($datafilters)
-            $datafilters = " AND $datafilters";
-        
-        $data = $this->dbResumenNps1($table,$indicador,$dateIni,$dateEnd, '', $datafilters,$consolidadoTotal);
-
-        if (($data == null) || $data[0]->total == null || $data[0]->total == 0) {
-            $npsActive = (isset($data[0]->NPS)) ? $data[0]->NPS : 0;
-            //$npsPreviousPeriod = $this->npsPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $datafilters,$consolidadoTotal);
-            
-            return [
-                "name"              => "nps",
-                "value"             => 'N/A',
-                "percentageGraph"   => true,
-                "promotors"         => 0,
-                "neutrals"          => 0,
-                "detractors"        => 0,
-                "percentage"        => $npsActive, //- $npsPreviousPeriod,
-                "smAvg"             => 0//$this->AVGLast6MonthNPS($table, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter)
-            ];
-        }
-
-        if ($data[0]->total != 0) {
-            $npsActive = (isset($data[0]->NPS)) ? $data[0]->NPS : 0;
-           //echo round($npsActive);exit;
-            return [
-                "name"              => "nps",
-                "value"             => round($npsActive),
-                "percentageGraph"   => true,
-                "promotors"         => round($data[0]->promotor),
-                "neutrals"          => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - round(($data[0]->detractor) + ($data[0]->promotor)),
-                "detractors"        => round($data[0]->detractor),
-                "percentage"        => $npsActive, //$npsPreviousPeriod,
-                "smAvg"             => 0//$this->AVGLast6MonthNPS($table, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 1 month")), $indicador, $filter),
-              
-            ];
-        }
-    }
+   
 
     private function graphNps($table, $indicador, $dateIni, $dateEnd, $struct = 'two',$consolidadoTotal, $datafilters = null, $group = null)               
     {
@@ -559,10 +421,6 @@ class DashboardMutual extends Dashboard
             $where = " date_survey BETWEEN '2022-05-01' AND '$dateIni' ";
             $group = " a.mes, a.annio ";
         }
-        //echo substr($table ,10,3);
-        // if(substr($table ,10,3) == 'con'){
-        //     $struct = 'two';
-        // }
 
         if ($datafilters)
             $datafilters = " AND $datafilters";
@@ -1696,8 +1554,6 @@ class DashboardMutual extends Dashboard
         $venta = null;
         $Procedencia = null;
         $csat1 = $csat2 = $csat3 = $csat4 = $csat5 = null;
-       
-        $dataNps    = $this->resumenNpsM($db, $dateIni, $dateEndIndicatorPrincipal, 'nps', $filterClient, $datafilters,$this->consolidadoTotal);
 
         if ($this->getValueParams('_dbSelected')  == 'customer_colmena'  && substr($request->survey, 0, 3) == 'mut'  && ($request->survey != 'mutredsms')) {
             $name = 'Mutual';
