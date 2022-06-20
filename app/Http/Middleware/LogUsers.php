@@ -37,13 +37,15 @@ class LogUsers
     public function usersList($next, $request, $app)
     {
         try {
-            if(!in_array('Developer',$request->dataJwt[env('AUTH0_AUD')]->roles)){
-                DB::table('customerscoops_general_info.log_users')->insert(['company' => $request->dataJwt[env('AUTH0_AUD')]->client,
-                                                'app' => $app,
-                                                'rol' => json_encode($request->dataJwt[env('AUTH0_AUD')]->roles),
-                                                'email' => $request->dataJwt[env('AUTH0_AUD')]->email,
-                                                'date' => date("Y-m-d"),
-                                                'time' => date("H:i")]);
+            if($request->dataJwt[env('ACTIVE_LOG')] == true){
+                if(!in_array('Developer',$request->dataJwt[env('AUTH0_AUD')]->roles)){
+                    DB::table('customerscoops_general_info.log_users')->insert(['company' => $request->dataJwt[env('AUTH0_AUD')]->client,
+                                                    'app' => $app,
+                                                    'rol' => json_encode($request->dataJwt[env('AUTH0_AUD')]->roles),
+                                                    'email' => $request->dataJwt[env('AUTH0_AUD')]->email,
+                                                    'date' => date("Y-m-d"),
+                                                    'time' => date("H:i")]);
+                }
             }
             return $next($request);
         }
