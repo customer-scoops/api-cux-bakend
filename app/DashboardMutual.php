@@ -403,7 +403,7 @@ class DashboardMutual extends Dashboard
         }
     }
 
-    private function dbResumenNps1 ($table,$indicador,$dateIni,$dateEnd, $filter, $datafilters,$consolidadoTotal)
+    private function dbResumenNps1($table,$indicador,$dateIni,$dateEnd, $filter, $datafilters,$consolidadoTotal)
     {
         if($consolidadoTotal == false){
             $query = "SELECT count(*) as total, 
@@ -495,8 +495,7 @@ class DashboardMutual extends Dashboard
             on a.token = b.token
             WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'  $datafilters ".$this->filterZona." ". $this->filterCentro."  ".$this->filterGerencia."
             GROUP BY a.mes, a.annio) as A GROUP BY mes, annio
-            ORDER BY date_survey ASC";
-           
+            ORDER BY date_survey ASC";         
         }
 
         $data = DB::select($query);
@@ -510,7 +509,7 @@ class DashboardMutual extends Dashboard
             $datafilters = " AND $datafilters";
         
         $data = $this->dbResumenNps1($table,$indicador,$dateIni,$dateEnd, '', $datafilters,$consolidadoTotal);
-    
+
         if (($data == null) || $data[0]->total == null || $data[0]->total == 0) {
             $npsActive = (isset($data[0]->NPS)) ? $data[0]->NPS : 0;
             //$npsPreviousPeriod = $this->npsPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $datafilters,$consolidadoTotal);
@@ -529,7 +528,7 @@ class DashboardMutual extends Dashboard
 
         if ($data[0]->total != 0) {
             $npsActive = (isset($data[0]->NPS)) ? $data[0]->NPS : 0;
-           
+           //echo round($npsActive);exit;
             return [
                 "name"              => "nps",
                 "value"             => round($npsActive),
@@ -1623,6 +1622,9 @@ class DashboardMutual extends Dashboard
             if(isset($jwt[env('AUTH0_AUD')]->gerenciaMedica)){
                 $request->merge(['Gerencia_Medica'=>$gerencia]);
             }
+            if($request->Gerencia_Medica == 'HOSPITAL'){
+                $this->consolidadoTotal = true;
+            }
         }
 
         if( $request->survey == 'mutcon' )
@@ -1694,7 +1696,7 @@ class DashboardMutual extends Dashboard
         $venta = null;
         $Procedencia = null;
         $csat1 = $csat2 = $csat3 = $csat4 = $csat5 = null;
-        
+       
         $dataNps    = $this->resumenNpsM($db, $dateIni, $dateEndIndicatorPrincipal, 'nps', $filterClient, $datafilters,$this->consolidadoTotal);
 
         if ($this->getValueParams('_dbSelected')  == 'customer_colmena'  && substr($request->survey, 0, 3) == 'mut'  && ($request->survey != 'mutredsms')) {
@@ -1768,7 +1770,7 @@ class DashboardMutual extends Dashboard
             }
      
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient,$request->survey, $db);
-            $performance        = $this->cardsPerformace($dataNps, $dataIsnP , $dateEnd, $dateIni, $request->survey, $datafilters);
+            $performance        = $this->cardsPerformace( $dataNPSGraph, $dataIsnP , $dateEnd, $dateIni, $request->survey, $datafilters);
             $npsConsolidado     = $this->cardCsatDriversMutual('ISN', $name, $dataIsn , $this->ButFilterWeeks, 12, 4);
             $npsBan             = (substr($request->survey, 3, 3) == 'con' || $this->consolidadoTotal == true) ? $this->cardNpsBanmedica($dataNPSGraph) : $this->CSATJourney($graphCSATDrivers);
             $npsVid             = (substr($request->survey, 3, 3) == 'con' || $this->consolidadoTotal == true)? null : $this->CSATDrivers($graphCSATDrivers);

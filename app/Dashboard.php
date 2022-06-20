@@ -6248,19 +6248,25 @@ class Dashboard extends Generic
             $datafilters = " $datafilters";
 
         if ($this->_dbSelected == 'customer_colmena' &&  substr($survey, 0, 3) == 'mut') {    
-            $name = $dataCsat['name'];
-            $val = $dataCsat['value'];
-            $percentage = $dataCsat['percentage'];
+            $this->_valueMinAnomalias = (int)$dataNps[sizeof($dataNps)-1]['values']['nps'] - 20;
+            $this->_valueMaxAnomalias = (int)$dataNps[sizeof($dataNps)-1]['values']['nps'] + 30;
+
+            $resp = [
+                [
+                    "name"    => 'nps',
+                    "value"   => $dataNps[sizeof($dataNps)-1]['values']['nps'],
+                    "m2m"     => (int)$dataNps[sizeof($dataNps)-1]['values']['nps'] - $dataNps[sizeof($dataNps)-2]['values']['nps'],
+                ],
+                [
+                    "name"    => $dataCsat['name'],
+                    "value"   => $dataCsat['value'],
+                    "m2m"  => $dataCsat['percentage'],
+                ],
+                
+            ];
         }
        
         if($this->_dbSelected == 'customer_colmena' && substr($survey, 0, 3) == 'tra'){
-            // if(substr($survey,3,3) == 'con')
-            //     $db = 'adata_tra_cond';
-            // if(substr($survey,3,3) == 'via')
-            //     $db = 'adata_tra_via';
-            // $ins = $this->NpsIsnTransvip($db, $dateIni, $dateEnd,'nps','csat',$datafilters,'', 'x' );
-
-            // $insPreviousPeriod = $this->npsPreviousPeriod($db,$dateEnd, $dateIni,'csat',''); 
             $name = 'ISN';
             $val =  $dataCsat['insAct'] == 'N/A' ? 'N/A' : round($dataCsat['insAct']);
             $percentage= $dataCsat['insAct'] == 'N/A' ? round(-$dataCsat['ins']) : round($dataCsat['insAct']-$dataCsat['ins']);  
@@ -6271,11 +6277,12 @@ class Dashboard extends Generic
             $val = $dataCsat['value'];
             $percentage =  (int)$dataCsat['percentage'];
         }
-       
+        if (substr($survey, 0, 3) != 'mut') {    
         $this->_valueMinAnomalias = (int)$dataNps['value'] - 20;
         $this->_valueMaxAnomalias = (int)$dataNps['value'] + 30;
-       
-        if ($this->_dbSelected != 'customer_jetsmart') { 
+        }
+
+        if ($this->_dbSelected != 'customer_jetsmart' && substr($survey, 0, 3) != 'mut') { 
             $resp = [
                         [
                             "name"    => $dataNps['name'],
@@ -6290,6 +6297,7 @@ class Dashboard extends Generic
                         
                     ];
         }
+ 
         if ($this->_dbSelected == 'customer_jetsmart') { 
             $width = 12;
             if(substr($survey, 3, 3) == 'com' || substr($survey, 3, 3) == 'cpe'){
