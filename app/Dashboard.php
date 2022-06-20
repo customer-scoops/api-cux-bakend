@@ -3211,6 +3211,36 @@ class Dashboard extends Generic
         exit;
     }
 
+    public function downloadExcelLogin($request){
+        
+        $startDate  = $request->get('startDate');
+        $endDate    = $request->get('endDate');
+        $client = $this->_jwt[env('AUTH0_AUD')]->client;
+
+        $data = DB::select("SELECT `app`, `rol`, `email`, `date`, `time` 
+                            FROM customerscoops_general_info.log_users 
+                            WHERE `date` BETWEEN '$startDate' AND '$endDate' AND company = '$client'
+                            ORDER BY `date` ASC");
+
+        if($data){
+            $delimiter = ";";
+
+            $f = fopen('php://memory', 'w'); 
+            
+            $fields = array('APP', 'ROL', 'EMAIL', 'FECHA', 'HORA'); 
+            fputcsv($f, $fields, $delimiter);
+            
+            foreach($data as $key => $value){
+                $lineData = array($value->app, $value->rol, $value->email, $value->date, $value->time);
+                fputcsv($f, $lineData, $delimiter); 
+            }
+            fseek($f, 0);
+            rewind($f);
+            $output = stream_get_contents($f);
+            return $output;
+        }
+    }
+
     public function matriz($request)
     {
         if ($request->get('startDate') == null) {
