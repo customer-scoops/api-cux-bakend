@@ -1178,8 +1178,8 @@ class DashboardMutual extends Dashboard
                 {
                     $cond = " AND zonal = '". $request->get('Zona')."'"; 
                 }
-                if((in_array('Manager', $jwt[env('AUTH0_AUD')]->roles)) || isset($jwt[env('AUTH0_AUD')]->centros) || $jwt[env('AUTH0_AUD')]->gerenciaMedica == 'CAS'){
-
+                if((in_array('Manager', $jwt[env('AUTH0_AUD')]->roles)) || isset($jwt[env('AUTH0_AUD')]->centros) || isset($jwt[env('AUTH0_AUD')]->gerenciaMedica)){
+                if($jwt[env('AUTH0_AUD')]->gerenciaMedica == 'CAS'){
                     if(isset($jwt[env('AUTH0_AUD')]->zona)){
                         $cond = " AND zonal = '". $jwt[env('AUTH0_AUD')]->zona."'"; 
                     }
@@ -1220,6 +1220,7 @@ class DashboardMutual extends Dashboard
                     }
             }
             return ['filters' => [(object)$CenAtencionn, (object)$ZonaHos], 'status' => Response::HTTP_OK];
+        }
         } 
 
         if((empty($jwt[env('AUTH0_AUD')]->zona)) && (in_array('Manager', $jwt[env('AUTH0_AUD')]->roles))){
