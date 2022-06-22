@@ -922,7 +922,9 @@ class DashboardMutual extends Dashboard
             $datafilters = " AND $datafilters";
 
         $graphCsatM  = [];
-        if ($table == 'adata_mut_amb' ||  $table == 'adata_mut_urg' ||  $table == 'adata_mut_reh' || $table == 'adata_mut_hos' ||  $table == 'adata_mut_img') {
+        if ($table == 'adata_mut_amb' ||  $table == 'adata_mut_urg' ||  $table == 'adata_mut_reh' || $table == 'adata_mut_hos' ||  $table == 'adata_mut_img' 
+        || $table == 'adata_mut_red' || $table == 'adata_mut_cet' || $table == 'adata_mut_ges' || $table == 'adata_mut_bee' || $table == 'adata_mut_be' || $table == 'adata_mut_cas'
+        || $table == 'adata_mut_eri') {
             $this->consolidadoTotal = false;
         }
         
