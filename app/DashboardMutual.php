@@ -922,6 +922,10 @@ class DashboardMutual extends Dashboard
             $datafilters = " AND $datafilters";
 
         $graphCsatM  = [];
+        if ($table == 'adata_mut_amb' ||  $table == 'adata_mut_urg' ||  $table == 'adata_mut_reh' || $table == 'adata_mut_hos' ||  $table == 'adata_mut_img') {
+            $this->consolidadoTotal = false;
+        }
+        
         if($this->consolidadoTotal  == false){
             $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minMaxCsat')." AND ".$this->getValueParams('_maxMaxCsat')." THEN 1 END) - 
                                 COUNT(CASE WHEN $indicador BETWEEN ".$this->getValueParams('_minCsat')." AND ".$this->getValueParams('_maxCsat')." THEN 1 END)) / 
@@ -1597,6 +1601,7 @@ class DashboardMutual extends Dashboard
                 $csat3 = $this->cardCsatDriversMutual($nameCsat3, $name, $dataCsat3Graph, $this->ButFilterWeeks, 6, 3);
                 $csat4 = $this->cardCsatDriversMutual($nameCsat4, $name, $dataCsat4Graph, $this->ButFilterWeeks, 6, 3);
                 $csat5 = $this->cardCsatDriversMutual($nameCsat5, $name, $dataCsat5Graph, $this->ButFilterWeeks, 6, 3);
+                //$this->consolidadoTotal = false;
             }
 
             if ($db == 'adata_mut_img') {
@@ -1608,11 +1613,13 @@ class DashboardMutual extends Dashboard
                     $rankingSuc = $this->ranking($db, 'catencion', 'CentroAtencion', $endDateFilterMonth, $startDateFilterMonth, 'one',$datafilters, 6,4);
                 }
             }
-     
+            //echo $db;exit;
+            //print_r($request->survey);exit;
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient,$request->survey, $db);
             $performance        = $this->cardsPerformace( $dataNPSGraph, $dataIsnP , $dateEnd, $dateIni, $request->survey, $datafilters);
             $npsConsolidado     = $this->cardCsatDriversMutual('ISN', $name, $dataIsn , $this->ButFilterWeeks, 12, 4);
-            $npsBan             = (substr($request->survey, 3, 3) == 'con' || $this->consolidadoTotal == true) ? $this->cardNpsBanmedica($dataNPSGraph) : $this->CSATJourney($graphCSATDrivers);
+            //echo $db;exit;
+            $npsBan             = (substr($request->survey, 3, 3) == 'con' && $this->consolidadoTotal == true) ? $this->cardNpsBanmedica($dataNPSGraph) : $this->CSATJourney($graphCSATDrivers);
             $npsVid             = (substr($request->survey, 3, 3) == 'con' || $this->consolidadoTotal == true)? null : $this->CSATDrivers($graphCSATDrivers);
             $csatJourney        = $csat1;
             $csatDrivers        = $csat2;
