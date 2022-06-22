@@ -2414,7 +2414,7 @@ class Dashboard extends Generic
             $data = DB::select($query);
             $totalAcum = 0;
             
-            if($text != "Motivo de Vuelo"){
+            if($text != "Motivo de Vuelo" && $text != "Aerolínea Anterior" && $text != "Tipo de Comprador" && $text != "Medio de Pago Seguro"){
                 foreach ($data as $key => $value) {
                     $totalAcum = $totalAcum + $value->total;
                 }
@@ -2441,6 +2441,90 @@ class Dashboard extends Generic
                         ];
                         $cont++;
                     }
+                }
+            }
+
+            if($text == "Aerolínea Anterior"){
+                $resp = [];
+                $resp[0] =(object) [
+                    "nombre" => "Otros",
+                    "total" => 0,
+                ];
+                
+                $cont = 1;
+                foreach ($data as $key => $value) {
+                    $totalAcum = $totalAcum + $value->total;
+                    if(json_decode($value->nombre)[0] != "Star Perú" && json_decode($value->nombre)[0] != "LATAM" && json_decode($value->nombre)[0] != "Sky"){
+                        $resp[0]->total += $value->total;
+                    }
+                    if(json_decode($value->nombre)[0] == "Star Perú" || json_decode($value->nombre)[0] == "LATAM" || json_decode($value->nombre)[0] == "Sky"){
+                        $resp[$cont] =(object) [
+                            "nombre" => json_decode($value->nombre)[0],
+                            "total" => $value->total,
+                        ];
+                        $cont++;
+                    }
+                }
+            }
+
+            if($text == "Medio de Pago Seguro"){
+                $resp = [];
+                $resp[0] =(object) [
+                    "nombre" => "Otros",
+                    "total" => 0,
+                ];
+                
+                $cont = 1;
+                foreach ($data as $key => $value) {
+                    $totalAcum = $totalAcum + $value->total;
+                    if(json_decode($value->nombre)[0] != "Pago en efectivo" && json_decode($value->nombre)[0] != "Tarjeta de credito" && json_decode($value->nombre)[0] != "Tarjeta de debito" && json_decode($value->nombre)[0] != "Transferencia bancaria electronica" && json_decode($value->nombre)[0] != "PayPal"){
+                        $resp[0]->total += $value->total;
+                    }
+                    if(json_decode($value->nombre)[0] == "Pago en efectivo" || json_decode($value->nombre)[0] == "Tarjeta de credito" || json_decode($value->nombre)[0] == "Tarjeta de debito" || json_decode($value->nombre)[0] == "Transferencia bancaria electronica" || json_decode($value->nombre)[0] == "PayPal"){
+                        $resp[$cont] =(object) [
+                            "nombre" => json_decode($value->nombre)[0],
+                            "total" => $value->total,
+                        ];
+                        $cont++;
+                    }
+                }
+            }
+            if($text == "Tipo de Comprador"){
+                $resp = [];
+                $cont = 0;            
+                foreach ($data as $key => $value) {
+                    $totalAcum = $totalAcum + $value->total;
+                    if($value->nombre == "Compro sin importar el precio"){
+                        $resp[$cont] =(object) [
+                            "nombre" => "Impulsivos",
+                            "total" => $value->total,
+                        ];
+                    }
+                    if($value->nombre == "Compro pasajes  solo cuando encuentro ofertas"){
+                        $resp[$cont] =(object) [
+                            "nombre" => "Low Cost Shoppers",
+                            "total" => $value->total,
+                        ];
+                    }
+                    if($value->nombre == "Siempre comparo diferentes alternativas antes de comprar un pasaje"){
+                        $resp[$cont] =(object) [
+                            "nombre" => "Smart Shoppers",
+                            "total" => $value->total,
+                        ];
+                    }
+                    if($value->nombre == "Compro mis pasajes donde los encuentre disponibles y el proceso sea rápido"){
+                        $resp[$cont] =(object) [
+                            "nombre" => "Funcionales",
+                            "total" => $value->total,
+                        ];
+                    }
+                    if($value->nombre == "Compro mis pasajes con la aerolínea en la que siempre vuelo’"){
+                        $resp[$cont] =(object) [
+                            "nombre" => "Brand Lovers",
+                            "total" => $value->total,
+                        ];
+                    }
+                    $cont++;
                 }
             }
 
@@ -7149,6 +7233,10 @@ class Dashboard extends Generic
                 $dataCCSCard = $this->cbiResp($db, '', $dateIni, $dateEndIndicatorPrincipal, 'cbi', 'CCS');
                 $dataCCS = $this->graphCbi($db, date('m'), date('Y'), 'cbi', $dateIni, $dateEnd, $datafilters, 'two');
                 $csatDrv = $this->graphsStruct($dataCCS, 6, 'cbi', ["No Confían", "Neutro", "Confían" ,"CCS"]);
+                $bo15 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc1', "Medios de Transporte Anterior", 2, 4);
+                $bo16 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc2', "Aerolínea Anterior", 2, 4);
+                $bo17 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'mult1', "Tipo de Comprador", 2, 4);
+                $bo18 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc3', "Medio de Pago Seguro", 3, 4);
             }
 
             if ($db == 'adata_jet_com') {
