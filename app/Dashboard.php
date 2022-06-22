@@ -1863,11 +1863,7 @@ class Dashboard extends Generic
         if(substr($table, 6, 3) == 'ban' || substr($table, 6, 3) == 'vid')
             $activeP2 ='';
 
-        $data = DB::select("SELECT COUNT(CASE WHEN $indicador = 4 OR $indicador = 5 THEN 1 END)/COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END)*100 AS $indicador,
-                            COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END) as total,
-                            COUNT(CASE WHEN $indicador BETWEEN 1 AND 2 THEN 1 END) as Cnretorna,
-                            COUNT(CASE WHEN $indicador = 3 THEN 1 END) as Cnsabe,
-                            COUNT(CASE WHEN $indicador BETWEEN 4 AND 5 THEN 1 END) as Cretorna,
+        $data = DB::select("SELECT
                             ROUND(COUNT(CASE WHEN $indicador BETWEEN 1 AND 2 THEN 1 END)/COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END)*100) as nretorna,
                             ROUND(COUNT(CASE WHEN $indicador = 3 THEN 1 END)/COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END)*100) as nsabe,
                             ROUND(COUNT(CASE WHEN $indicador BETWEEN 4 AND 5 THEN 1 END)/COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END)*100) as retorna,
@@ -1884,9 +1880,9 @@ class Dashboard extends Generic
                 if ($struct != 'one') {
                     $graphCBI[] = [
                         //'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
-                        'xLegend'  => (string)$value->mes . '-' . $value->annio . ' (' . $value->total . ')',
+                        'xLegend'  => (string)$value->mes . '-' . $value->annio . ' (' . $value->retorna . ')',
                         'values'   => [
-                            $indicador => (string)ROUND($value->$indicador),
+                            $indicador => (string)ROUND($value->retorna),
                             'promoters' => (string)ROUND($value->retorna),
                             'neutrals' => (ROUND($value->retorna) == 0 && ROUND($value->nretorna) == 0) ? (string)ROUND($value->nsabe) : (string)(100 - ROUND($value->nretorna) - ROUND($value->retorna)),
                             'detractors' => (string)ROUND($value->nretorna)
@@ -1895,7 +1891,7 @@ class Dashboard extends Generic
                 }
                 if ($struct == 'one') {
                     $graphCBI[] = [
-                        "value" => (string)ROUND($value->$indicador)
+                        "value" => (string)ROUND($value->retorna)
                     ];
                 }
             }
