@@ -6278,8 +6278,8 @@ class Dashboard extends Generic
             $datafilters = " $datafilters";
 
         if ($this->_dbSelected == 'customer_colmena' &&  substr($survey, 0, 3) == 'mut') {    
-            $this->_valueMinAnomalias = (int)$dataNps[sizeof($dataNps)-1]['values']['nps'] - 20;
-            $this->_valueMaxAnomalias = (int)isset($dataNps[sizeof($dataNps)-1])? $dataNps[sizeof($dataNps)-1]['values']['nps'] + 30 : 0;
+            $this->_valueMinAnomalias = (int)isset($dataNps[sizeof($dataNps)-1]['values']['nps'])?$dataNps[sizeof($dataNps)-1]['values']['nps'] - 20 : 0;
+            $this->_valueMaxAnomalias = (int)isset($dataNps[sizeof($dataNps)-1]['values']['nps'])? $dataNps[sizeof($dataNps)-1]['values']['nps'] + 30 : 0;
 
             $resp = [
                 [
