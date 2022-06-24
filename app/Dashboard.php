@@ -697,7 +697,7 @@ class Dashboard extends Generic
             //JetSmart
             "jetvia" => "10",
             "jetcom" => "6",
-            "jetvue" => "6",
+            "jetvue" => "7",
             "jetcpe" => "6",
         ];
         if (array_key_exists($survey, $datas)) {
@@ -1867,6 +1867,7 @@ class Dashboard extends Generic
                             ROUND(COUNT(CASE WHEN $indicador BETWEEN 1 AND 2 THEN 1 END)/COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END)*100) as nretorna,
                             ROUND(COUNT(CASE WHEN $indicador = 3 THEN 1 END)/COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END)*100) as nsabe,
                             ROUND(COUNT(CASE WHEN $indicador BETWEEN 4 AND 5 THEN 1 END)/COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END)*100) as retorna,
+                            COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END) as total,
                             a.mes, a.annio, date_survey, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek, $this->_fieldSelectInQuery 
                             FROM $this->_dbSelected.$table as a
                             INNER JOIN $this->_dbSelected." . $table . "_start as b on a.token = b. token 
@@ -1879,8 +1880,7 @@ class Dashboard extends Generic
             
                 if ($struct != 'one') {
                     $graphCBI[] = [
-                        //'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Semana ' . $value->week . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
-                        'xLegend'  => (string)$value->mes . '-' . $value->annio . ' (' . $value->retorna . ')',
+                        'xLegend'  => (string)$value->mes . '-' . $value->annio . ' (' . $value->total . ')',
                         'values'   => [
                             $indicador => (string)ROUND($value->retorna),
                             'promoters' => (string)ROUND($value->retorna),
