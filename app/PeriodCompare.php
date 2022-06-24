@@ -103,6 +103,12 @@ class PeriodCompare
         $maxMediumCsat = $dash->getParams('_maxMediumCsat');
         $minMaxCsat    = $dash->getParams('_minMaxCsat');
         $maxMaxCsat    = $dash->getParams('_maxMaxCsat');
+
+        // $maxCes       = $dash->getParams('_maxCes');
+        // $minCes       = $dash->getParams('_minCes');
+        // $minMediumCes = $dash->getParams('_minMediumCes');
+        // $minMaxCes    = $dash->getParams('_minMaxCes');
+        
        
         $endCsat = $dash->getEndCsat($survey);
         $fieldBd = $dash->getFielInDbCsat($survey);
@@ -160,23 +166,18 @@ class PeriodCompare
 
             if(substr($db, 6, 7) != 'tra_via')
             {
-                if(substr($db, 6, 7) != 'jet_via'){
+                if(substr($db, 6, 7) != 'jet_com' && substr($db, 6, 7) != 'jet_vue'){
                     for ($i=1; $i <= $endCsat; $i++) 
                     {
                         if($i != $endCsat)
                         {
-                            $query .= " (COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL))-count(if($fieldBd$i <=  $maxCsat, $fieldBd$i, NULL)))* 100/COUNT(if($fieldBd$i !=99,1,NULL )) AS csat$i, 
-                                        (count(if($fieldBd$i <= $maxCsat, csat$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )) as detractor$i, 
-                                        (count(if($fieldBd$i > $maxMediumCsat AND $fieldBd$i <= $maxMaxCsat, $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )) as promotor$i, 
-                                        (count(if($fieldBd$i <= $maxMediumCsat AND csat$i >= $minMediumCsat, $fieldBd$i, NULL))*100)/COUNT(if($fieldBd$i !=99,1,NULL)) as neutral$i,";
+                            $query .= " ROUND(
+                                            (COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL)) - count(if($fieldBd$i <=  $maxCsat, $fieldBd$i, NULL))* 100) / COUNT(if($fieldBd$i !=99,1,NULL )), 0) AS csat$i, ";
                         }
                         
                         if($i == $endCsat)
                         {
-                            $query .= " (COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL))-count(if($fieldBd$i <=  $maxCsat, $fieldBd$i, NULL)))* 100/COUNT(if($fieldBd$i !=99,1,NULL )) AS csat$i, 
-                                        (count(if($fieldBd$i <=  $maxCsat, $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )) as detractor$i, 
-                                        (count(if($fieldBd$i > $maxMediumCsat AND $fieldBd$i <= $maxMaxCsat, $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )) as promotor$i, 
-                                        (count(if($fieldBd$i <= $maxMediumCsat AND $fieldBd$i >= $minMediumCsat, $fieldBd$i, NULL))*100)/COUNT(if($fieldBd$i !=99,1,NULL )) as neutral$i ";
+                            $query .= " ROUND((COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL))-count(if($fieldBd$i <=  $maxCsat, $fieldBd$i, NULL)))* 100/COUNT(if($fieldBd$i !=99,1,NULL )),0) AS csat$i ";
                         }
                     }
 
@@ -186,24 +187,16 @@ class PeriodCompare
 
                 }
 
-                if(substr($db, 6, 7) == 'jet_via')
+                if(substr($db, 6, 7) == 'jet_com' || substr($db, 6, 7) == 'jet_vue')
                 {
-                    for ($i=1; $i <= $endCsat; $i++) 
-                    {
-                        if ($i != $endCsat) 
-                        {
-                            $query .= " ROUND((COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL ))) AS  $fieldBd$i, 
-                                        ROUND(((count(if(csat$i between $minCsat and $maxCsat,  $fieldBd$i, NULL))*100)/count(case when csat$i != 99 THEN  csat$i END))) as detractor$i, 
-                                        ROUND(((count(if(csat$i  = $minMaxCsat  OR csat$i = $maxMaxCsat,  $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )))) as promotor$i, 
-                                        ROUND(((count(if(csat$i = $maxMediumCsat  or csat$i = $minMediumCsat,  $fieldBd$i, NULL))*100)/count(case when  $fieldBd$i != 99 THEN   $fieldBd$i END))) as neutral$i,";
-                        }
+                    $maxMaxCes    = $dash->getParams('_maxMaxCes');
+                    for ($i = 1; $i <= $endCsat; $i++) {
 
-                        if ($i == $endCsat) 
-                        {
-                            $query .= " ROUND((COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL ))) AS  $fieldBd$i, 
-                                        ROUND(((count(if(csat$i between $minCsat and $maxCsat,  $fieldBd$i, NULL))*100)/count(case when csat$i != 99 THEN  csat$i END))) as detractor$i, 
-                                        ROUND(((count(if(csat$i  = $minMaxCsat  OR csat$i = $maxMaxCsat,  $fieldBd$i, NULL))*100)/count(if($fieldBd$i !=99,1,NULL )))) as promotor$i, 
-                                        ROUND(((count(if(csat$i = $maxMediumCsat  or csat$i = $minMediumCsat,  $fieldBd$i, NULL))*100)/count(case when  $fieldBd$i != 99 THEN  $fieldBd$i END))) as neutral$i ";
+                        if ($i != $endCsat) {
+                            $query .= " ROUND((COUNT(if( $fieldBd$i = $maxMaxCes, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL )),0) AS  $fieldBd$i, ";
+                        }
+                        if ($i == $endCsat) {
+                            $query .= " ROUND((COUNT(if( $fieldBd$i = $maxMaxCes, $fieldBd$i, NULL))* 100)/COUNT(if($fieldBd$i !=99,1,NULL )),0) AS  $fieldBd$i ";
                         }
                     }
                 }
@@ -242,10 +235,10 @@ class PeriodCompare
                 for ($i=1; $i <= $endCsat; $i++) 
                 {
                     if ($i != $endCsat) {
-                        $query .= " ROUND(((COUNT(if($fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL)) - COUNT(CASE WHEN $fieldBd$i BETWEEN $minCsat AND  $maxCsat THEN 1 END))* 100)/COUNT(CASE WHEN $fieldBd$i BETWEEN $minCsat AND  $maxMaxCsat THEN 1 END)) AS  $fieldBd$i, ";
+                        $query .= " ROUND(((COUNT(if($fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL)) - COUNT(CASE WHEN $fieldBd$i BETWEEN $minCsat AND  $maxCsat THEN 1 END))* 100)/COUNT(CASE WHEN $fieldBd$i BETWEEN $minCsat AND  $maxMaxCsat THEN 1 END),0) AS  $fieldBd$i, ";
                     }
                     if ($i == $endCsat) {
-                        $query .= " ROUND(((COUNT(if($fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL)) - COUNT(CASE WHEN $fieldBd$i BETWEEN $minCsat AND  $maxCsat THEN 1 END))* 100)/COUNT(CASE WHEN $fieldBd$i BETWEEN $minCsat AND  $maxMaxCsat THEN 1 END)) AS  $fieldBd$i ";
+                        $query .= " ROUND(((COUNT(if($fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL)) - COUNT(CASE WHEN $fieldBd$i BETWEEN $minCsat AND  $maxCsat THEN 1 END))* 100)/COUNT(CASE WHEN $fieldBd$i BETWEEN $minCsat AND  $maxMaxCsat THEN 1 END),0) AS  $fieldBd$i ";
                     }
                 }
 

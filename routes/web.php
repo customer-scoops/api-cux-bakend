@@ -16,15 +16,16 @@ $router->group(['prefix' => 'api', 'middleware' => ['auth','throttle:10,1']], fu
         echo 'pase el token';
     });
     */
-    $router->get('/suite/tickets', 'SuiteController@getAll');
+    $router->get('/suite/tickets', ['middleware' => ['accessSuite','logUsers:suite'],  
+                  'uses' => 'SuiteController@getAll']);
     $router->get('/surveys', 'SuiteController@getSurvey');
     $router->get('/suite/indicators', 'SuiteController@getDataCards');
     $router->put('/suite', 'SuiteController@saveRegister');
     $router->put('/suite/banmedica', 'SuiteController@updateRegisterBanmedica');
   });
 // RUTAS API DASHBOARD
-$router->group(['prefix' => 'dashboard', 'middleware' => ['auth','throttle:10,1']], function () use ($router) {
-    $router->get('/general-resumen', ['middleware' => 'access',
+$router->group(['prefix' => 'dashboard', 'middleware'=> ['auth','throttle:10,1','accessDashboard']], function () use ($router) {
+    $router->get('/general-resumen', ['middleware' => 'logUsers:dashboard',
                   'uses' => 'DashboardController@index']);
     $router->get('/general-resumen-back-cards', 'DashboardController@indexBackCards');
     $router->get('/details-dashboard', 'DashboardController@detailsDash');
@@ -35,5 +36,7 @@ $router->group(['prefix' => 'dashboard', 'middleware' => ['auth','throttle:10,1'
     $router->get('/data-filters', 'DashboardController@filters');
     $router->get('/download-excel',['middleware' => 'download',
                   'uses' => 'DashboardController@downloadExcel'] );
+    $router->get('/download-excel-login',['middleware' => 'download',
+    'uses' => 'DashboardController@downloadExcelLogin'] );
   });
   

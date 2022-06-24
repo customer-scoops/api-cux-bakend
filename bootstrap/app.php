@@ -67,10 +67,12 @@ $app->singleton(
 // ]);
 
 $app->routeMiddleware([
-    'auth'      => App\Http\Middleware\Auth0Middleware::class,
-    'throttle'  => App\Http\Middleware\ThrottleMiddleware::class,
-    'download'  => App\Http\Middleware\RoleDownloadMiddleware::class,
-    'access'    => App\Http\Middleware\RoleDashOrSuiteMiddleware::class,
+    'auth'                  => App\Http\Middleware\Auth0Middleware::class,
+    'throttle'              => App\Http\Middleware\ThrottleMiddleware::class,
+    'download'              => App\Http\Middleware\RoleDownloadMiddleware::class,
+    'accessSuite'           => App\Http\Middleware\RoleSuiteMiddleware::class,
+    'accessDashboard'       => App\Http\Middleware\RoleDashboardMiddleware::class,
+    'logUsers'              => App\Http\Middleware\LogUsers::class,
 ]);
 
 $app->middleware([
