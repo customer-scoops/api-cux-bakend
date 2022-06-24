@@ -2035,7 +2035,7 @@ class Dashboard extends Generic
     {
         if ($datafilters)
             $datafilters = " AND $datafilters";
-
+ 
         $data = DB::select("SELECT COUNT(CASE WHEN a.$indicatorCBI BETWEEN 1 AND 5 THEN 1 END) as Total, 
                             ROUND(COUNT(CASE WHEN a.$indicatorCBI BETWEEN 4 AND 5 THEN 1 END) * 100 /
                             COUNT(CASE WHEN a.$indicatorCBI BETWEEN 1 AND 5 THEN 1 END)) AS CBI,
@@ -7183,12 +7183,12 @@ class Dashboard extends Generic
             if ($db == 'adata_jet_via') {
                 $jetNamesFrecVuelo = [
                     'title' => 'Frecuencia de Vuelo',
-                    'data' => $this->arrayPushToValues([],['1 / semana', '2-3 / mes', '1 / mes', '2+ al  año','1 / año', 'Act. no viajo'],'frec2', ["plane"])
+                    'data' => $this->arrayPushToValues([],['2-3 / mes', 'Act. no viajo', '1 / semana', '1 / año', '1 / mes', '2+ al  año'],'frec2', ["plane"])
                 ];
 
                 $jetNamesLab = [
                     'title' => 'Situación Laboral',
-                    'data' =>  $this->arrayPushToValues([],['Cesante', 'Empleado', 'Emprendedor', 'Estudiante', 'Ret/Jub'], 'laboral', ["star"])
+                    'data' =>  $this->arrayPushToValues([],['Cesante', 'Empleado', 'Estudiante', 'Ret/Jub', 'Emprendedor'], 'laboral', ["star"])
                 ];
 
                 $jetNamesGene = [
