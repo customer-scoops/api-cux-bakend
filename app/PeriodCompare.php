@@ -166,7 +166,7 @@ class PeriodCompare
 
             if(substr($db, 6, 7) != 'tra_via')
             {
-                if(substr($db, 6, 7) != 'jet_com' && substr($db, 6, 7) != 'jet_vue' && substr($db, 6, 7) != 'jet_via'){
+                if(substr($db, 6, 7) != 'jet_com' && substr($db, 6, 7) != 'jet_vue' && substr($db, 6, 7) != 'jet_via' && substr($db, 6, 7) != 'jet_cpe'){
                     for ($i=1; $i <= $endCsat; $i++) 
                     {
                         if($i != $endCsat)
@@ -204,7 +204,7 @@ class PeriodCompare
 
                 }
 
-                if(substr($db, 6, 7) == 'jet_com' || substr($db, 6, 7) == 'jet_vue')
+                if(substr($db, 6, 7) == 'jet_com' || substr($db, 6, 7) == 'jet_vue' || substr($db, 6, 7) == 'jet_cpe')
                 {
                     $maxMaxCes    = $dash->getParams('_maxMaxCes');
                     for ($i = 1; $i <= $endCsat; $i++) {

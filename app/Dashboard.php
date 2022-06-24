@@ -4451,10 +4451,10 @@ class Dashboard extends Generic
 
         if(substr($db, 6, 3) == 'jet' && substr($db, 10, 3) == 'cpe' && $indicatorCSAT == "csat1")
         {
-            $query .= " ROUND((COUNT(if(ces = $this->_maxMaxCes, ces, NULL))* 100)/COUNT(if(ces !=99,1,NULL )),0) AS ces, 
-                        ROUND(((count(if(ces between $this->_minCes and $this->_minMediumCes,  ces, NULL))*100)/count(case when ces != 99 THEN  ces END)),0) as cesdetractor, 
-                        ROUND(((count(if(ces = $this->_maxMaxCes, ces, NULL))*100)/count(if(ces !=99,1,NULL ))),0) as cespromotor, 
-                        ROUND(((count(if(ces = $this->_minMaxCes  or ces = $this->_minMaxCes,  ces, NULL))*100)/count(case when  ces != 99 THEN   ces END)),0) as cesneutral,";
+            $query .= " ROUND(((COUNT(CASE WHEN ces BETWEEN $this->_minMaxCes AND $this->_maxMaxCes THEN 1 END) - COUNT(CASE WHEN ces BETWEEN $this->_minCes AND $this->_maxCes THEN 1 END))* 100 / COUNT(CASE WHEN ces BETWEEN $this->_minCes AND $this->_maxMaxCes THEN 1 END)),0) AS ces, 
+                        ROUND(((COUNT(CASE WHEN ces BETWEEN $this->_minCes AND $this->_maxCes THEN 1 END) * 100) / COUNT(CASE WHEN ces BETWEEN $this->_minCes AND $this->_maxMaxCes THEN 1 END)),0) as cesdetractor, 
+                        ROUND(((COUNT(CASE WHEN ces BETWEEN $this->_minMaxCes AND $this->_maxMaxCes THEN 1 END) *100)/COUNT(CASE WHEN ces BETWEEN $this->_minCes AND $this->_maxMaxCes THEN 1 END)),0) as cespromotor, 
+                        ROUND(((COUNT(CASE WHEN ces = $this->_minMediumCes THEN 1 END)*100)/COUNT(CASE WHEN ces BETWEEN $this->_minCes AND $this->_maxMaxCes THEN 1 END)),0) as cesneutral,";
         }
 
         for ($i = 1; $i <= $endCsatAtr["end"]; $i++) {
@@ -4480,7 +4480,7 @@ class Dashboard extends Generic
                            ROUND(((count(if($indAtrib = $this->_minMaxCes  or $indAtrib = $this->_minMaxCes,  $indAtrib, NULL))*100)/count(case when  $indAtrib != 99 THEN  $indAtrib END)),0) as neutral$i ";
             }
         }
-
+     
         $data = DB::select("SELECT $query,date_survey
             FROM $this->_dbSelected.$db as A
             LEFT JOIN $this->_dbSelected." . $db . "_start as b
@@ -4521,10 +4521,10 @@ class Dashboard extends Generic
                     'xLegend'  => $endCsatAtr["names"][3],
                     'values' =>
                     [
-                        "promoters"     => round($data[0]->ces),
+                        "promoters"     => round($data[0]->cespromotor),
                         "neutrals"      => ($data[0]->cespromotor == 0 && $data[0]->cesdetractor == 0) ? round(round($data[0]->cesneutral)) : round(100 - (round($data[0]->cesdetractor) + round($data[0]->cespromotor))),
                         "detractors"    => round($data[0]->cesdetractor),
-                        "csat"          => 'CES: '.strval(round($data[0]->promotor))
+                        "csat"          => 'CES: '.strval(round($data[0]->ces))
                     ]
                 ];
             }
@@ -6217,7 +6217,7 @@ class Dashboard extends Generic
         $data = DB::select("SELECT COUNT(CASE  WHEN JSON_CONTAINS(`aero1`,'".'"'."JetSMART".'"'."','$[0]') THEN 1 END) as pos1, COUNT(CASE WHEN aero1 != 99 AND aero1 != 'NULL' THEN 1 END) as total 
                             FROM $this->_dbSelected.$db 
                             WHERE  date_survey BETWEEN '$dateIni' AND '$dateEnd' AND etapaencuesta = 'P2'");
-                            
+
         $values = [];
 
         $values['Preferencia'][0][0]['Indicator']            = 'Resultado';
