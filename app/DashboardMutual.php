@@ -114,21 +114,18 @@ class DashboardMutual extends Dashboard
     }
 
     private function resumenNpsM2($resp){
-        //print_r(substr($resp[sizeof($resp)-1]['xLegend'],4,1));
-        //echo date('m', strtotime('2022-'.substr($resp[sizeof($resp)-1]['xLegend'],4,1)).'-01');
-        //echo date('n');
         $sum = $count = 0;
-    
-        foreach ($resp as $key => $value) {
-            $count++;
-            $sum += $value['values']['nps'];
-
-            $graphNPS[] = [
-                "value" => $value['values']['nps']
-            ];
-        }
 
         if($resp != null){
+            foreach ($resp as $key => $value) {
+                $count++;
+                $sum += $value['values']['nps'];
+    
+                $graphNPS[] = [
+                    "value" => $value['values']['nps']
+                ];
+            }
+
             return [
                 "name"              => "nps",
                 "value"             => $resp[sizeof($resp)-1]['values']['nps'] != null ? $resp[sizeof($resp)-1]['values']['nps'] : 'N/A',
@@ -1240,7 +1237,7 @@ class DashboardMutual extends Dashboard
                 }
 
                 if(empty($jwt[env('AUTH0_AUD')]->gerenciaMedica)){
-                $data = DB::select("SELECT DISTINCT(gerenciamedica)
+                $data = DB::select("SELECT UPPER(DISTINCT(gerenciamedica))
                                     FROM ".$this->getValueParams('_dbSelected').".adata_mut_" . $dbC . "_start
                                     WHERE gerenciamedica != '' and gerenciamedica != '1' and gerenciamedica != '0'");
                                     

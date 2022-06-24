@@ -6477,7 +6477,7 @@ class Dashboard extends Generic
                 [
                     "name"    => 'nps',
                     "value"   => isset($dataNps[sizeof($dataNps)-1]['values']['nps'])?$dataNps[sizeof($dataNps)-1]['values']['nps']:0,
-                    "m2m"     => (int)isset($dataNps[sizeof($dataNps)-1]['values']['nps'])?$dataNps[sizeof($dataNps)-1]['values']['nps'] - $dataNps[sizeof($dataNps)-2]['values']['nps']:0,
+                    "m2m"     => (int)isset($dataNps[sizeof($dataNps)-1]['values']['nps']) && isset($dataNps[sizeof($dataNps)-2]['values']['nps'])?$dataNps[sizeof($dataNps)-1]['values']['nps'] - $dataNps[sizeof($dataNps)-2]['values']['nps']:0,
                 ],
                 [
                     "name"    => $dataCsat['name'],
