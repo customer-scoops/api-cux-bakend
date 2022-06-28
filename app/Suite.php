@@ -37,10 +37,11 @@ class Suite
     public function saveUpdate($request, $jwt)
     {
         $rules = [
-            "survey" => 'required|string|max:6',
-            "ticket" => 'required|numeric',
-            "status" => 'required|numeric',
-            "detail" => 'required|string'
+            "survey"    => 'required|string|max:6',
+            "ticket"    => 'required|numeric',
+            "status"    => 'required|numeric',
+            "npsCierre" => 'numeric',
+            "detail"    => 'required|string'
         ];
 
         $validator = \Validator::make($request->all(), $rules);
@@ -51,11 +52,17 @@ class Suite
             ];
         }
         try {
-            $resp = DB::table($this->_dbSelected.'.'.'adata_'.substr($request->survey,0,3).'_'.substr($request->survey,3,6).'_start')->where('id', $request->ticket)->update(['estado_close' => $request->status, 'det_close' => $request->detail, 'fec_close'=>date('Y-m-d')]);
-            //echo $resp;
-            if($resp===1){
-                $namev = DB::table($this->_dbSelected.'.'.'adata_'.substr($request->survey,0,3).'_'.substr($request->survey,3,6).'_start')->where('id', $request->ticket)->first();
-                $this->sendedmail($namev->nom, $namev->mail, $namev->token, $request->survey);
+
+            if(substr($request->survey,0,3) != 'tra'){
+                $resp = DB::table($this->_dbSelected.'.'.'adata_'.substr($request->survey,0,3).'_'.substr($request->survey,3,6).'_start')->where('id', $request->ticket)->update(['estado_close' => $request->status, 'det_close' => $request->detail, 'fec_close'=>date('Y-m-d')]);
+                if($resp===1){
+                    $namev = DB::table($this->_dbSelected.'.'.'adata_'.substr($request->survey,0,3).'_'.substr($request->survey,3,6).'_start')->where('id', $request->ticket)->first();
+                    $this->sendedmail($namev->nom, $namev->mail, $namev->token, $request->survey);
+                }
+            }
+
+            if(substr($request->survey,0,3) == 'tra'){
+                $resp = DB::table($this->_dbSelected.'.'.'adata_'.substr($request->survey,0,3).'_'.substr($request->survey,3,6).'_start')->where('id', $request->ticket)->update(['estado_close' => $request->status, 'det_close' => $request->detail, 'fec_close'=>date('Y-m-d'), 'cod_auth' => $request->npsCierre]);
             }
             return[
                 'datas'  => 'complet',
@@ -83,17 +90,17 @@ class Suite
     {   
 
         try{
-            //$codCustomer = ($jwt[env('AUTH0_AUD')]->client === null) ? 'BAN001' : $jwt[env('AUTH0_AUD')]->client;
             $codCustomer = $jwt[env('AUTH0_AUD')]->client;
-            //echo $codCustomer;exit;  
             if($request->get('company') !== null){
                 $codCustomer = $this->getCompany($request->get('company'));
             }
             $db = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1);
+  
             if (isset($jwt[env('AUTH0_AUD')]->surveysActive)) {
                 foreach ($jwt[env('AUTH0_AUD')]->surveysActive as $key => $value) {
                     $surv[] = $value; 
                 }
+
                 $db->whereIn('codDbase',$surv);
                 unset($surv);
             }
@@ -722,7 +729,7 @@ class Suite
             $this->_startMinNps = 0;
             $this->_startMaxNps = 6;
             $this->_nameClient = 'Transvip';
-            $this->_daysActiveSurvey = -7;
+            $this->_daysActiveSurvey = -30;
         }
         if($client == 'JET001'){
             $this->_dateStartClient = '2022-01-01';
