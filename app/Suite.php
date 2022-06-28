@@ -729,7 +729,7 @@ class Suite
             $this->_startMinNps = 0;
             $this->_startMaxNps = 6;
             $this->_nameClient = 'Transvip';
-            $this->_daysActiveSurvey = -30;
+            $this->_daysActiveSurvey = -7;
         }
         if($client == 'JET001'){
             $this->_dateStartClient = '2022-01-01';
