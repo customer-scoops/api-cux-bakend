@@ -4643,18 +4643,12 @@ class Dashboard extends Generic
                         COUNT(CASE WHEN a.$cbiInDb BETWEEN $this->_minCes AND $this->_maxMaxCes THEN 1 END),0) AS CBI
                         FROM $this->_dbSelected.$db as a
                         LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token
-                        WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and $fieldFilter != 99 and nps!= 99 and csat!= 99 and etapaencuesta = 'P2' $datafilters";
+                        WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and json_contains(`opc3`, '" . '"'. $text . '"'. "', '$') and nps!= 99 and csat!= 99 and etapaencuesta = 'P2' $datafilters";
         }
 
         if(substr($db, 6, 7) == 'jet_cpe' && $text == 'Otros'){
             $query = "SELECT 
-                        COUNT( CASE WHEN opc3 != 99 THEN 1 END ) - (
-                        COUNT( CASE WHEN json_contains(`opc3`, 'Pago en efectivo', '$') THEN 1 END ) +
-                        COUNT( CASE WHEN json_contains(`opc3`, 'Tarjeta de credito', '$') THEN 1 END ) +
-                        COUNT( CASE WHEN json_contains(`opc3`, 'Tarjeta de debito', '$') THEN 1 END ) +
-                        COUNT( CASE WHEN json_contains(`opc3`, 'Transferencia bancaria electronica', '$') THEN 1 END ) +
-                        COUNT( CASE WHEN json_contains(`opc3`, 'PayPal', '$') THEN 1 END )) 
-                        as Total,
+                        COUNT( CASE WHEN opc3 != 99 THEN 1 END ) as Total,
                         ROUND(((COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
                         COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
                         COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minNps AND $this->_maxMaxNps THEN 1 END) * 100),0) AS NPS,
@@ -4664,7 +4658,13 @@ class Dashboard extends Generic
                         COUNT(CASE WHEN a.$cbiInDb BETWEEN $this->_minCes AND $this->_maxMaxCes THEN 1 END),0) AS CBI
                         FROM $this->_dbSelected.$db as a
                         LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token
-                        WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and $fieldFilter != 99 and nps!= 99 and csat!= 99 and etapaencuesta = 'P2' $datafilters";
+                        WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and 
+                        json_contains(`opc3`, '" . '"' . "Pago en efectivo". '"' . "', '$') != 1 and
+                        json_contains(`opc3`, '" . '"' . "Tarjeta de credito" . '"' . "', '$') != 1 and
+                        json_contains(`opc3`, '" . '"' . "Tarjeta de debito". '"' . "', '$') != 1 and
+                        json_contains(`opc3`, '" . '"' . "Transferencia bancaria electronica" . '"' . "', '$') != 1 and
+                        json_contains(`opc3`, '" . '"' . "PayPal" . '"' . "', '$') != 1 
+                        and nps!= 99 and csat!= 99 and etapaencuesta = 'P2' $datafilters";       
         }
                         
         $data = $data = DB::select($query);
@@ -4686,17 +4686,20 @@ class Dashboard extends Generic
             $statsCheckIn   = $this->statsJetSmart($db, $npsInDb, $csatInDb,  $cbiInDb,$dateIni, $dateEnd, 'b.hasach', 'Check-in Aeropuerto',$datafilters);
             $statsEmbPriori = $this->statsJetSmart($db, $npsInDb, $csatInDb,  $cbiInDb,$dateIni, $dateEnd, 'b.haspbd', 'Embarque prioritario',$datafilters);
             $data = [$statsEmbAero, $statsCheckIn, $statsEmbPriori];
+            $height = 2;
         }
 
         if(substr($db, 6, 7) == 'jet_cpe'){
-            $statsEfectivo   = $this->statsJetSmart($db, $npsInDb, $csatInDb,  $cbiInDb,$dateIni, $dateEnd, 'opc3', 'Pago en efectivo',$datafilters);
+            $statsEfectivo  = $this->statsJetSmart($db, $npsInDb, $csatInDb,  $cbiInDb,$dateIni, $dateEnd, 'opc3', 'Pago en efectivo',$datafilters);
             $statsCredito   = $this->statsJetSmart($db, $npsInDb, $csatInDb,  $cbiInDb,$dateIni, $dateEnd, 'opc3', 'Tarjeta de credito',$datafilters);
-            $statsDebito   = $this->statsJetSmart($db, $npsInDb, $csatInDb,  $cbiInDb,$dateIni, $dateEnd, 'opc3', 'Tarjeta de debito',$datafilters);
-            $statsBancaria   = $this->statsJetSmart($db, $npsInDb, $csatInDb,  $cbiInDb,$dateIni, $dateEnd, 'opc3', 'Transferencia bancaria electronica',$datafilters);
-            $statsPayPal   = $this->statsJetSmart($db, $npsInDb, $csatInDb,  $cbiInDb,$dateIni, $dateEnd, 'opc3', 'PayPal',$datafilters);
+            $statsDebito    = $this->statsJetSmart($db, $npsInDb, $csatInDb,  $cbiInDb,$dateIni, $dateEnd, 'opc3', 'Tarjeta de debito',$datafilters);
+            $statsBancaria  = $this->statsJetSmart($db, $npsInDb, $csatInDb,  $cbiInDb,$dateIni, $dateEnd, 'opc3', 'Transferencia bancaria electronica',$datafilters);
+            $statsPayPal    = $this->statsJetSmart($db, $npsInDb, $csatInDb,  $cbiInDb,$dateIni, $dateEnd, 'opc3', 'PayPal',$datafilters);
+            $statsOtros     = $this->statsJetSmart($db, $npsInDb, $csatInDb,  $cbiInDb,$dateIni, $dateEnd, 'opc3', 'Otros',$datafilters);
           
             
-            $data = [$statsEmbAero, $statsCheckIn, $statsEmbPriori];
+            $data = [$statsEfectivo, $statsCredito, $statsDebito, $statsBancaria, $statsPayPal, $statsOtros];
+            $height = 3;
         }
         $standarStruct = [
             [
@@ -4722,7 +4725,7 @@ class Dashboard extends Generic
         ];
 
         return [
-            "height" =>  2,
+            "height" => $height,
             "width" =>  8,
             "type" =>  "tables",
             "props" =>  [
