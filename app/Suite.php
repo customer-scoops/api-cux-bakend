@@ -439,6 +439,7 @@ class Suite
         curl_close($curl);
         echo $response;
     }
+    
     public function getInformationDriver($searchDriver){
         $datas = [
             "banamb_csat1" => "Satisfacción agendamiento",
