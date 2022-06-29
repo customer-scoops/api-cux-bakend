@@ -7280,15 +7280,15 @@ class Dashboard extends Generic
                 $bo17 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Inconveniente antes de llegar al aeropuerto", 2, 4);
                 $bo18 = $this->rankingInconvLlegada($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Tipo Inconveniente", 2, 4);
                 $bo19 = $this->statsJetSmartResp($db, $npsInDb, $csatInDb, 'cbi',$dateIni, $startDateFilterMonth, $datafilters);
-                $dataCCS = $this->graphCbi($db, date('m'), date('Y'), 'csat8', $dateIni, $dateEnd, $datafilters, 'two');
-                $csatJour = $this->graphsStruct($dataCCS, 12, 'csat8', ["No Confían", "Neutro", "Confían" ,"CCS"]);
-                $dataCCSCard = $this->cbiResp($db, '', $dateIni, $dateEndIndicatorPrincipal, 'csat8', 'CCS');
+                $dataCCS = $this->graphCbi($db, date('m'), date('Y'), 'ccs', $dateIni, $dateEnd, $datafilters, 'two');
+                $csatJour = $this->graphsStruct($dataCCS, 12, 'ccs', ["No Confían", "Neutro", "Confían" ,"CCS"]);
+                $dataCCSCard = $this->cbiResp($db, '', $dateIni, $dateEndIndicatorPrincipal, 'ccs', 'CCS');
             }
 
             if ($db == 'adata_jet_cpe') {
-                $dataCCSCard = $this->cbiResp($db, '', $dateIni, $dateEndIndicatorPrincipal, 'cbi', 'CCS');
-                $dataCCS = $this->graphCbi($db, date('m'), date('Y'), 'cbi', $dateIni, $dateEnd, $datafilters, 'two');
-                $csatDrv = $this->graphsStruct($dataCCS, 6, 'cbi', ["No Confían", "Neutro", "Confían" ,"CCS"]);
+                $dataCCSCard = $this->cbiResp($db, '', $dateIni, $dateEndIndicatorPrincipal, 'ccs', 'CCS');
+                $dataCCS = $this->graphCbi($db, date('m'), date('Y'), 'ccs', $dateIni, $dateEnd, $datafilters, 'two');
+                $csatDrv = $this->graphsStruct($dataCCS, 6, 'ccs', ["No Confían", "Neutro", "Confían" ,"CCS"]);
                 $bo15 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc1', "Medios de Transporte Anterior", 2, 4);
                 $bo16 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc2', "Aerolínea Anterior", 2, 4);
                 $bo17 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'mult1', "Tipo de Comprador", 2, 4);
