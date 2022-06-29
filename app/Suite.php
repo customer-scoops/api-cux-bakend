@@ -234,7 +234,7 @@ class Suite
     {
         //echo $this->_jwt[env('AUTH0_AUD')]->client;
         $validFilterKeys    = array("nps","csat","estado", "dateSchedule", "nps_cierre"); // <-- keys habilitadas para filtrar
-        $validOrderKeys     = array("nps", "date","csat"); // <-- keys habilitadas para Ordenar
+        $validOrderKeys     = array("nps", "date", "csat", "nps_cierre"); // <-- keys habilitadas para Ordenar
         
         try{
             //$client = ($request->get('company') !== null) ? $request->get('company'): $jwt[env('AUTH0_AUD')]->client;
@@ -320,6 +320,8 @@ class Suite
                         }
                     }
                 }
+            } else {
+                $dbQuery->orderBy('estado',  "asc");
             }
 
             $resp = $dbQuery->paginate(10);
