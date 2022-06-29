@@ -260,12 +260,13 @@ class Suite
                 if(in_array('Loyalty',$jwt[env('AUTH0_AUD')]->roles)){
                     $dbQuery->where('ejecutivo', $jwt[env('AUTH0_AUD')]->email);
                 }
-            
-            // Filtramos
+                // Filtramos
+            $fechaAgendada= false;
             if($request->get('filters') !== null) {
                 $filters = (json_decode($request->get('filters')));
                 if ($filters) {
                     foreach ($filters as $key => $value) {
+                        
                         if($value->key == 'typeClient')
                         {
                             if($value->value == 'detractor')
@@ -276,6 +277,9 @@ class Suite
                                 $dbQuery->whereBetween('nps', [9,10]);
                         }
                         if(in_array($value->key, $validFilterKeys)) {
+                            if($value->key == "dateSchedule"){
+                                $fechaAgendada = true;
+                            }
                             $dbQuery->where($value->key,  $value->value);
                         }
                     }
@@ -293,7 +297,7 @@ class Suite
                 $startDate = $request->get('startDate');
                 // TODO validar startDate
                 $dbQuery->where('date', '>', $startDate);
-            } else {
+            } else if(!$fechaAgendada) {
                 $dbQuery->where('date', '>', date('Y-m-d', strtotime(date('Y-m-d')."$this->_daysActiveSurvey days")));
             }
 
@@ -319,6 +323,7 @@ class Suite
             }
 
             $resp = $dbQuery->paginate(10);
+            
         }catch (\Throwable $e) {
             return $data = [
                 'datas'  => $e->getMessage(),
@@ -329,7 +334,7 @@ class Suite
         if($resp)
         {
             foreach ($resp as $key => $value) {
-                // print_r($value);
+ 
                  $journey=[];
                 for ($i=1; $i <= 11; $i++) { 
                     //echo($value->csat1);
@@ -446,6 +451,7 @@ class Suite
         curl_close($curl);
         echo $response;
     }
+    
     public function getInformationDriver($searchDriver){
         $datas = [
             "banamb_csat1" => "Satisfacción agendamiento",

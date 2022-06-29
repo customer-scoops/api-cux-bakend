@@ -4616,38 +4616,97 @@ class Dashboard extends Generic
         return $resp;
     }
 
-    private function statsJetSmart($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, $fieldFilter, $text, $datafilters = null)
+    private function statsJetSmart($db, $npsInDb, $csatInDb,  $cbiInDb,$dateIni, $dateEnd, $fieldFilter, $text, $datafilters = null)
     {
-        
-        $query = "SELECT COUNT($fieldFilter != 0) as Total,
-                      ROUND(((COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
-                      COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
-                      COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minNps AND $this->_maxMaxNps THEN 1 END) * 100),0) AS NPS,
-                      ROUND(COUNT(CASE WHEN a.$csatInDb BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN 1 END)* 100/
-                      COUNT(CASE WHEN a.$csatInDb BETWEEN $this->_minCsat AND $this->_maxMaxCsat THEN 1 END),0) AS CSAT
-                      FROM $this->_dbSelected.$db as a
-                      LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token
-                      WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and $fieldFilter != 0 and nps!= 99 and csat!= 99 and etapaencuesta = 'P2' $datafilters";
+        if(substr($db, 6, 7) == 'jet_vue'){
+            $query = "SELECT COUNT($fieldFilter != 0) as Total,
+                        ROUND(((COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
+                        COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
+                        COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minNps AND $this->_maxMaxNps THEN 1 END) * 100),0) AS NPS,
+                        ROUND(COUNT(CASE WHEN a.$csatInDb BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN 1 END)* 100/
+                        COUNT(CASE WHEN a.$csatInDb BETWEEN $this->_minCsat AND $this->_maxMaxCsat THEN 1 END),0) AS CSAT,
+                        ROUND(COUNT(CASE WHEN a.$cbiInDb BETWEEN $this->_minMaxCes AND $this->_maxMaxCes THEN 1 END)* 100/
+                        COUNT(CASE WHEN a.$cbiInDb BETWEEN $this->_minCes AND $this->_maxMaxCes THEN 1 END),0) AS CBI
+                        FROM $this->_dbSelected.$db as a
+                        LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token
+                        WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and $fieldFilter != 0 and nps!= 99 and csat!= 99 and etapaencuesta = 'P2' $datafilters";
+        }
 
+        if(substr($db, 6, 7) == 'jet_cpe' && $text != 'Otros'){
+            $query = "SELECT COUNT( CASE WHEN json_contains(`opc3`, '" . '"'. $text . '"'. "', '$') THEN 1 END ) as Total,
+                        ROUND(((COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
+                        COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
+                        COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minNps AND $this->_maxMaxNps THEN 1 END) * 100),0) AS NPS,
+                        ROUND(COUNT(CASE WHEN a.$csatInDb BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN 1 END)* 100/
+                        COUNT(CASE WHEN a.$csatInDb BETWEEN $this->_minCsat AND $this->_maxMaxCsat THEN 1 END),0) AS CSAT,
+                        ROUND(COUNT(CASE WHEN a.$cbiInDb BETWEEN $this->_minMaxCes AND $this->_maxMaxCes THEN 1 END)* 100/
+                        COUNT(CASE WHEN a.$cbiInDb BETWEEN $this->_minCes AND $this->_maxMaxCes THEN 1 END),0) AS CBI
+                        FROM $this->_dbSelected.$db as a
+                        LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token
+                        WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and json_contains(`opc3`, '" . '"'. $text . '"'. "', '$') and nps!= 99 and csat!= 99 and etapaencuesta = 'P2' $datafilters";
+        }
+
+        if(substr($db, 6, 7) == 'jet_cpe' && $text == 'Otros'){
+            $query = "SELECT 
+                        COUNT( CASE WHEN opc3 != 99 THEN 1 END ) as Total,
+                        ROUND(((COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
+                        COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
+                        COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minNps AND $this->_maxMaxNps THEN 1 END) * 100),0) AS NPS,
+                        ROUND(COUNT(CASE WHEN a.$csatInDb BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN 1 END)* 100/
+                        COUNT(CASE WHEN a.$csatInDb BETWEEN $this->_minCsat AND $this->_maxMaxCsat THEN 1 END),0) AS CSAT,
+                        ROUND(COUNT(CASE WHEN a.$cbiInDb BETWEEN $this->_minMaxCes AND $this->_maxMaxCes THEN 1 END)* 100/
+                        COUNT(CASE WHEN a.$cbiInDb BETWEEN $this->_minCes AND $this->_maxMaxCes THEN 1 END),0) AS CBI
+                        FROM $this->_dbSelected.$db as a
+                        LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token
+                        WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and 
+                        json_contains(`opc3`, '" . '"' . "Pago en efectivo". '"' . "', '$') != 1 and
+                        json_contains(`opc3`, '" . '"' . "Tarjeta de credito" . '"' . "', '$') != 1 and
+                        json_contains(`opc3`, '" . '"' . "Tarjeta de debito". '"' . "', '$') != 1 and
+                        json_contains(`opc3`, '" . '"' . "Transferencia bancaria electronica" . '"' . "', '$') != 1 and
+                        json_contains(`opc3`, '" . '"' . "PayPal" . '"' . "', '$') != 1 
+                        and nps!= 99 and csat!= 99 and etapaencuesta = 'P2' $datafilters";       
+        }
+                        
         $data = $data = DB::select($query);
 
-                $resp = [
-                    "text"      => $text,
-                    "nps"       => !$data[0]->NPS ? 'N/A' : ROUND($data[0]->NPS) . " %",
-                    "csat"      => !$data[0]->CSAT ? 'N/A' : ROUND($data[0]->CSAT) . " %",
-                    "quantity"  => $data[0]->Total,
-                ];
-
+        $resp = [
+            "text"      => $text,
+            "cbi"       => !$data[0]->CBI ? 'N/A' : ROUND($data[0]->CBI) . " %",
+            "nps"       => !$data[0]->NPS ? 'N/A' : ROUND($data[0]->NPS) . " %",
+            "csat"      => !$data[0]->CSAT ? 'N/A' : ROUND($data[0]->CSAT) . " %",
+            "quantity"  => $data[0]->Total,
+        ];
         return $resp;
     }
 
-    private function statsJetSmartResp($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, $datafilters = null)
+    private function statsJetSmartResp($db, $npsInDb, $csatInDb, $cbiInDb,$dateIni, $dateEnd, $datafilters = null)
     {
-        $statsEmbAero   = $this->statsJetSmart($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, 'b.hasbag', 'Entraga equipaje Aeropuerto',$datafilters);
-        $statsCheckIn   = $this->statsJetSmart($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, 'b.hasach', 'Check-in Aeropuerto',$datafilters);
-        $statsEmbPriori = $this->statsJetSmart($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, 'b.haspbd', 'Embarque prioritario',$datafilters);
-        $data = [$statsEmbAero, $statsCheckIn, $statsEmbPriori];
+        if(substr($db, 6, 7) == 'jet_vue'){
+            $statsEmbAero   = $this->statsJetSmart($db, $npsInDb, $csatInDb,  $cbiInDb,$dateIni, $dateEnd, 'b.hasbag', 'Entraga equipaje Aeropuerto',$datafilters);
+            $statsCheckIn   = $this->statsJetSmart($db, $npsInDb, $csatInDb,  $cbiInDb,$dateIni, $dateEnd, 'b.hasach', 'Check-in Aeropuerto',$datafilters);
+            $statsEmbPriori = $this->statsJetSmart($db, $npsInDb, $csatInDb,  $cbiInDb,$dateIni, $dateEnd, 'b.haspbd', 'Embarque prioritario',$datafilters);
+            $data = [$statsEmbAero, $statsCheckIn, $statsEmbPriori];
+            $height = 2;
+        }
+
+        if(substr($db, 6, 7) == 'jet_cpe'){
+            $statsEfectivo  = $this->statsJetSmart($db, $npsInDb, $csatInDb,  $cbiInDb,$dateIni, $dateEnd, 'opc3', 'Pago en efectivo',$datafilters);
+            $statsCredito   = $this->statsJetSmart($db, $npsInDb, $csatInDb,  $cbiInDb,$dateIni, $dateEnd, 'opc3', 'Tarjeta de credito',$datafilters);
+            $statsDebito    = $this->statsJetSmart($db, $npsInDb, $csatInDb,  $cbiInDb,$dateIni, $dateEnd, 'opc3', 'Tarjeta de debito',$datafilters);
+            $statsBancaria  = $this->statsJetSmart($db, $npsInDb, $csatInDb,  $cbiInDb,$dateIni, $dateEnd, 'opc3', 'Transferencia bancaria electronica',$datafilters);
+            $statsPayPal    = $this->statsJetSmart($db, $npsInDb, $csatInDb,  $cbiInDb,$dateIni, $dateEnd, 'opc3', 'PayPal',$datafilters);
+            $statsOtros     = $this->statsJetSmart($db, $npsInDb, $csatInDb,  $cbiInDb,$dateIni, $dateEnd, 'opc3', 'Otros',$datafilters);
+          
+            
+            $data = [$statsEfectivo, $statsCredito, $statsDebito, $statsBancaria, $statsPayPal, $statsOtros];
+            $height = 3;
+        }
         $standarStruct = [
+            [
+                "text" => "CBI",
+                "key" => "cbi",
+                "cellColor" => "rgb(0,0,0)",
+            ],
             [
                 "text" => "NPS",
                 "key" => "nps",
@@ -4666,7 +4725,7 @@ class Dashboard extends Generic
         ];
 
         return [
-            "height" =>  2,
+            "height" => $height,
             "width" =>  8,
             "type" =>  "tables",
             "props" =>  [
@@ -4685,6 +4744,7 @@ class Dashboard extends Generic
                             $standarStruct[0],
                             $standarStruct[1],
                             $standarStruct[2],
+                            $standarStruct[3],
                         ],
                         "values" => $data,
                     ]
@@ -7219,7 +7279,7 @@ class Dashboard extends Generic
                 $bo16 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc_1', "Motivo de Vuelo", 4, 4);
                 $bo17 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Inconveniente antes de llegar al aeropuerto", 2, 4);
                 $bo18 = $this->rankingInconvLlegada($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Tipo Inconveniente", 2, 4);
-                $bo19 = $this->statsJetSmartResp($db, $npsInDb, $csatInDb, $dateIni, $startDateFilterMonth, $datafilters);
+                $bo19 = $this->statsJetSmartResp($db, $npsInDb, $csatInDb, 'cbi',$dateIni, $startDateFilterMonth, $datafilters);
                 $dataCCS = $this->graphCbi($db, date('m'), date('Y'), 'csat8', $dateIni, $dateEnd, $datafilters, 'two');
                 $csatJour = $this->graphsStruct($dataCCS, 12, 'csat8', ["No Confían", "Neutro", "Confían" ,"CCS"]);
                 $dataCCSCard = $this->cbiResp($db, '', $dateIni, $dateEndIndicatorPrincipal, 'csat8', 'CCS');
@@ -7233,6 +7293,7 @@ class Dashboard extends Generic
                 $bo16 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc2', "Aerolínea Anterior", 2, 4);
                 $bo17 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'mult1', "Tipo de Comprador", 2, 4);
                 $bo18 = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc3', "Medio de Pago Seguro", 3, 4);
+                $bo19 = $this->statsJetSmartResp($db, $npsInDb, $csatInDb, 'cbi',$dateIni, $startDateFilterMonth, $datafilters);
             }
 
             if ($db == 'adata_jet_com') {
