@@ -116,7 +116,8 @@ class Dashboard extends Generic
             'contrato1' => 'Freelance',
             'contrato2' => 'Leasing',
             'contrato3' => 'Freelance Nuevo',
-            'contrato4' => 'Leasing Nuevo'
+            'contrato4' => 'Leasing Nuevo',
+            'contrato5' => 'Carga',
         ];
 
         if (array_key_exists($cod, $arr)) {
@@ -2397,7 +2398,7 @@ class Dashboard extends Generic
             $indicadorVacio = " ";
         }
 
-        if($text != "Atributos más importantes"){
+        if($text != "Atributos más importantes" && $text != "Motivos de tu Valoración"){
     
             $query = "SELECT $indicador AS nombre, COUNT(CASE WHEN $indicador != 99 $indicadorVacio THEN 1 END) AS total
                     FROM $this->_dbSelected.$db AS a
@@ -2406,7 +2407,7 @@ class Dashboard extends Generic
                     WHERE etapaencuesta = 'P2' AND date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters AND $indicador != 99 $indicadorVacio 
                     GROUP BY  $indicador
                     ORDER BY total DESC";
-
+                    echo $query; exit;
             $data = DB::select($query);
             $totalAcum = 0;
             
@@ -2534,19 +2535,80 @@ class Dashboard extends Generic
 
             usort($values, $this->build_sorter('porcentaje'));  
         }
+        // Se saco el gráfico ver más adelante si se borra. Por las dudas queda comentado
+        // if($text == "Atributos más importantes")
+        // {
+        //     $query = '';
 
-        if($text == "Atributos más importantes")
+        //     $fields = [
+        //         'calidApp' => 'Calidad y funcionamiento de la App Conductores', 
+        //         'cantServ' => 'Cantidad de servicios ofrecidos', 
+        //         'seguridad' => 'Seguridad', 
+        //         'canCom' => 'Canales de comunicaciu00f3n con empresa', 
+        //         'ingProm' => 'Ingreso promedio por viaje', 
+        //         'flexHor' =>'Flexibilidad de horario', 
+        //         'tipoClient' =>'Tipo de Cliente'
+        //     ];
+
+        //     $count = 0; 
+
+        //     foreach ($fields as $key => $value) {
+        //         if($count == (count($fields)-1))
+        //         {
+        //             $query .= " COUNT(CASE WHEN json_contains(`mult1`, '" . '"'. $value . '"'. "', '$') THEN 1 END) AS " . $key ." ";
+        //         } 
+        //         else
+        //         {
+        //             $query .= " COUNT(CASE WHEN json_contains(`mult1`, '" . '"'. $value . '"'. "', '$') THEN 1 END) AS " . $key .",";
+        //         }
+        //         $count++;
+        //     }
+        //     $query = "SELECT $query
+        //               FROM $this->_dbSelected.$db AS a
+        //               LEFT JOIN $this->_dbSelected." . $db . "_start as b 
+        //               ON a.token = b.token 
+        //               WHERE etapaencuesta = 'P2' AND date_survey  BETWEEN '$dateEnd' AND '$dateIni' $datafilters AND $indicador != 99 AND $indicador != ''";
+
+        //     $data = DB::select($query);
+        //     $totalAcum = 0;
+        //     $dataVal = array();
+        //     foreach ($fields as $key => $value) {
+        //         $totalAcum = $totalAcum + intval($data[0]->$key);
+        //         $dataVal[$key] = $data[0]->$key;
+        //     }
+        //     arsort($dataVal);
+        //     if ($totalAcum != 0) 
+        //     {
+        //         foreach ($dataVal as $key => $value) {
+            
+        //             $values[] = [
+        //                 'text'  => str_replace("u00f3", "ó",$fields[$key]),
+        //                 'cant'  => $value,
+        //                 'porcentaje'   => ROUND($value * 100 / $totalAcum) . " %",
+        //             ];
+                
+        //         }
+        //     }
+        //     if ($totalAcum == 0)
+        //     {
+        //         $values = [];
+        //     } 
+        // }
+        if($text == "Motivos de tu Valoración")
         {
             $query = '';
 
             $fields = [
-                'calidApp' => 'Calidad y funcionamiento de la App Conductores', 
-                'cantServ' => 'Cantidad de servicios ofrecidos', 
-                'seguridad' => 'Seguridad', 
-                'canCom' => 'Canales de comunicaciu00f3n con empresa', 
+                'seguridad' => 'Seguridad',
+                'transparencia' => 'Transparencia',
+                'tipoClient' =>'Tipo de Cliente',
+                'appTrans' => 'Aplicacion Transvip',
+                'cantViajes' => 'Cantidad de viajes', 
                 'ingProm' => 'Ingreso promedio por viaje', 
-                'flexHor' =>'Flexibilidad de horario', 
-                'tipoClient' =>'Tipo de Cliente'
+                'jordConex' => 'Jornadas de conexion',
+                'soporte' => 'Soporte',
+                'estabIng' => 'Estabilidad de Ingresos', 
+                'canCom' =>'Canales de comunicacion', 
             ];
 
             $count = 0; 
@@ -2554,11 +2616,11 @@ class Dashboard extends Generic
             foreach ($fields as $key => $value) {
                 if($count == (count($fields)-1))
                 {
-                    $query .= " COUNT(CASE WHEN json_contains(`mult1`, '" . '"'. $value . '"'. "', '$') THEN 1 END) AS " . $key ." ";
+                    $query .= " COUNT(CASE WHEN json_contains(`obs_nps`, '" . '"'. $value . '"'. "', '$') THEN 1 END) AS " . $key ." ";
                 } 
                 else
                 {
-                    $query .= " COUNT(CASE WHEN json_contains(`mult1`, '" . '"'. $value . '"'. "', '$') THEN 1 END) AS " . $key .",";
+                    $query .= " COUNT(CASE WHEN json_contains(`obs_nps`, '" . '"'. $value . '"'. "', '$') THEN 1 END) AS " . $key .",";
                 }
                 $count++;
             }
@@ -2566,8 +2628,8 @@ class Dashboard extends Generic
                       FROM $this->_dbSelected.$db AS a
                       LEFT JOIN $this->_dbSelected." . $db . "_start as b 
                       ON a.token = b.token 
-                      WHERE etapaencuesta = 'P2' AND date_survey  BETWEEN '$dateEnd' AND '$dateIni' $datafilters AND $indicador != 99 AND $indicador != ''";
-
+                      WHERE etapaencuesta = 'P2' AND date_survey  BETWEEN '$dateEnd' AND '$dateIni' $datafilters AND $indicador != 99 AND $indicador != '' and json_valid($indicador) = 1";
+            echo $query; exit;
             $data = DB::select($query);
             $totalAcum = 0;
             $dataVal = array();
@@ -2593,7 +2655,6 @@ class Dashboard extends Generic
                 $values = [];
             } 
         }
-
         return $values;
     }
 
@@ -7169,40 +7230,40 @@ class Dashboard extends Generic
         }
 
         if ($this->_dbSelected  == 'customer_colmena'  && substr($request->survey, 0, 3) == 'tra') {
-            $proveedor      = $frecCon      = $contactoEmpresas = $atrImport        = $canalPref        = null;
-            $graphCbiResp   = $graphIsnResp = $globalSentido    = $graphClTra       = $globalesVehi     = null;
-            $globalesSuc    = $globalesServ = $globalesCliente  = $globalesReserva  = $rankingConvenio  = null;
+            $csatJourn      = $graphClTra   = $graphCbiResp   = $globalSentido =  $globalesVehi     = null;
+            $globalesSuc    = $globalesServ = $globalesCliente  = $globalesReserva  =$rankingConvenio  =null;
+            $graphIsnResp =  $csatDriv =    null;
 
-            $graphCSATDrivers   = $this->GraphCSATDriversTransvip($db, trim($request->survey), $dateIni, $startDateFilterMonth, null, 'two', $datafilters);
-            
             if($db == 'adata_tra_cond'){
-                $proveedor          = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'cbi', "Continuar Como Proveedor", 3, 4);
-                $frecCon            = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc', "Frecuencia de conexión", 3, 4);
-                $contactoEmpresas   = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Contacto otras empresas", 3, 4);
-                $atrImport          = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'mult1', "Atributos más importantes", 3, 4);
-                $canalPref          = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc2', "Canal Preferido", 3, 4);
-                $csatDriv           = $this->CSATDrivers($graphCSATDrivers);
+                $globalesSuc    = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'obs_nps', "Motivos de tu Valoración", 3, 4);
+                $graphClTra     = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc2', "Canal Preferido", 3, 4);
+                $graphCbiResp   = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'cbi', "Continuar Como Proveedor", 3, 4);
+                $globalSentido  = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc', "Frecuencia de conexión", 3, 4);
+                $globalesVehi   = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Contacto otras empresas", 3, 4);
+
             }
             
             if($db == 'adata_tra_via'){
-                $datasCbiResp       = $this->cbiResp($db,$datafilters, $dateIni, $dateEnd);
-                $graphCbiResp       = $this->graphCbiResp($datasCbiResp);
-                $drivers            = $this->csatsDriversTransvip($db, trim($request->survey), $dateIni, $dateEnd, $datafilters);
-                $csatDriv           = $this->graphCsatTransvip($drivers, $request->survey);
-                $tiempoVehiculo     = $this->NpsIsnTransvip($db, $dateIni, $dateEnd, $npsInDb, 'csat2', $datafilters, null);
-                $coordAnden         = $this->NpsIsnTransvip($db, $dateIni, $dateEnd, $npsInDb, 'csat3', $datafilters, null);
-                $tiempoAeropuerto   = $this->NpsIsnTransvip($db, $dateIni,$dateEnd, $npsInDb, 'csat6', $datafilters, null);
-                $tiempoLlegadaAnden = $this->NpsIsnTransvip($db, $dateIni, $dateEnd, $npsInDb, 'csat5', $datafilters, null);
-                $graphIsnResp       = $this->graphINS($tiempoVehiculo, $coordAnden, $tiempoAeropuerto, $tiempoLlegadaAnden);
-                $globalSentido      = $this->globales($db, $dateIni, $startDateFilterMonth, 'sentido', 'Sentido', 'cbi', 'ins', 4, $datafilters);
+                $graphCSATDrivers   = $this->GraphCSATDriversTransvip($db, trim($request->survey), $dateIni, $startDateFilterMonth, null, 'two', $datafilters);
+                $csatJourn           = $this->CSATJourney($graphCSATDrivers);
                 $dataCL             = $this->closedloopTransvip($datafilters, $dateIni, $dateEnd, $request->survey);
                 $graphClTra         = $this->graphCLTransvip($dataCL);
+                $datasCbiResp       = $this->cbiResp($db,$datafilters, $dateIni, $dateEnd);
+                $graphCbiResp       = $this->graphCbiResp($datasCbiResp);
+                $globalSentido      = $this->globales($db, $dateIni, $startDateFilterMonth, 'sentido', 'Sentido', 'cbi', 'ins', 4, $datafilters);
                 $globalesVehi       = $this->globales($db, $dateIni, $startDateFilterMonth, 'tiposervicio', 'Vehículo', 'cbi', 'ins', 4, $datafilters);
                 $globalesSuc        = $this->globales($db, $dateIni, $startDateFilterMonth, 'sucursal', 'Sucursal', 'cbi', 'ins', 4, $datafilters);
                 $globalesServ       = $this->globales($db, $dateIni, $startDateFilterMonth, 'condicionservicio', 'Servicio', 'cbi', 'ins', 4, $datafilters);
                 $globalesCliente    = $this->globales($db, $dateIni, $startDateFilterMonth, 'tipocliente', 'Cliente', 'cbi', 'ins', 4, $datafilters);
                 $globalesReserva    = $this->globales($db, $dateIni, $startDateFilterMonth, 'tipoReserva', 'Reserva', 'cbi', 'ins', 4, $datafilters);
                 $rankingConvenio    = $this->ranking($db, 'convenio', 'Convenio', $endDateFilterMonth, $startDateFilterMonth, $filterClient,$datafilters, 12, 3);
+                $tiempoVehiculo     = $this->NpsIsnTransvip($db, $dateIni, $dateEnd, $npsInDb, 'csat2', $datafilters, null);
+                $coordAnden         = $this->NpsIsnTransvip($db, $dateIni, $dateEnd, $npsInDb, 'csat3', $datafilters, null);
+                $tiempoAeropuerto   = $this->NpsIsnTransvip($db, $dateIni,$dateEnd, $npsInDb, 'csat6', $datafilters, null);
+                $tiempoLlegadaAnden = $this->NpsIsnTransvip($db, $dateIni, $dateEnd, $npsInDb, 'csat5', $datafilters, null);
+                $graphIsnResp       = $this->graphINS($tiempoVehiculo, $coordAnden, $tiempoAeropuerto, $tiempoLlegadaAnden);
+                $drivers            = $this->csatsDriversTransvip($db, trim($request->survey), $dateIni, $dateEnd, $datafilters);
+                $csatDriv           = $this->graphCsatTransvip($drivers, $request->survey);
             }
 
             $name = 'Transvip';         
@@ -7212,8 +7273,9 @@ class Dashboard extends Generic
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient, $request->survey, $db);
             $performance        = $this->cardsPerformace($dataNps, $dataIsnPerf, $dateEnd, $dateIni, $request->survey, $datafilters);
             $npsConsolidado     = $this->graphNpsIsn($dataisn, $this->ButFilterWeeks);
+            $npsBan             = $this->cxIntelligence($request);
             $npsVid             = $this->wordCloud($request);
-            $csatJourney        = $this->CSATJourney($graphCSATDrivers);
+            $csatJourney        = $csatJourn;
             $csatDrivers        = $graphClTra;
             $cx                 = $graphCbiResp;
             $wordCloud          = $globalSentido;
@@ -7225,13 +7287,12 @@ class Dashboard extends Generic
             $box14              = $rankingConvenio;
             $box15              = $graphIsnResp;
             $box16              = $csatDriv;
-            $box17              = $canalPref;
-            $box18              = $proveedor;
-            $box19              = $frecCon;
-            $box20              = $contactoEmpresas;
-            $box21              = $atrImport;
+            $box17              = null;
+            $box18              = null;
+            $box19              = null;
+            $box20              = null;
+            $box21              = null;
             $box22              = $this->traking($db, $startDateFilterMonth, $endDateFilterMonth);
-            $npsBan             = $this->cxIntelligence($request);
         }
 
         if ($this->_dbSelected  == 'customer_jetsmart') {
