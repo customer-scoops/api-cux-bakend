@@ -116,7 +116,8 @@ class Dashboard extends Generic
             'contrato1' => 'Freelance',
             'contrato2' => 'Leasing',
             'contrato3' => 'Freelance Nuevo',
-            'contrato4' => 'Leasing Nuevo'
+            'contrato4' => 'Leasing Nuevo',
+            'contrato5' => 'Carga',
         ];
 
         if (array_key_exists($cod, $arr)) {
@@ -2397,7 +2398,7 @@ class Dashboard extends Generic
             $indicadorVacio = " ";
         }
 
-        if($text != "Atributos más importantes"){
+        if($text != "Atributos más importantes" && $text != "Motivos de tu Valoración"){
     
             $query = "SELECT $indicador AS nombre, COUNT(CASE WHEN $indicador != 99 $indicadorVacio THEN 1 END) AS total
                     FROM $this->_dbSelected.$db AS a
@@ -2534,65 +2535,65 @@ class Dashboard extends Generic
 
             usort($values, $this->build_sorter('porcentaje'));  
         }
+        // Se saco el gráfico ver más adelante si se borra. Por las dudas queda comentado
+        // if($text == "Atributos más importantes")
+        // {
+        //     $query = '';
 
-        if($text == "Atributos más importantes")
-        {
-            $query = '';
+        //     $fields = [
+        //         'calidApp' => 'Calidad y funcionamiento de la App Conductores', 
+        //         'cantServ' => 'Cantidad de servicios ofrecidos', 
+        //         'seguridad' => 'Seguridad', 
+        //         'canCom' => 'Canales de comunicaciu00f3n con empresa', 
+        //         'ingProm' => 'Ingreso promedio por viaje', 
+        //         'flexHor' =>'Flexibilidad de horario', 
+        //         'tipoClient' =>'Tipo de Cliente'
+        //     ];
 
-            $fields = [
-                'calidApp' => 'Calidad y funcionamiento de la App Conductores', 
-                'cantServ' => 'Cantidad de servicios ofrecidos', 
-                'seguridad' => 'Seguridad', 
-                'canCom' => 'Canales de comunicaciu00f3n con empresa', 
-                'ingProm' => 'Ingreso promedio por viaje', 
-                'flexHor' =>'Flexibilidad de horario', 
-                'tipoClient' =>'Tipo de Cliente'
-            ];
+        //     $count = 0; 
 
-            $count = 0; 
+        //     foreach ($fields as $key => $value) {
+        //         if($count == (count($fields)-1))
+        //         {
+        //             $query .= " COUNT(CASE WHEN json_contains(`mult1`, '" . '"'. $value . '"'. "', '$') THEN 1 END) AS " . $key ." ";
+        //         } 
+        //         else
+        //         {
+        //             $query .= " COUNT(CASE WHEN json_contains(`mult1`, '" . '"'. $value . '"'. "', '$') THEN 1 END) AS " . $key .",";
+        //         }
+        //         $count++;
+        //     }
+        //     $query = "SELECT $query
+        //               FROM $this->_dbSelected.$db AS a
+        //               LEFT JOIN $this->_dbSelected." . $db . "_start as b 
+        //               ON a.token = b.token 
+        //               WHERE etapaencuesta = 'P2' AND date_survey  BETWEEN '$dateEnd' AND '$dateIni' $datafilters AND $indicador != 99 AND $indicador != ''";
 
-            foreach ($fields as $key => $value) {
-                if($count == (count($fields)-1))
-                {
-                    $query .= " COUNT(CASE WHEN json_contains(`mult1`, '" . '"'. $value . '"'. "', '$') THEN 1 END) AS " . $key ." ";
-                } 
-                else
-                {
-                    $query .= " COUNT(CASE WHEN json_contains(`mult1`, '" . '"'. $value . '"'. "', '$') THEN 1 END) AS " . $key .",";
-                }
-                $count++;
-            }
-            $query = "SELECT $query
-                      FROM $this->_dbSelected.$db AS a
-                      LEFT JOIN $this->_dbSelected." . $db . "_start as b 
-                      ON a.token = b.token 
-                      WHERE etapaencuesta = 'P2' AND date_survey  BETWEEN '$dateEnd' AND '$dateIni' $datafilters AND $indicador != 99 AND $indicador != ''";
-
-            $data = DB::select($query);
-            $totalAcum = 0;
-            $dataVal = array();
-            foreach ($fields as $key => $value) {
-                $totalAcum = $totalAcum + intval($data[0]->$key);
-                $dataVal[$key] = $data[0]->$key;
-            }
-            arsort($dataVal);
-            if ($totalAcum != 0) 
-            {
-                foreach ($dataVal as $key => $value) {
+        //     $data = DB::select($query);
+        //     $totalAcum = 0;
+        //     $dataVal = array();
+        //     foreach ($fields as $key => $value) {
+        //         $totalAcum = $totalAcum + intval($data[0]->$key);
+        //         $dataVal[$key] = $data[0]->$key;
+        //     }
+        //     arsort($dataVal);
+        //     if ($totalAcum != 0) 
+        //     {
+        //         foreach ($dataVal as $key => $value) {
             
-                    $values[] = [
-                        'text'  => str_replace("u00f3", "ó",$fields[$key]),
-                        'cant'  => $value,
-                        'porcentaje'   => ROUND($value * 100 / $totalAcum) . " %",
-                    ];
+        //             $values[] = [
+        //                 'text'  => str_replace("u00f3", "ó",$fields[$key]),
+        //                 'cant'  => $value,
+        //                 'porcentaje'   => ROUND($value * 100 / $totalAcum) . " %",
+        //             ];
                 
-                }
-            }
-            if ($totalAcum == 0)
-            {
-                $values = [];
-            } 
-        }
+        //         }
+        //     }
+        //     if ($totalAcum == 0)
+        //     {
+        //         $values = [];
+        //     } 
+        // }
 
         return $values;
     }
@@ -2642,6 +2643,106 @@ class Dashboard extends Generic
             ]
         ];
         
+    }
+
+    private function rankingTransvipJson($db, $datafilters, $dateIni, $dateEnd, $indicador, $text, $height, $width){
+
+        $cuentaTotal = [
+            'Seguridad' => 0,
+            'Transparencia' => 0,
+            'Tipo de clientes' => 0,
+            'Aplicacion Transvip' => 0,
+            'Cantidad de viajes' => 0,
+            'Ingresos promedio por viaje' => 0,
+            'Jornadas de conexion' => 0,
+            'Soporte' => 0,
+            'Estabilidad de Ingresos' => 0,
+            'Canales de comunicacion' => 0,
+            'Otros' => 0,
+        ];
+
+        $totalAcum = 0;
+        $resp = [];
+
+        $query = "SELECT $indicador 
+                  FROM $this->_dbSelected.$db 
+                  WHERE etapaencuesta = 'P2' AND date_survey  BETWEEN '$dateEnd' AND '$dateIni' $datafilters AND $indicador != 'null' AND $indicador != '' and json_valid($indicador) = 1";
+            
+        $data = DB::select($query);
+
+        foreach ($data as $key => $value) {
+            foreach(json_decode($value->obs_nps) as $key => $val){
+                if(isset($cuentaTotal[$val])){
+                    $cuentaTotal[$val]++;
+                    $totalAcum++;
+                }
+                if(!isset($cuentaTotal[$val])){
+                    $cuentaTotal['Otros']++;
+                    $totalAcum++;
+                }
+          }
+        }
+        if($totalAcum != 0){
+            foreach ($cuentaTotal as $key => $value) {
+                $resp[] = [
+                    'text'          => $key,
+                    'cant'          => $value,
+                    'porcentaje'    => ROUND($value * 100 / $totalAcum) . "%",
+                ];
+            }
+        }
+
+        if($totalAcum == 0){
+            foreach ($cuentaTotal as $key => $value) {
+                $resp[] = [
+                    'text'          => $key,
+                    'cant'          => '0',
+                    'porcentaje'    => '0 %',
+                ];
+            }
+        }
+        usort($resp, $this->build_sorter('porcentaje')); 
+
+        $standarStruct = [
+            [
+                "text" => "Nombres",
+                "key" => "text",
+                "cellColor" => "#17C784",
+                "textAlign" => "left"
+            ],
+            [
+                "text" => "Cant. Resp.",
+                "key" => "cant",
+                "cellColor" => "#17C784",
+                "textAlign" => "center"
+            ],
+            [
+                "text" => "Porcentaje",
+                "key" => "porcentaje",
+                "cellColor" => "#17C784",
+                "textAlign" => "center"
+            ]
+        ];
+
+        return [
+            "height" =>  $height,
+            "width" =>  $width,
+            "type" =>  "tables",
+            "props" =>  [
+                "icon" => "arrow-right",
+                "text" => $text,
+                "tables" => [
+                    [
+                        "columns" => [
+                            $standarStruct[0],
+                            $standarStruct[1],
+                            $standarStruct[2]
+                        ],
+                        "values" => $resp,
+                    ],
+                ]
+            ]
+        ];
     }
 
     private function rankingInconvLlegada($db, $datafilters, $dateIni, $dateEnd, $indicador, $text, $height, $width)
@@ -4667,7 +4768,7 @@ class Dashboard extends Generic
                         and nps!= 99 and csat!= 99 and etapaencuesta = 'P2' $datafilters";       
         }
                         
-        $data = $data = DB::select($query);
+        $data = DB::select($query);
 
         $resp = [
             "text"      => $text,
@@ -4701,6 +4802,7 @@ class Dashboard extends Generic
             $data = [$statsEfectivo, $statsCredito, $statsDebito, $statsBancaria, $statsPayPal, $statsOtros];
             $height = 3;
         }
+
         $standarStruct = [
             [
                 "text" => "CBI",
@@ -4751,8 +4853,88 @@ class Dashboard extends Generic
                 ]
             ]
         ];
+    }
 
+    private function statsTransvipResp($db, $npsInDb, $csatInDb, $dateIni, $dateEnd, $datafilters = null)
+    {
+    
+        $tipoContrato = [   
+            'contrato1' => 'Freelance',
+            'contrato2' => 'Leasing',
+            'contrato3' => 'Freelance Nuevo',
+            'contrato4' => 'Leasing Nuevo',
+            'contrato5' => 'Carga',
+        ];
 
+        $query = "SELECT contrato as contrato, COUNT($npsInDb != 99) as Total,
+                  ROUND(((COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
+                  COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
+                  COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minNps AND $this->_maxMaxNps THEN 1 END) * 100),0) AS nps,
+                  ROUND((COUNT(CASE WHEN a.$csatInDb BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN 1 END) -
+                  COUNT(CASE WHEN a.$csatInDb BETWEEN $this->_minCsat AND $this->_maxCsat THEN 1 END))* 100/
+                  COUNT(CASE WHEN a.$csatInDb BETWEEN $this->_minCsat AND $this->_maxMaxCsat THEN 1 END),0) AS isn
+                  FROM $this->_dbSelected.$db as a
+                  LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token
+                  WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and nps!= 99 and csat!= 99 and etapaencuesta = 'P2' $datafilters GROUP BY contrato";
+
+        $data = DB::select($query);
+        $datas = [];
+
+        foreach ($data as $key => $value) {
+            $datas[] = [
+                'text' => $tipoContrato['contrato'.$value->contrato],
+                'nps' => $value->nps,
+                'isn' => $value->isn,
+                'quantity' => $value->Total,
+            ];
+        }
+
+        $height = 3;
+
+        $standarStruct = [
+            [
+                "text" => "NPS",
+                "key" => "nps",
+                "cellColor" => "rgb(0,0,0)",
+            ],
+            [
+                "text" => "ISN",
+                "key" => "isn",
+                "cellColor" => "rgb(0,0,0)",
+            ],
+            [
+                "text" => "Cantidad de respuesta",
+                "key" => "quantity",
+                "cellColor" => "rgb(0,0,0)",
+            ]
+        ];
+
+        return [
+            "height" => $height,
+            "width" =>  4,
+            "type" =>  "tables",
+            "props" =>  [
+                "icon" => "arrow-right",
+                "text" => "STATS by Contratos",
+                "tables" => [
+                    [
+                        "columns" => [
+                            [
+                                "text" => "Tipo Contrato",
+                                "key" => "text",
+                                "headerColor" => "#17C784",
+                                "cellColor" => "#949494",
+                                "textAlign" => "left"
+                            ],
+                            $standarStruct[0],
+                            $standarStruct[1],
+                            $standarStruct[2],
+                        ],
+                        "values" => $datas,
+                    ]
+                ]
+            ]
+        ];
     }
 
     private function nameSurvey($name)
@@ -7169,40 +7351,40 @@ class Dashboard extends Generic
         }
 
         if ($this->_dbSelected  == 'customer_colmena'  && substr($request->survey, 0, 3) == 'tra') {
-            $proveedor      = $frecCon      = $contactoEmpresas = $atrImport        = $canalPref        = null;
-            $graphCbiResp   = $graphIsnResp = $globalSentido    = $graphClTra       = $globalesVehi     = null;
-            $globalesSuc    = $globalesServ = $globalesCliente  = $globalesReserva  = $rankingConvenio  = null;
+            $csatJourn      = $graphClTra   = $graphCbiResp   = $globalSentido =  $globalesVehi     = null;
+            $globalesSuc    = $globalesServ = $globalesCliente  = $globalesReserva  =$rankingConvenio  =null;
+            $graphIsnResp =  $csatDriv =    null;
 
-            $graphCSATDrivers   = $this->GraphCSATDriversTransvip($db, trim($request->survey), $dateIni, $startDateFilterMonth, null, 'two', $datafilters);
-            
             if($db == 'adata_tra_cond'){
-                $proveedor          = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'cbi', "Continuar Como Proveedor", 3, 4);
-                $frecCon            = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc', "Frecuencia de conexión", 3, 4);
-                $contactoEmpresas   = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Contacto otras empresas", 3, 4);
-                $atrImport          = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'mult1', "Atributos más importantes", 3, 4);
-                $canalPref          = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc2', "Canal Preferido", 3, 4);
-                $csatDriv           = $this->CSATDrivers($graphCSATDrivers);
+                $graphClTra     = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc2', "Canal Preferido", 3, 4);
+                $graphCbiResp   = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'cbi', "Continuar Como Proveedor", 3, 4);
+                $globalSentido  = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc', "Frecuencia de conexión", 3, 4);
+                $globalesVehi   = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Contacto otras empresas", 3, 4);
+                $globalesSuc    = $this->rankingTransvipJson($db, $datafilters, $dateIni, $startDateFilterMonth, 'obs_nps', "Motivos de tu Valoración", 3, 4);
+                $globalesServ   = $this->statsTransvipResp($db, $npsInDb, $csatInDb, $dateIni, $startDateFilterMonth, $datafilters);
             }
             
             if($db == 'adata_tra_via'){
-                $datasCbiResp       = $this->cbiResp($db,$datafilters, $dateIni, $dateEnd);
-                $graphCbiResp       = $this->graphCbiResp($datasCbiResp);
-                $drivers            = $this->csatsDriversTransvip($db, trim($request->survey), $dateIni, $dateEnd, $datafilters);
-                $csatDriv           = $this->graphCsatTransvip($drivers, $request->survey);
-                $tiempoVehiculo     = $this->NpsIsnTransvip($db, $dateIni, $dateEnd, $npsInDb, 'csat2', $datafilters, null);
-                $coordAnden         = $this->NpsIsnTransvip($db, $dateIni, $dateEnd, $npsInDb, 'csat3', $datafilters, null);
-                $tiempoAeropuerto   = $this->NpsIsnTransvip($db, $dateIni,$dateEnd, $npsInDb, 'csat6', $datafilters, null);
-                $tiempoLlegadaAnden = $this->NpsIsnTransvip($db, $dateIni, $dateEnd, $npsInDb, 'csat5', $datafilters, null);
-                $graphIsnResp       = $this->graphINS($tiempoVehiculo, $coordAnden, $tiempoAeropuerto, $tiempoLlegadaAnden);
-                $globalSentido      = $this->globales($db, $dateIni, $startDateFilterMonth, 'sentido', 'Sentido', 'cbi', 'ins', 4, $datafilters);
+                $graphCSATDrivers   = $this->GraphCSATDriversTransvip($db, trim($request->survey), $dateIni, $startDateFilterMonth, null, 'two', $datafilters);
+                $csatJourn           = $this->CSATJourney($graphCSATDrivers);
                 $dataCL             = $this->closedloopTransvip($datafilters, $dateIni, $dateEnd, $request->survey);
                 $graphClTra         = $this->graphCLTransvip($dataCL);
+                $datasCbiResp       = $this->cbiResp($db,$datafilters, $dateIni, $dateEnd);
+                $graphCbiResp       = $this->graphCbiResp($datasCbiResp);
+                $globalSentido      = $this->globales($db, $dateIni, $startDateFilterMonth, 'sentido', 'Sentido', 'cbi', 'ins', 4, $datafilters);
                 $globalesVehi       = $this->globales($db, $dateIni, $startDateFilterMonth, 'tiposervicio', 'Vehículo', 'cbi', 'ins', 4, $datafilters);
                 $globalesSuc        = $this->globales($db, $dateIni, $startDateFilterMonth, 'sucursal', 'Sucursal', 'cbi', 'ins', 4, $datafilters);
                 $globalesServ       = $this->globales($db, $dateIni, $startDateFilterMonth, 'condicionservicio', 'Servicio', 'cbi', 'ins', 4, $datafilters);
                 $globalesCliente    = $this->globales($db, $dateIni, $startDateFilterMonth, 'tipocliente', 'Cliente', 'cbi', 'ins', 4, $datafilters);
                 $globalesReserva    = $this->globales($db, $dateIni, $startDateFilterMonth, 'tipoReserva', 'Reserva', 'cbi', 'ins', 4, $datafilters);
                 $rankingConvenio    = $this->ranking($db, 'convenio', 'Convenio', $endDateFilterMonth, $startDateFilterMonth, $filterClient,$datafilters, 12, 3);
+                $tiempoVehiculo     = $this->NpsIsnTransvip($db, $dateIni, $dateEnd, $npsInDb, 'csat2', $datafilters, null);
+                $coordAnden         = $this->NpsIsnTransvip($db, $dateIni, $dateEnd, $npsInDb, 'csat3', $datafilters, null);
+                $tiempoAeropuerto   = $this->NpsIsnTransvip($db, $dateIni,$dateEnd, $npsInDb, 'csat6', $datafilters, null);
+                $tiempoLlegadaAnden = $this->NpsIsnTransvip($db, $dateIni, $dateEnd, $npsInDb, 'csat5', $datafilters, null);
+                $graphIsnResp       = $this->graphINS($tiempoVehiculo, $coordAnden, $tiempoAeropuerto, $tiempoLlegadaAnden);
+                $drivers            = $this->csatsDriversTransvip($db, trim($request->survey), $dateIni, $dateEnd, $datafilters);
+                $csatDriv           = $this->graphCsatTransvip($drivers, $request->survey);
             }
 
             $name = 'Transvip';         
@@ -7212,8 +7394,9 @@ class Dashboard extends Generic
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient, $request->survey, $db);
             $performance        = $this->cardsPerformace($dataNps, $dataIsnPerf, $dateEnd, $dateIni, $request->survey, $datafilters);
             $npsConsolidado     = $this->graphNpsIsn($dataisn, $this->ButFilterWeeks);
+            $npsBan             = $this->cxIntelligence($request);
             $npsVid             = $this->wordCloud($request);
-            $csatJourney        = $this->CSATJourney($graphCSATDrivers);
+            $csatJourney        = $csatJourn;
             $csatDrivers        = $graphClTra;
             $cx                 = $graphCbiResp;
             $wordCloud          = $globalSentido;
@@ -7225,13 +7408,12 @@ class Dashboard extends Generic
             $box14              = $rankingConvenio;
             $box15              = $graphIsnResp;
             $box16              = $csatDriv;
-            $box17              = $canalPref;
-            $box18              = $proveedor;
-            $box19              = $frecCon;
-            $box20              = $contactoEmpresas;
-            $box21              = $atrImport;
+            $box17              = null;
+            $box18              = null;
+            $box19              = null;
+            $box20              = null;
+            $box21              = null;
             $box22              = $this->traking($db, $startDateFilterMonth, $endDateFilterMonth);
-            $npsBan             = $this->cxIntelligence($request);
         }
 
         if ($this->_dbSelected  == 'customer_jetsmart') {
