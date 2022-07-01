@@ -212,7 +212,6 @@ class Dashboard extends Generic
 
 
         //TRANSVIP
-
         if ($this->_dbSelected  == 'customer_colmena' && substr($survey, 0, 3) == 'tra') {
             
             if(substr($survey, 3, 3) == 'via'){
@@ -274,7 +273,6 @@ class Dashboard extends Generic
             }
 
             if(substr($survey, 3, 3) == 'con'){
-
                 $filtersInCache = \Cache::get('customer_colmena-cond');
                 if($filtersInCache){
                     return $filtersInCache;
@@ -289,14 +287,10 @@ class Dashboard extends Generic
                 $response = ['filters' => [(object)$contrato], 'status' => Response::HTTP_OK];
                 \Cache::put('customer_colmena-cond', $response, $this->expiresAtCache);
             }
-
-
             return $response;
         }
-
         return ['filters' =>[]];
     }
-
 
     public function detailsDashCxWord($request,$jwt)
     {
@@ -600,25 +594,32 @@ class Dashboard extends Generic
     }
     protected function getDataSurvey($request, $jwt){
         $indicators = new Suite($this->_jwt);
+        //print_r($indicators);
         return $indicators->getSurvey($request, $jwt);
     }
 
     public function generalInfo($request, $jwt)
     {
         $surveys = $this->getDataSurvey($request, $jwt);
+        $db2 = '';
         $data = [];
         $otherGraph = [];
         if ($surveys['status'] == 200) {
             foreach ($surveys['datas'] as $key => $value) {
-                if ($value['base'] != 'mutred'){
                     $db = 'adata_'.substr($value['base'],0,3).'_'.substr($value['base'],3,6);
-                    $db2 = $this->primaryTable($db);
+                    if(substr($value['base'],0,3) == 'ban'){ 
+                        $db2 = $this->primaryTable($db);
+                    }
                     $npsInDb = 'nps';
                     $csatInDb = 'csat';
                     $cesInDb = 'ces';
                     $infoNps =[$this->infoNps($db, date('Y-m-d'),date('Y-m-01'),$npsInDb,$this->_initialFilter)]; 
                     $otherGraph = [$this->infoCsat($db, date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->_initialFilter)];
                      
+                    if (substr($value['base'],0,3) == 'den'){
+                        $otherGraph = [$this->infoCsat($db, date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->_initialFilter),$this->cbiResp($db, '', date('Y-m-d'),date('Y-m-01')), $this->ces($db,date('Y-m-d'),date('Y-m-01'), $cesInDb)];
+                    }
+
                     if (substr($value['base'],0,3) == 'tra'){
                         if(substr($value['base'],3,3) == 'con')
                             $db = 'adata_tra_cond';
@@ -643,16 +644,14 @@ class Dashboard extends Generic
                             $otherGraph = [$this->infoCsat($db,date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->_initialFilter)];
                     }
 
-                        $data[] = [
-                            'client'        => $this->_nameClient, 'clients'  => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
-                            "title"         => ucwords(strtolower($value['name'])),
-                            "identifier"    => $value['base'],
-                            "principalIndicator" => $infoNps,
-                            "journeyMap"    => $this->GraphCSATDrivers($db,$db2,$value['base'],$csatInDb,date('Y-m-d'),date('Y-m-01'),$this->_initialFilter,'one'),
-                            "otherGraphs"   => $otherGraph
-                        ];
-                    
-                }
+                    $data[] = [
+                        'client'        => $this->_nameClient, 'clients'  => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
+                        "title"         => ucwords(strtolower($value['name'])),
+                        "identifier"    => $value['base'],
+                        "principalIndicator" => $infoNps,
+                        "journeyMap"    => $this->GraphCSATDrivers($db,$db2,$value['base'],$csatInDb,date('Y-m-d'),date('Y-m-01'),$this->_initialFilter,'one'),
+                        "otherGraphs"   => $otherGraph
+                    ];
             }
         }
         return [
@@ -660,7 +659,6 @@ class Dashboard extends Generic
             'status'    => Response::HTTP_OK
         ];
         }
-    
 
     public function getEndCsat($survey){
         $datas = [
@@ -700,6 +698,8 @@ class Dashboard extends Generic
             "jetcom" => "6",
             "jetvue" => "7",
             "jetcpe" => "6",
+            //Dentalia
+            "denrel" => "7"
         ];
         if (array_key_exists($survey, $datas)) {
             return $datas[$survey];
@@ -999,7 +999,7 @@ class Dashboard extends Generic
 
         $mes = $monthAntEnd;
 
-        if ($this->_dbSelected == 'customer_jetsmart') {
+        if ($this->_dbSelected == 'customer_jetsmart' || $this->_dbSelected == 'customerscoops_dentalia') {
 
             $data = DB::select("SELECT ROUND(COUNT(CASE WHEN $indicador BETWEEN 4 AND 5 THEN 1 END) * 100 /
                                 COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END),0) AS $indicador
@@ -1716,7 +1716,6 @@ class Dashboard extends Generic
                                     WHERE " . $dateSurvey . " BETWEEN '$dateEnd' AND '$dateIni' $activeP2 $datafilters
                                     " . $groupBy . "
                                     ORDER BY " . $dateSurvey . " asc");
-
             }
 
         }
@@ -1744,7 +1743,7 @@ class Dashboard extends Generic
         }
        
         if (!empty($data)) {
-            if(substr($table, 6, 3) != 'jet'){       
+            if(substr($table, 6, 3) != 'jet' && substr($table, 6, 3) != 'den'){       
                 foreach ($data as $key => $value) {
                     if ($struct != 'one') {
                         $graphCSAT[] = [
@@ -1762,7 +1761,7 @@ class Dashboard extends Generic
                     }
                 }
             }
-            if(substr($table, 6, 3) == 'jet'){       
+            if(substr($table, 6, 3) == 'jet' || substr($table, 6, 3) == 'den'){       
                 foreach ($data as $key => $value) {
                     if ($struct != 'one') {
                         $graphCSAT[] = [
@@ -1935,22 +1934,19 @@ class Dashboard extends Generic
     
         $graphCES = array();
 
-        if (substr($table, 10, 3) == 'com' || substr($table, 10, 3) == 'cpe') {
-        
-            $data = DB::select("SELECT (COUNT(if($indicador between   $this->_minMaxCes and $this->_maxMaxCes  , $indicador, NULL)) - 
-                                COUNT(if($indicador between $this->_minCes and $this->_maxCes , $indicador, NULL))) * 100
-                                /COUNT(CASE WHEN $indicador != 99 THEN $indicador END) AS ces, 
-                                COUNT(CASE WHEN $indicador != 99 THEN $indicador END) AS total, 
-                                ROUND((count(if($indicador = $this->_minCes OR $indicador = $this->_maxCes, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as dificil, 
-                                ROUND((count(if($indicador = $this->_minMaxCes OR $indicador = $this->_maxMaxCes, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as facil, 
-                                ROUND((count(if($indicador =  $this->_minMediumCes, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as neutral,
-                                a.mes, a.annio, date_survey, gen, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek 
-                                FROM $this->_dbSelected.$table as a
-                                INNER JOIN $this->_dbSelected." . $table . "_start as b on a.token = b. token 
-                                WHERE $where $activeP2 $datafilters
-                                GROUP BY $group
-                                ORDER BY date_survey asc");
-        }
+        $data = DB::select("SELECT (COUNT(if($indicador between   $this->_minMaxCes and $this->_maxMaxCes  , $indicador, NULL)) - 
+                            COUNT(if($indicador between $this->_minCes and $this->_maxCes , $indicador, NULL))) * 100
+                            /COUNT(CASE WHEN $indicador != 99 THEN $indicador END) AS ces, 
+                            COUNT(CASE WHEN $indicador != 99 THEN $indicador END) AS total, 
+                            ROUND((count(if($indicador = $this->_minCes OR $indicador = $this->_maxCes, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as dificil, 
+                            ROUND((count(if($indicador = $this->_minMaxCes OR $indicador = $this->_maxMaxCes, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as facil, 
+                            ROUND((count(if($indicador =  $this->_minMediumCes, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as neutral,
+                            a.mes, a.annio, date_survey, $this->_fieldSex, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek 
+                            FROM $this->_dbSelected.$table as a
+                            INNER JOIN $this->_dbSelected." . $table . "_start as b on a.token = b. token 
+                            WHERE $where $activeP2 $datafilters
+                            GROUP BY $group
+                            ORDER BY date_survey asc");
 
         if (!empty($data)) {
             foreach ($data as $key => $value) {
@@ -2848,7 +2844,6 @@ class Dashboard extends Generic
 
         if(substr($db, 6, 7) != 'tra_via' && substr($db,6,3) != 'jet')
         {
-
             $data = DB::select("SELECT COUNT(CASE WHEN cbi BETWEEN 4 AND 5 THEN 1 END)*100/COUNT(CASE WHEN cbi BETWEEN 1 AND 5 THEN 1 END) AS cbi,
                                 COUNT(CASE WHEN cbi BETWEEN 1 AND 5 THEN 1 END) AS Total, a.mes, a.annio, date_survey 
                                 FROM $this->_dbSelected.$db AS a
@@ -2868,7 +2863,6 @@ class Dashboard extends Generic
                                 WHERE $activeP2 fechaservicio BETWEEN '$dateEnd' AND '$dateIni' $datafilters
                                 GROUP BY MONTH(fechaservicio), YEAR(fechaservicio) ORDER BY YEAR(fechaservicio), MONTH(fechaservicio) ASC");
         }
-        
                         
         if(substr($db,6,3) == 'tra'){
             if($data)
@@ -2902,7 +2896,7 @@ class Dashboard extends Generic
             return $cbiResp;
         }
 
-        if(substr($db,6,3) == 'jet'){
+        if(substr($db,6,3) == 'jet' || substr($db,6,3) == 'den'){
            
             $monthAct = date('m');
             $annioAct = date('Y');
@@ -3407,11 +3401,12 @@ class Dashboard extends Generic
         
         $startDate  = $request->get('startDate');
         $endDate    = $request->get('endDate');
-        $client = $this->_jwt[env('AUTH0_AUD')]->client;
+        $client     = $this->_jwt[env('AUTH0_AUD')]->client;
 
         $data = DB::select("SELECT `app`, `rol`, `email`, `date`, `time` 
                             FROM customerscoops_general_info.log_users 
-                            WHERE `date` BETWEEN '$startDate' AND '$endDate' AND company = '$client'
+                            WHERE `date` BETWEEN '$startDate' AND '$endDate' AND company = '$client' 
+                            AND SUBSTRING_INDEX(SUBSTR(`email`, INSTR(`email`, '@') + 1),'.',1)) NOT IN ('customerscoops', 'gmail')
                             ORDER BY `date` ASC");
 
         if($data){
@@ -4037,10 +4032,9 @@ class Dashboard extends Generic
     private function GraphCSATDrivers($db, $db2, $survey, $indicatorCSAT,  $dateEnd, $dateIni, $filter, $struct = 'two', $datafilters = null)
     {
         $graphCSAT = [];
-
+        //echo $filter;exit;
         $endCsat = $this->getEndCsat($survey);
         $fieldBd = $this->getFielInDbCsat($survey);
-        $fieldBd2 = $this->getFielInDbCsat($survey);
 
         $activeP2 = " AND etapaencuesta = 'P2' ";
         if(substr($db, 6, 3) == 'ban' || substr($db, 6, 3) == 'vid')
@@ -4106,6 +4100,7 @@ class Dashboard extends Generic
             $data = DB::select($queryPrin);
         }
         if ($filter != 'all') {
+            //echo 'hola';exit;
             $fieldBd = $this->getFielInDbCsat($survey);
             $query = "";
             if(substr($db, 6, 7) != 'jet_com' && substr($db, 6, 7) != 'jet_vue' && substr($db, 6, 7) != 'jet_cpe'){
@@ -4164,8 +4159,7 @@ class Dashboard extends Generic
                     on A.token = b.token 
                     WHERE fechaservicio BETWEEN '$dateIni' AND '$dateEnd' $activeP2  $datafilters
                     ORDER BY fechaservicio" );
-            }
-                             
+            }               
         }
 
         $suite = new Suite($this->_jwt);
@@ -4235,7 +4229,7 @@ class Dashboard extends Generic
                 }
             }
         }
-      
+        //print_r($graphCSAT);exit;
         return $graphCSAT;
     }
 
@@ -5103,6 +5097,9 @@ class Dashboard extends Generic
         if($client == 'tra' &&  $filterClient != 'all'){
             return   "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola </span>¡Este es tu Dashboard de la Encuesta $nameEncuesta! <img width='120px' src='$this->_imageClient'/></span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'></span></div>";
         }
+        if($client == 'den' &&  $filterClient != 'all'){
+            return   "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola </span>¡Este es tu Dashboard de la Encuesta $nameEncuesta! <img width='120px' src='$this->_imageClient'/></span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'></span></div>";
+        }
       
         return  "<div style='display:flex; flex-direction:column'><span><span style='color:rgb(23, 199, 132)'>Hola </span>¡Este es tu Dashboard Consolidado de $nameEncuesta!</span><span style='display:flex; justify-content:flex-start;align-items:center; gap:10px; margin-top:10px'><img width='120px' src='$this->_imageBanVid'/></span></div>";
     }
@@ -5179,6 +5176,7 @@ class Dashboard extends Generic
         $data = null;   
         $str = substr($db,10,3);
         $cesPrev = 0;
+        //echo substr($db, 6, 7);exit;
         // $activeP2 ='';
         // if(substr($db, 6, 3) == 'jet')
         //     $activeP2 = " AND etapaencuesta = 'P2' ";
@@ -5186,8 +5184,7 @@ class Dashboard extends Generic
         if ($datafilters)
             $datafilters = " AND $datafilters";
 
-        
-        if($str == 'ges' || $str == 'eri' || $str == 'com' || $str == 'cpe'){
+        if($str == 'ges' || $str == 'eri' || $str == 'com' || $str == 'cpe' || substr($db, 6, 7) =='den_rel'){
           
             $data = DB::select("SELECT COUNT(if(ces !=99,1,NULL )) as Total,
                                 (COUNT(if($ces between  $this->_minMaxCes and  $this->_maxMaxCes  , $ces, NULL)) - COUNT(if($ces between $this->_minCes and $this->_maxCes , $ces, NULL)))/COUNT(if(ces !=99,1,NULL ))* 100 AS CES 
@@ -6714,10 +6711,11 @@ class Dashboard extends Generic
         return $where;
     }
 
-    protected function cardsPerformace($dataNps, $dataCsat,$dateEnd, $dateIni, $survey, $datafilters, $dataCes = null, $dataCbi = null, $dataCcs = null)
+    protected function cardsPerformace($dataNps, $dataCsat, $survey, $datafilters, $dataCes = null, $dataCbi = null, $dataCcs = null)
     {
         $width = 6;
         $resp = [];
+        //print_r($dataCbi);exit;
 
         if ($datafilters)
             $datafilters = " $datafilters";
@@ -6740,6 +6738,7 @@ class Dashboard extends Generic
                 
             ];
         }
+     
        
         if($this->_dbSelected == 'customer_colmena' && substr($survey, 0, 3) == 'tra'){
             $name = 'ISN';
@@ -6757,7 +6756,36 @@ class Dashboard extends Generic
         $this->_valueMaxAnomalias = (int)$dataNps['value'] + 30;
         }
 
-        if ($this->_dbSelected != 'customer_jetsmart' && substr($survey, 0, 3) != 'mut') { 
+        if($this->_dbSelected == 'customerscoops_dentalia'){
+            $width = 12;
+            $resp = [
+                [
+                    "name"    => $dataNps['name'],
+                    "value"   => $dataNps['value'],
+                    "m2m"     => (int)round($dataNps['percentage']),
+                    "color"   => $dataNps['value'] != 'N/A' ? ($dataNps['value'] > 50 ? "#17C784" : ($dataNps['value'] < 40 ? "#fe4560" : "#FFC700")) : "#DFDEDE",
+                ],
+                [
+                    "name"    => $dataCsat['name'],
+                    "value"   => $dataCsat['value'],
+                    "m2m"     => (int)round($dataCsat['percentage']),
+                    "color"   => $dataCsat['value'] != 'N/A' ? ($dataCsat['value'] > 80 ? "#17C784" : ($dataCsat['value'] < 40 ? "#fe4560" : "#FFC700")) : "#DFDEDE", 
+                ],
+                [
+                    "name"    => $dataCes['name'],
+                    "value"   => $dataCes['value'],
+                    "m2m"     => (int)round($dataCes['percentage']),
+                    "color"   => $dataCes['value'] != 'N/A' ? ($dataCes['value'] > 80 ? "#17C784" : ($dataCes['value'] < 60 ? "#fe4560" : "#FFC700")) : "#DFDEDE", 
+                ],
+                [
+                    "name"    => $dataCbi['name'],
+                    "value"   => $dataCbi != '' ? $dataCbi['value'] : 'N/A',
+                    "m2m"     => $dataCbi != '' ? (int)round($dataCbi['percentage']) : 'N/A',
+                    "color"   => $dataCbi != '' ? ($dataCbi['value'] != 'N/A' ? ($dataCbi['value'] > 80 ? "#17C784" : ($dataCbi['value'] < 60 ? "#fe4560" : "#FFC700")) : "#DFDEDE" ) : "#DFDEDE",
+                ],
+            ];
+        }
+        if ($this->_dbSelected != 'customer_jetsmart' && substr($survey, 0, 3) != 'mut' && $this->_dbSelected != 'customerscoops_dentalia') { 
             $resp = [
                         [
                             "name"    => $dataNps['name'],
@@ -6772,6 +6800,7 @@ class Dashboard extends Generic
                         
                     ];
         }
+        
  
         if ($this->_dbSelected == 'customer_jetsmart') { 
             $width = 12;
@@ -6969,13 +6998,14 @@ class Dashboard extends Generic
     private function cardNpsBanmedica($nameIndicatorPrincipal, $dataNPSGraph, $indicador = 'NPS')
     {
         //$indicador === 'CSAT' ? print_r($dataNPSGraph) : print_r('nada');
+        //print_r($dataNPSGraph);exit;
         return [
             "height" => 3,
             "width" => 6,
             "type" => "chart",
             "props" => [
                 "icon" => "arrow-right",
-                "text" => $nameIndicatorPrincipal != 'JetSmart' ? "NPS • " . $nameIndicatorPrincipal : $indicador,
+                "text" => $nameIndicatorPrincipal != 'JetSmart' && $nameIndicatorPrincipal != 'Dentalia' ? "NPS • " . $nameIndicatorPrincipal : $indicador,
                 "chart" => [
                     "fields" => [
                         [
@@ -7254,12 +7284,14 @@ class Dashboard extends Generic
 
         $filterClient  = ($request->client === null) ? $this->_initialFilter : $request->client;
         $indetifyClient = substr($request->survey, 0, 3);
+  
         $indetifyClient = ($filterClient == 'all') ? $indetifyClient : $filterClient;
         $npsInDb    = $this->getFielInDb($request->survey);
         $csatInDb   = $this->getFielInDbCsat($request->survey);
+   
         $db         = 'adata_'.$indetifyClient.'_'.trim(substr($request->survey,3,6));
         
-        if(substr($request->survey,0,3) == 'jet'){
+        if(substr($request->survey,0,3) == 'jet' || substr($request->survey,0,3) == 'den'){
             $db = 'adata_'.substr($request->survey,0,3).'_'.trim(substr($request->survey,3,6));
         }
        
@@ -7285,7 +7317,7 @@ class Dashboard extends Generic
                 $db = 'adata_tra_via';
            
         }
-
+        //echo $db;
         $dataNps    = $this->resumenNps($db, $dateIni, $dateEndIndicatorPrincipal, $npsInDb, $filterClient, $datafilters);
         if (substr($request->survey, 0, 3) != 'tra') {
             $dataCsat   = $this->resumenCsat($db, $dateIni, $dateEndIndicatorPrincipal, $csatInDb, $filterClient, $datafilters);
@@ -7337,7 +7369,7 @@ class Dashboard extends Generic
             }
 
             $welcome            = $this->welcome($indetifyClient, $filterClient, $request->survey);
-            $performance        = $this->cardsPerformace($dataNps, $dataCsat, $dateEnd, $dateIni, $request->survey, $datafilters);
+            $performance        = $this->cardsPerformace($dataNps, $dataCsat, $request->survey, $datafilters);
             $npsConsolidado     = $this->cardNpsConsolidado($name, $dataNPSGraphBanVid, $this->ButFilterWeeks);
             $npsBan             = $this->cardNpsBanmedica($nameIndicatorPrincipal, $dataNPSGraph);
             $npsVid             = $this->cardNpsVidaTres($nameIndicatorPrincipal2, $dataNPSGraph2);
@@ -7403,7 +7435,7 @@ class Dashboard extends Generic
             $dataIsnPerf        = $this->npsPreviousPeriod($db,$dateIni,$dateEndIndicatorPrincipal,'isn','' );
 
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient, $request->survey, $db);
-            $performance        = $this->cardsPerformace($dataNps, $dataIsnPerf, $dateEnd, $dateIni, $request->survey, $datafilters);
+            $performance        = $this->cardsPerformace($dataNps, $dataIsnPerf, $request->survey, $datafilters);
             $npsConsolidado     = $this->graphNpsIsn($dataisn, $this->ButFilterWeeks);
             $npsBan             = $this->cxIntelligence($request);
             $npsVid             = $this->wordCloud($request);
@@ -7506,7 +7538,7 @@ class Dashboard extends Generic
             $dataisn            = $this->graphCbi($db, date('m'), date('Y'), 'cbi', $dateIni, $dateEnd, $datafilters, 'two');
             
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient,$request->survey, $db);
-            $performance        = $this->cardsPerformace($dataNps, $dataCsat, $dateEnd, $dateIni, $request->survey, $datafilters, $dataCes, $dataCbi, $dataCCSCard);
+            $performance        = $this->cardsPerformace($dataNps, $dataCsat, $request->survey, $datafilters, $dataCes, $dataCbi, $dataCCSCard);
             $npsConsolidado     = $this->graphsStruct($dataisn, 12, 'cbi', ["No Volverían", "Neutro", "Volverían" ,"CBI"]);
             $npsBan             = $this->cardNpsBanmedica($this->_nameClient, $dataNPSGraph); //NPS
             $npsVid             = $this->cardNpsBanmedica($this->_nameClient , $dataCsatGraph, 'CSAT');//Csat
@@ -7525,6 +7557,41 @@ class Dashboard extends Generic
             $box17              = $bo17;
             $box18              = $bo18;
             $box19              = $bo19;
+            $box20              = null;
+            $box21              = null;
+            $box22              = null;
+        }
+
+        if ($this->getValueParams('_dbSelected')  == 'customerscoops_dentalia'){
+            $name = 'Dentalia';
+            $dataCes            = $this->ces($db, $dateIni, $dateEndIndicatorPrincipal, 'ces', $datafilters);
+            $dataCbi            = $this->cbiResp($db, '', $dateIni, $dateEndIndicatorPrincipal);
+            $dataNPSGraph       = $this->graphNps($db, $npsInDb, $dateIni, $dateEnd, 'one', 'two', $datafilters, $group);
+            $dataCsatGraph      = $this->graphCsat($db, $csatInDb, $dateIni, $dateEnd,  $filterClient, 'two' ,$datafilters);
+            $graphCSATDrivers   = $this->GraphCSATDriversTransvip($db, trim($request->survey), $dateIni, $startDateFilterMonth, null, 'two', $datafilters);
+            $dataCesGraph       = $this->graphCes($db, date('m'), date('Y'), 'ces', $dateIni, $dateEnd,  $filterClient, 'two' ,$datafilters);
+            $dataCbiGraph       = $this->graphCbi($db, date('m'), date('Y'), 'cbi', $dateIni, $dateEnd, $datafilters, 'two');
+
+            $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient,$request->survey, $db);
+            $performance        = $this->cardsPerformace($dataNps, $dataCsat, $request->survey, $datafilters, $dataCes, $dataCbi);
+            $npsConsolidado     = $this->cardNpsConsolidado($this->_nameClient, $dataNPSGraph, $this->ButFilterWeeks);
+            $npsBan             = $this->cardNpsBanmedica($this->_nameClient , $dataCsatGraph, 'CSAT');
+            $npsVid             = $this->cardNpsBanmedica($this->_nameClient , $dataCesGraph, 'CES');
+            $csatJourney        = $this->cardNpsBanmedica($this->_nameClient , $dataCbiGraph, 'CBI');
+            $csatDrivers        = null; 
+            $cx                 = $this->cxIntelligence($request);
+            $wordCloud          = $this->CSATJourney($graphCSATDrivers);
+            $closedLoop         = null; 
+            $detailGender       = null; 
+            $detailGeneration   = null;
+            $datasStatsByTaps   = null;
+            $detailsProcedencia = null;
+            $box14              = null;
+            $box15              = null;
+            $box16              = null;
+            $box17              = null;
+            $box18              = null;
+            $box19              = null;
             $box20              = null;
             $box21              = null;
             $box22              = null;
@@ -7571,6 +7638,7 @@ class Dashboard extends Generic
 
     private function setDetailsClient($client)
     {
+        //Banmedica
         if ($client == 'VID001' || $client == 'BAN001') {
             //TO DO
             //WEB NO TIENE NICHO REVISAR
@@ -7607,6 +7675,7 @@ class Dashboard extends Generic
             $this->ButFilterWeeks       = null;
         }
 
+        //Mutual
         if ($client == 'MUT001') {
             $this->_dbSelected          = 'customer_colmena';
             $this->_initialFilter       = 'one';
@@ -7635,7 +7704,8 @@ class Dashboard extends Generic
             $this->_minMaxCes           = 6;
             $this->_maxMaxCes           = 7;
         }
-
+        
+        //Demo
         if ($client == 'DEM001') {
             $this->_dbSelected          = 'customer_demo';
             $this->_initialFilter       = 'one';
@@ -7659,6 +7729,7 @@ class Dashboard extends Generic
             $this->ButFilterWeeks       = '';
         }
 
+        //Transvip
         if ($client == 'TRA001') {
             $this->_dbSelected          = 'customer_colmena';
             $this->_initialFilter       = 'one';
@@ -7710,6 +7781,35 @@ class Dashboard extends Generic
            $this->_minMaxCes           = 4;
            $this->_maxMaxCes           = 5;
         }
+
+        // Dentalia
+        if ($client == 'DEN001') {
+            $this->_dbSelected          = 'customerscoops_dentalia';
+            $this->_initialFilter       = 'one';
+            $this->_fieldSelectInQuery  = 'sex';
+            $this->_fieldSex            = 'sex';
+            $this->_minNps              = 0;
+            $this->_maxNps              = 6;
+            $this->_minMediumNps        = 7;
+            $this->_maxMediumNps        = 8;
+            $this->_minMaxNps           = 9;
+            $this->_maxMaxNps           = 10;
+            $this->_minCsat             = 1;
+            $this->_maxCsat             = 6;
+            $this->_minMediumCsat       = 7;
+            $this->_maxMediumCsat       = 8;
+            $this->_minMaxCsat          = 9;
+            $this->_maxMaxCsat          = 10;
+            $this->_obsNps              = 'obs_nps';
+            $this->_imageClient         = '';
+            $this->_nameClient          = 'Dentalia';
+            $this->ButFilterWeeks       = [["text" => "Anual", "key" => "filterWeeks", "value" => ""], ["text" => "Semanal", "key" => "filterWeeks", "value" => "10"]];
+            $this->_minCes              = 1;
+            $this->_maxCes              = 2;
+            $this->_minMediumCes        = 3;
+            $this->_minMaxCes           = 4;
+            $this->_maxMaxCes           = 5;
+         }
     }
 
     public function getInitialFilter(){
