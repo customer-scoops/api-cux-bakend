@@ -318,21 +318,23 @@ class Dashboard extends Generic
             return $value;
 
         $dataTextMining = $this->textMining($request);
+        
+        $wordCloud = '';
 
-        if($survey != 'travia' && $survey != 'tracond'){
-        foreach ($dataTextMining['datas']->values as $value){
-            foreach($value as $key => $detail){
-                foreach($detail as $key1 => $index){
-                isset($index->percentaje3)?$this->setAnomaliasTextAnalitics( $index->percentaje3, $index->nps3, $index->word3, $index->group3): null ;
+        if($dataTextMining){
+            if($survey != 'travia' && $survey != 'tracond'){
+                foreach ($dataTextMining['datas']->values as $value){
+                    foreach($value as $key => $detail){
+                        foreach($detail as $key1 => $index){
+                        isset($index->percentaje3)?$this->setAnomaliasTextAnalitics( $index->percentaje3, $index->nps3, $index->word3, $index->group3): null ;
+                        }
+                    }
                 }
             }
-        }
-        }
-        if($dataTextMining['datas'] == null ){
-            $wordCloud = '';
-        }
-        if($dataTextMining['datas'] !== null ){
-            $wordCloud = ($dataTextMining['datas']->wordCloud);
+
+            if($dataTextMining['datas'] !== null ){
+                $wordCloud = ($dataTextMining['datas']->wordCloud);
+            }
         }
 
         $resp = [
