@@ -654,7 +654,6 @@ class Dashboard extends Generic
             'status'    => Response::HTTP_OK
         ];
         }
-    
 
     public function getEndCsat($survey){
         $datas = [
@@ -3290,7 +3289,8 @@ class Dashboard extends Generic
 
         $data = DB::select("SELECT `app`, `rol`, `email`, `date`, `time` 
                             FROM customerscoops_general_info.log_users 
-                            WHERE `date` BETWEEN '$startDate' AND '$endDate' AND company = '$client'
+                            WHERE `date` BETWEEN '$startDate' AND '$endDate' AND company = '$client' 
+                            AND SUBSTRING_INDEX(SUBSTR(`email`, INSTR(`email`, '@') + 1),'.',1)) NOT IN ('customerscoops', 'gmail')
                             ORDER BY `date` ASC");
 
         if($data){
