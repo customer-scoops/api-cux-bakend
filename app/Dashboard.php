@@ -4915,7 +4915,7 @@ class Dashboard extends Generic
             "type" =>  "tables",
             "props" =>  [
                 "icon" => "arrow-right",
-                "text" => "STATS by clients",
+                "text" => "STATS by Contratos",
                 "tables" => [
                     [
                         "columns" => [
