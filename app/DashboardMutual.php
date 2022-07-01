@@ -1649,7 +1649,7 @@ class DashboardMutual extends Dashboard
       
        
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient,$request->survey, $db);
-            $performance        = $this->cardsPerformace( $dataNPSGraph, $dataIsnP , $dateEnd, $dateIni, $request->survey, $datafilters);
+            $performance        = $this->cardsPerformace( $dataNPSGraph, $dataIsnP , $request->survey, $datafilters);
             $npsConsolidado     = $this->cardCsatDriversMutual('ISN', $name, $dataIsn , $this->ButFilterWeeks, 12, 4);
             //echo $db;exit;
             $npsBan             = (substr($request->survey, 3, 3) == 'con' && $this->consolidadoTotal == true) ? $this->cardNpsBanmedica($dataNPSGraph) : $this->CSATJourney($graphCSATDrivers);
