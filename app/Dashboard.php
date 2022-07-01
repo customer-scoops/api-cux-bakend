@@ -977,6 +977,10 @@ class Dashboard extends Generic
 
     private function cbiPreviousPeriod($table,$dateEnd, $dateIni, $indicador, $datafilters)
     {
+        $activeP2 = " etapaencuesta = 'P2' AND ";
+        if(substr($table, 6, 3) == 'ban' || substr($table, 6, 3) == 'vid')
+            $activeP2 ='';
+
         $datafilters = str_replace(' AND date_survey between date_sub(NOW(), interval 9 week) and NOW()', '', $datafilters);
         $monthAntEnd = date('m') - 1;
         $annio = date('Y');
@@ -997,23 +1001,27 @@ class Dashboard extends Generic
 
         if ($this->_dbSelected == 'customer_jetsmart') {
 
-            $data = DB::select("SELECT ROUND((COUNT(CASE WHEN $indicador BETWEEN 4 AND 5 THEN 1 END)  /
-                                (COUNT(CASE WHEN $indicador != 99 THEN $indicador END)) * 100)) AS $indicador
-                                FROM $this->_dbSelected.$table 
-                                WHERE mes = $mes AND annio = $annio $datafilters");
-                                return $data;
+            $data = DB::select("SELECT ROUND(COUNT(CASE WHEN $indicador BETWEEN 4 AND 5 THEN 1 END) * 100 /
+                                COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END),0) AS $indicador
+                                From $this->_dbSelected.$table as a
+                                left join $this->_dbSelected." . $table . "_start as b 
+                                on a.token = b.token   
+                                WHERE $activeP2 $indicador != 99 and a.mes = $mes AND a.annio = $annio $datafilters");
+
+            return $data;
         }
     }
 
     //Función promedio 6 mese CBI
 
     private function AVGLast6MonthCBI($table,$dateIni,$dateEnd,$indicador){
-            $data = DB::select("SELECT sum($indicador) as total, COUNT(distinct mes) as meses from (SELECT 
-                                ROUND(((COUNT(CASE WHEN $indicador BETWEEN 4 AND  5 THEN 1 END)) 
-                                /(COUNT($indicador) - COUNT(CASE WHEN $indicador=99 THEN 1 END)) * 100)) AS $indicador, mes, annio
-                                FROM $this->_dbSelected.$table
-                                WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' 
-                                group by annio, mes) as a");
+        $data = DB::select("SELECT sum($indicador) as total, COUNT(distinct mes) as meses from (SELECT 
+                            ROUND(((COUNT(CASE WHEN $indicador BETWEEN 4 AND  5 THEN 1 END)) 
+                            /(COUNT($indicador) - COUNT(CASE WHEN $indicador=99 THEN 1 END)) * 100)) AS $indicador, mes, annio
+                            FROM $this->_dbSelected.$table
+                            WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' 
+                            group by annio, mes) as a");
+
         if ($data[0]->meses == null || $data[0]->meses == 0)
             return 'N/A';
 
@@ -1512,6 +1520,10 @@ class Dashboard extends Generic
     //OKK
     private function csatPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $filter, $datafilters)
     {
+        $activeP2 = " AND etapaencuesta = 'P2' ";
+        if(substr($table, 6, 3) == 'ban' || substr($table, 6, 3) == 'vid')
+            $activeP2 =''; 
+
         $monthAntEnd = date('m') - 1; 
         $annio = date('Y'); 
         $monthActualEnd= substr($dateIni, 5,2); 
@@ -1528,12 +1540,12 @@ class Dashboard extends Generic
         }
 
         $mes = $monthAntEnd;
-
+       
         if ($filter != 'all') {
             //if(substr($table, 6, 7) != 'tra_via') {
                 $data = DB::select("SELECT ((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxCsat AND $this->_maxMaxCsat THEN $indicador END)*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)) as CSAT
                                     FROM $this->_dbSelected.$table
-                                    WHERE mes = $mes AND annio = $annio");
+                                    WHERE mes = $mes AND annio = $annio $activeP2");
             //}
             // if(substr($table, 6, 7) == 'tra_via') {
             //         $dateSurvey = 'fechaservicio';
@@ -1600,8 +1612,8 @@ class Dashboard extends Generic
                                     $this->_fieldSelectInQuery
                                     FROM $this->_dbSelected.$table as a
                                     INNER JOIN $this->_dbSelected." . $table . "_start as b  ON a.token  =  b.token 
-                                         WHERE " . $dateSurvey . " BETWEEN '$dateEnd' AND '$dateIni'  $activeP2 $datafilters
-                                         " . $groupBy);
+                                    WHERE " . $dateSurvey . " BETWEEN '$dateEnd' AND '$dateIni'  $activeP2 $datafilters
+                                    " . $groupBy);
      
             }
         }
@@ -1865,9 +1877,9 @@ class Dashboard extends Generic
             $activeP2 ='';
 
         $data = DB::select("SELECT
-                            ROUND(COUNT(CASE WHEN $indicador BETWEEN 1 AND 2 THEN 1 END)/COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END)*100) as nretorna,
-                            ROUND(COUNT(CASE WHEN $indicador = 3 THEN 1 END)/COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END)*100) as nsabe,
-                            ROUND(COUNT(CASE WHEN $indicador BETWEEN 4 AND 5 THEN 1 END)/COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END)*100) as retorna,
+                            ROUND(COUNT(CASE WHEN $indicador BETWEEN 1 AND 2 THEN 1 END)/COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END)*100, 0) as nretorna,
+                            ROUND(COUNT(CASE WHEN $indicador = 3 THEN 1 END)/COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END)*100, 0) as nsabe,
+                            ROUND(COUNT(CASE WHEN $indicador BETWEEN 4 AND 5 THEN 1 END)/COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END)*100, 0) as retorna,
                             COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END) as total,
                             a.mes, a.annio, date_survey, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek, $this->_fieldSelectInQuery 
                             FROM $this->_dbSelected.$table as a
@@ -2902,12 +2914,11 @@ class Dashboard extends Generic
                                     from $this->_dbSelected.$db as a
                                     left join $this->_dbSelected." . $db . "_start as b 
                                     on a.token = b.token  
-                                    WHERE $activeP2 date_survey BETWEEN '$dateEnd' AND '$dateIni' AND etapaencuesta = 'P2' $datafilters
+                                    WHERE $activeP2 date_survey BETWEEN '$dateEnd' AND '$dateIni' $datafilters
                                     "); // Ver si group by a.mes, a.annio se agrega despues de $datafilters
 
             $cbiPreviousPeriod = $this->cbiPreviousPeriod($db, $dateIni, $dateEnd, $key, $datafilters);
            
-            //dd($data);exit;
             if($data && $data[0]->$key != NULL){
                 foreach ($data as $prop => $value) { 
                     $generalDataCbi = [                 
