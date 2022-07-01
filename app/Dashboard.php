@@ -615,6 +615,10 @@ class Dashboard extends Generic
                     $infoNps =[$this->infoNps($db, date('Y-m-d'),date('Y-m-01'),$npsInDb,$this->_initialFilter)]; 
                     $otherGraph = [$this->infoCsat($db, date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->_initialFilter)];
                      
+                    if (substr($value['base'],0,3) == 'den'){
+                        $otherGraph = [$this->infoCsat($db, date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->_initialFilter),$this->cbiResp($db, '', date('Y-m-d'),date('Y-m-01')), $this->ces($db,date('Y-m-d'),date('Y-m-01'), $cesInDb)];
+                    }
+
                     if (substr($value['base'],0,3) == 'tra'){
                         if(substr($value['base'],3,3) == 'con')
                             $db = 'adata_tra_cond';
@@ -4043,8 +4047,7 @@ class Dashboard extends Generic
                     on A.token = b.token 
                     WHERE fechaservicio BETWEEN '$dateIni' AND '$dateEnd' $activeP2  $datafilters
                     ORDER BY fechaservicio" );
-            }
-                             
+            }               
         }
 
         $suite = new Suite($this->_jwt);
