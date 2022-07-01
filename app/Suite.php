@@ -37,10 +37,11 @@ class Suite
     public function saveUpdate($request, $jwt)
     {
         $rules = [
-            "survey" => 'required|string|max:6',
-            "ticket" => 'required|numeric',
-            "status" => 'required|numeric',
-            "detail" => 'required|string'
+            "survey"    => 'required|string|max:6',
+            "ticket"    => 'required|numeric',
+            "status"    => 'required|numeric',
+            "npsCierre" => 'numeric',
+            "detail"    => 'required|string'
         ];
 
         $validator = \Validator::make($request->all(), $rules);
@@ -51,11 +52,17 @@ class Suite
             ];
         }
         try {
-            $resp = DB::table($this->_dbSelected.'.'.'adata_'.substr($request->survey,0,3).'_'.substr($request->survey,3,6).'_start')->where('id', $request->ticket)->update(['estado_close' => $request->status, 'det_close' => $request->detail, 'fec_close'=>date('Y-m-d')]);
-            //echo $resp;
-            if($resp===1){
-                $namev = DB::table($this->_dbSelected.'.'.'adata_'.substr($request->survey,0,3).'_'.substr($request->survey,3,6).'_start')->where('id', $request->ticket)->first();
-                $this->sendedmail($namev->nom, $namev->mail, $namev->token, $request->survey);
+
+            if(substr($request->survey,0,3) != 'tra'){
+                $resp = DB::table($this->_dbSelected.'.'.'adata_'.substr($request->survey,0,3).'_'.substr($request->survey,3,6).'_start')->where('id', $request->ticket)->update(['estado_close' => $request->status, 'det_close' => $request->detail, 'fec_close'=>date('Y-m-d')]);
+                if($resp===1){
+                    $namev = DB::table($this->_dbSelected.'.'.'adata_'.substr($request->survey,0,3).'_'.substr($request->survey,3,6).'_start')->where('id', $request->ticket)->first();
+                    $this->sendedmail($namev->nom, $namev->mail, $namev->token, $request->survey);
+                }
+            }
+
+            if(substr($request->survey,0,3) == 'tra'){
+                $resp = DB::table($this->_dbSelected.'.'.'adata_'.substr($request->survey,0,3).'_'.substr($request->survey,3,6).'_start')->where('id', $request->ticket)->update(['estado_close' => $request->status, 'det_close' => $request->detail, 'fec_close'=>date('Y-m-d'), 'cod_auth' => $request->npsCierre]);
             }
             return[
                 'datas'  => 'complet',
@@ -82,19 +89,19 @@ class Suite
     public function getSurvey($request,$jwt)
     {   
         try{
-            //$codCustomer = ($jwt[env('AUTH0_AUD')]->client === null) ? 'BAN001' : $jwt[env('AUTH0_AUD')]->client;
             $codCustomer = $jwt[env('AUTH0_AUD')]->client;
-            //print_r($jwt);exit;
+
             if($request->get('company') !== null){
                 $codCustomer = $this->getCompany($request->get('company'));
             }
             //echo  $codCustomer;exit;
             $db = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1);
-            //var_dump($jwt);exit;
+
             if (isset($jwt[env('AUTH0_AUD')]->surveysActive)) {
                 foreach ($jwt[env('AUTH0_AUD')]->surveysActive as $key => $value) {
                     $surv[] = $value; 
                 }
+
                 $db->whereIn('codDbase',$surv);
                 unset($surv);
             }
@@ -225,7 +232,7 @@ class Suite
     {
        
         $validFilterKeys    = array("nps","csat","estado", "dateSchedule", "nps_cierre"); // <-- keys habilitadas para filtrar
-        $validOrderKeys     = array("nps", "date","csat"); // <-- keys habilitadas para Ordenar
+        $validOrderKeys     = array("nps", "date", "csat", "nps_cierre"); // <-- keys habilitadas para Ordenar
         
         try{
             //$client = ($request->get('company') !== null) ? $request->get('company'): $jwt[env('AUTH0_AUD')]->client;
@@ -251,12 +258,13 @@ class Suite
                 if(in_array('Loyalty',$jwt[env('AUTH0_AUD')]->roles)){
                     $dbQuery->where('ejecutivo', $jwt[env('AUTH0_AUD')]->email);
                 }
-            
-            // Filtramos
+                // Filtramos
+            $fechaAgendada= false;
             if($request->get('filters') !== null) {
                 $filters = (json_decode($request->get('filters')));
                 if ($filters) {
                     foreach ($filters as $key => $value) {
+                        
                         if($value->key == 'typeClient')
                         {
                             if($value->value == 'detractor')
@@ -267,6 +275,9 @@ class Suite
                                 $dbQuery->whereBetween('nps', [9,10]);
                         }
                         if(in_array($value->key, $validFilterKeys)) {
+                            if($value->key == "dateSchedule"){
+                                $fechaAgendada = true;
+                            }
                             $dbQuery->where($value->key,  $value->value);
                         }
                     }
@@ -284,7 +295,7 @@ class Suite
                 $startDate = $request->get('startDate');
                 // TODO validar startDate
                 $dbQuery->where('date', '>', $startDate);
-            } else {
+            } else if(!$fechaAgendada) {
                 $dbQuery->where('date', '>', date('Y-m-d', strtotime(date('Y-m-d')."$this->_daysActiveSurvey days")));
             }
 
@@ -307,9 +318,12 @@ class Suite
                         }
                     }
                 }
+            } else {
+                $dbQuery->orderBy('estado',  "asc");
             }
 
             $resp = $dbQuery->paginate(10);
+            
         }catch (\Throwable $e) {
             return $data = [
                 'datas'  => $e->getMessage(),
@@ -320,7 +334,7 @@ class Suite
         if($resp)
         {
             foreach ($resp as $key => $value) {
-                // print_r($value);
+ 
                  $journey=[];
                 for ($i=1; $i <= 11; $i++) { 
                     //echo($value->csat1);
@@ -437,6 +451,7 @@ class Suite
         curl_close($curl);
         echo $response;
     }
+    
     public function getInformationDriver($searchDriver){
         $datas = [
             "banamb_csat1" => "Satisfacción agendamiento",
