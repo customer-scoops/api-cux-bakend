@@ -2532,13 +2532,24 @@ class Dashboard extends Generic
                     $cont++;
                 }
             }
+            if($totalAcum != 0){
+                foreach ($resp as $key => $value) {
+                    $values[] = [
+                        'text'  => $value->nombre == "0" ? "No" : ($value->nombre == "1" ? "Si" : str_replace("u00f3", "ó", str_replace("&nt", "ños", html_entity_decode(str_replace("&amp;","&",$value->nombre))))),
+                        'cant'   => $value->total,
+                        'porcentaje'   => ROUND($value->total * 100 / $totalAcum) . " %",
+                    ];
+                }
+            }
 
-            foreach ($resp as $key => $value) {
-                $values[] = [
-                    'text'  => $value->nombre == "0" ? "No" : ($value->nombre == "1" ? "Si" : str_replace("u00f3", "ó", str_replace("&nt", "ños", html_entity_decode(str_replace("&amp;","&",$value->nombre))))),
-                    'cant'   => $value->total,
-                    'porcentaje'   => ROUND($value->total * 100 / $totalAcum) . " %",
-                ];
+            if($totalAcum == 0){
+                foreach ($resp as $key => $value) {
+                    $values[] = [
+                        'text'  => $value->nombre == "0" ? "No" : ($value->nombre == "1" ? "Si" : str_replace("u00f3", "ó", str_replace("&nt", "ños", html_entity_decode(str_replace("&amp;","&",$value->nombre))))),
+                        'cant'   => $value->total,
+                        'porcentaje'   => "0%",
+                    ];
+                }
             }
 
             usort($values, $this->build_sorter('porcentaje'));  
@@ -2760,24 +2771,28 @@ class Dashboard extends Generic
         $sino2 = $this->rankingTransvipData($db, $datafilters, $dateIni, $dateEnd, 'sino2', 'Compra equipaje WEB');
         $sino3 = $this->rankingTransvipData($db, $datafilters, $dateIni, $dateEnd, 'sino3', 'Notificación itinerario vuelo');
         $sino4 = $this->rankingTransvipData($db, $datafilters, $dateIni, $dateEnd, 'sino4', 'Atención Contact Center');
+        
+        $sino2tot = isset($sino2[0]["cant"]) ? $sino2[0]["cant"] : 0;
+        $sino3tot = isset($sino3[0]["cant"]) ? $sino3[0]["cant"] : 0;
+        $sino4tot = isset($sino4[0]["cant"]) ? $sino4[0]["cant"] : 0;
 
-        $total = $sino2[0]["cant"] + $sino3[0]["cant"] + $sino4[0]["cant"];
+        $total = $sino2tot + $sino3tot + $sino4tot;
 
         $values[0] = [
-            "porcentaje" => strval(round($sino2[0]["cant"] * 100 / $total, 0))." %",
-            "cant" => $sino2[0]["cant"],
+            "porcentaje" => isset($sino2[0]["cant"]) ? strval(round($sino2[0]["cant"] * 100 / $total, 0))." %" : "0 %",
+            "cant" => isset($sino2[0]["cant"]) ? $sino2[0]["cant"] : 0,
             "text" => 'Compra equipaje WEB'
         ];
 
         $values[1] = [
-            "porcentaje" => strval(round($sino3[0]["cant"] * 100 / $total, 0))." %",
-            "cant" => $sino3[0]["cant"],
+            "porcentaje" => isset($sino3[0]["cant"]) ? strval(round($sino3[0]["cant"] * 100 / $total, 0))." %" : "0 %",
+            "cant" => isset($sino3[0]["cant"]) ? $sino3[0]["cant"] : 0,
             "text" => 'Notificación itinerario vuelo'
         ];
 
         $values[2] = [
-            "porcentaje" => strval(round($sino4[0]["cant"] * 100 / $total, 0))." %",
-            "cant" => $sino4[0]["cant"],
+            "porcentaje" => isset($sino4[0]["cant"]) ? strval(round($sino4[0]["cant"] * 100 / $total, 0))." %" : "0 %",
+            "cant" => isset($sino4[0]["cant"]) ? $sino4[0]["cant"] : 0,
             "text" => 'Atención Contact Center'
         ];
 
