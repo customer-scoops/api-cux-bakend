@@ -4920,7 +4920,7 @@ class Dashboard extends Generic
                     [
                         "columns" => [
                             [
-                                "text" => "Clientes",
+                                "text" => "Tipo Contrato",
                                 "key" => "text",
                                 "headerColor" => "#17C784",
                                 "cellColor" => "#949494",
