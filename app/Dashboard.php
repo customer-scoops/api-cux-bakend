@@ -6732,7 +6732,6 @@ class Dashboard extends Generic
     {
         $width = 6;
         $resp = [];
-        //print_r($dataCbi);exit;
 
         if ($datafilters)
             $datafilters = " $datafilters";
