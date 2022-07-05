@@ -890,7 +890,7 @@ class Dashboard extends Generic
                                     WHERE fechaservicio between '$dateIni' and '$dateEnd' $datafilters AND etapaencuesta = 'P2'
                                     ORDER by fechaservicio ASC");
             }
-
+            
             if (substr($table, 10, 3) == 'con')
             {
                 $data = DB::select("SELECT ROUND(((COUNT(CASE WHEN csat BETWEEN 6 AND 7 THEN 1 END) -
@@ -918,7 +918,7 @@ class Dashboard extends Generic
                                     GROUP by a.mes, a.annio
                                     ORDER by a.date_survey ASC");
             }
-            
+
             return ['ins' => $data[0]->INS == null ? 0 : $data[0]->INS, 'nps' => $data[0]->NPS == null ? 0 : $data[0]->NPS, 'insAct' => count($data2) === 0 ? 'N/A' : $data2[0]->INS, 'npsAct' => count($data2) === 0 ? 'N/A' : $data2[0]->NPS];
         }
 
@@ -7455,10 +7455,10 @@ class Dashboard extends Generic
                 $drivers            = $this->csatsDriversTransvip($db, trim($request->survey), $dateIni, $dateEnd, $datafilters);
                 $csatDriv           = $this->graphCsatTransvip($drivers, $request->survey);
             }
-
+            $datFilt = $datafilters == '' ? '' : ' AND ' . $datafilters;
             $name = 'Transvip';         
             $dataisn            = $this->NpsIsnTransvip($db, $dateIni, $dateEnd, $npsInDb, $csatInDb, $datafilters, $group);
-            $dataIsnPerf        = $this->npsPreviousPeriod($db,$dateIni,$dateEndIndicatorPrincipal,'isn','' );
+            $dataIsnPerf        = $this->npsPreviousPeriod($db,$dateIni,$dateEndIndicatorPrincipal,'isn',  $datFilt);
 
             $welcome            = $this->welcome(substr($request->survey, 0, 3), $filterClient, $request->survey, $db);
             $performance        = $this->cardsPerformace($dataNps, $dataIsnPerf, $request->survey, $datafilters);
