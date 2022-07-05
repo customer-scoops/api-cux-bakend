@@ -7425,9 +7425,9 @@ class Dashboard extends Generic
             $graphIsnResp =  $csatDriv =    null;
 
             if($db == 'adata_tra_cond'){
-                $graphClTra     = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc2', "Canal Preferido", 3, 4);
+                //$graphClTra     = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc2', "Canal Preferido", 3, 4);
                 $graphCbiResp   = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'cbi', "Continuar Como Proveedor", 3, 4);
-                $globalSentido  = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc', "Frecuencia de conexión", 3, 4);
+                //$globalSentido  = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'opc', "Frecuencia de conexión", 3, 4);
                 $globalesVehi   = $this->rankingTransvip($db, $datafilters, $dateIni, $startDateFilterMonth, 'sino1', "Contacto otras empresas", 3, 4);
                 $globalesSuc    = $this->rankingTransvipJson($db, $datafilters, $dateIni, $startDateFilterMonth, 'obs_nps', "Motivos de tu Valoración", 3, 4);
                 $globalesServ   = $this->statsTransvipResp($db, $npsInDb, $csatInDb, $dateIni, $startDateFilterMonth, $datafilters);
