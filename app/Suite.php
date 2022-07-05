@@ -230,7 +230,7 @@ class Suite
     }
     public function resumenIndicator($request, $jwt)
     {
-       
+
         $validFilterKeys    = array("nps","csat","estado", "dateSchedule", "nps_cierre"); // <-- keys habilitadas para filtrar
         $validOrderKeys     = array("nps", "date", "csat", "nps_cierre"); // <-- keys habilitadas para Ordenar
         
