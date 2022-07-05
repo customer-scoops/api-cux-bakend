@@ -37,7 +37,7 @@ class LogUsers
     public function usersList($next, $request, $app)
     {
         try {
-            if($request->dataJwt[env('ACTIVE_LOG')] == true){
+            if(env('ACTIVE_LOG')){
                 if(!in_array('Developer',$request->dataJwt[env('AUTH0_AUD')]->roles)){
                     DB::table('customerscoops_general_info.log_users')->insert(['company' => $request->dataJwt[env('AUTH0_AUD')]->client,
                                                     'app' => $app,
