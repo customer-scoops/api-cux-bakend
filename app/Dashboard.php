@@ -2693,7 +2693,8 @@ class Dashboard extends Generic
                   FROM $this->_dbSelected.$db AS a
                   LEFT JOIN $this->_dbSelected." . $db . "_start AS b 
                   ON a.token = b.token 
-                  WHERE $datafilters etapaencuesta = 'P2' AND date_survey  BETWEEN '$dateEnd' AND '$dateIni' AND $indicador != 'null' AND $indicador != '' and json_valid($indicador) = 1";
+                  WHERE $datafilters etapaencuesta = 'P2' AND date_survey  
+                  BETWEEN '$dateEnd' AND '$dateIni' AND $indicador != 'null' AND $indicador != '' and json_valid($indicador) = 1";
 
         $data = DB::select($query);
 
