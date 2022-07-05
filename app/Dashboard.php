@@ -4919,25 +4919,27 @@ class Dashboard extends Generic
 
         $data = DB::select($query);
         $datas = [];
-        
-        if($data[0]->contrato){
-            foreach ($data as $key => $value) {
+         
+        if($data){
+            if($data[0]->contrato){
+                foreach ($data as $key => $value) {
+                    $datas[] = [
+                        'text' => $tipoContrato['contrato'.$value->contrato],
+                        'nps' => $value->nps,
+                        'isn' => $value->isn,
+                        'quantity' => $value->Total,
+                    ];
+                }
+            }
+            
+            if(!$data[0]->contrato){
                 $datas[] = [
-                    'text' => $tipoContrato['contrato'.$value->contrato],
-                    'nps' => $value->nps,
-                    'isn' => $value->isn,
-                    'quantity' => $value->Total,
+                    'text' => '',
+                    'nps' => '',
+                    'isn' => '',
+                    'quantity' => '',
                 ];
             }
-        }
-        
-        if(!$data[0]->contrato){
-            $datas[] = [
-                'text' => '',
-                'nps' => '',
-                'isn' => '',
-                'quantity' => '',
-            ];
         }
 
         $height = 3;
