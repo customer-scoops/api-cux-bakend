@@ -166,7 +166,7 @@ class PeriodCompare
 
             if(substr($db, 6, 7) != 'tra_via')
             {
-                if(substr($db, 6, 7) != 'jet_com' && substr($db, 6, 7) != 'jet_vue'){
+                if(substr($db, 6, 7) != 'jet_com' && substr($db, 6, 7) != 'jet_vue' && substr($db, 6, 7) != 'jet_via' && substr($db, 6, 7) != 'jet_cpe'){
                     for ($i=1; $i <= $endCsat; $i++) 
                     {
                         if($i != $endCsat)
@@ -187,7 +187,24 @@ class PeriodCompare
 
                 }
 
-                if(substr($db, 6, 7) == 'jet_com' || substr($db, 6, 7) == 'jet_vue')
+                if(substr($db, 6, 7) == 'jet_via'){
+                    for ($i=1; $i <= $endCsat; $i++) 
+                    {
+                        if($i != $endCsat)
+                        {
+                            $query .= " ROUND(
+                                            (COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL)) * 100) / COUNT(if($fieldBd$i !=99,1,NULL )), 0) AS csat$i, ";
+                        }
+                        
+                        if($i == $endCsat)
+                        {
+                            $query .= " ROUND((COUNT(if( $fieldBd$i = $minMaxCsat OR $fieldBd$i = $maxMaxCsat, $fieldBd$i, NULL)))* 100/COUNT(if($fieldBd$i !=99,1,NULL )),0) AS csat$i ";
+                        }
+                    }
+
+                }
+
+                if(substr($db, 6, 7) == 'jet_com' || substr($db, 6, 7) == 'jet_vue' || substr($db, 6, 7) == 'jet_cpe')
                 {
                     $maxMaxCes    = $dash->getParams('_maxMaxCes');
                     for ($i = 1; $i <= $endCsat; $i++) {

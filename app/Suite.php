@@ -88,14 +88,15 @@ class Suite
     }
     public function getSurvey($request,$jwt)
     {   
-
         try{
             $codCustomer = $jwt[env('AUTH0_AUD')]->client;
+
             if($request->get('company') !== null){
                 $codCustomer = $this->getCompany($request->get('company'));
             }
+            //echo  $codCustomer;exit;
             $db = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1);
-  
+
             if (isset($jwt[env('AUTH0_AUD')]->surveysActive)) {
                 foreach ($jwt[env('AUTH0_AUD')]->surveysActive as $key => $value) {
                     $surv[] = $value; 
@@ -106,10 +107,7 @@ class Suite
             }
 
             $resp = $db->get();
-            //$codCustomer = ($request->get('company') !== null) ? $request->get('company'): $jwt[env('AUTH0_AUD')]->client;
-            //$resp = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1)->get();
-            //echo $resp;exit;  
-            //dd(\DB::getQueryLog());
+    
             if($codCustomer == 'TRA001')
                 $resp = DB::table($this->_dbSelected.'.'.'survey')->where('codCustomer', $codCustomer)->where('activeSurvey', 1)->where('codsurvey','TRA_VIA')->orWhere('codsurvey','TRA_COND')->get();
             //$resp = DB::table('survey')->get();
@@ -232,23 +230,23 @@ class Suite
     }
     public function resumenIndicator($request, $jwt)
     {
-        //echo $this->_jwt[env('AUTH0_AUD')]->client;
+
         $validFilterKeys    = array("nps","csat","estado", "dateSchedule", "nps_cierre"); // <-- keys habilitadas para filtrar
         $validOrderKeys     = array("nps", "date", "csat", "nps_cierre"); // <-- keys habilitadas para Ordenar
         
         try{
             //$client = ($request->get('company') !== null) ? $request->get('company'): $jwt[env('AUTH0_AUD')]->client;
             $client = $jwt[env('AUTH0_AUD')]->client;
-            //echo $request->get('company');
+           
             if($request->get('company') !== null){
                 $client = $this->getCompany($request->get('company'));
             }
             
             $survey = ($request->get('survey') === null) ? $jwt[env('AUTH0_AUD')]->survey: $request->get('survey');
-            //echo $jwt[env('AUTH0_AUD')]->email;exit;
+           
             $survey = $this->buildSurvey($survey,$client);
             $dbQuery = DB::table($this->_dbSelected.'.'.$client.'_'.$survey);
-            //echo $this->_dbSelected.'.'.$client.'_'.$survey;
+   
             
             $dbQuery->where('etapaencuesta', 'P2');
             $dbQuery->where('contenido','!=', '');
@@ -687,6 +685,15 @@ class Suite
             "jetcpe_csat4"  => "Selección de asientos",
             "jetcpe_csat5"  => "Proceso de pago",
             "jetcpe_csat6"  => "Información en email de confirmación de compra",
+
+            //DENTALIA
+            "detcpe_csat1"  => "Satisfación con el primer contacto",
+            "detcpe_csat2"  => "Satisfación con la experiencia de agendamiento",
+            "detcpe_csat3"  => "Satisfación con la atención recibida en la recepción",
+            "detcpe_csat4"  => "Satisfación con el diagnóstico recibido",
+            "detcpe_csat5"  => "Satisfación con el tratamiento y presupuesto",
+            "detcpe_csat6"  => "Satisfación con el tratamiento dental",
+            "detcpe_csat7"  => "Satisfación con la consulta posterior al tratamiento",
         
         ];
         
@@ -715,6 +722,7 @@ class Suite
                 $this->_nameClient = 'Banmedica';
             }
         }
+
         if($client == 'MUT001'){
             $this->_dateStartClient = '2022-01-01';
             $this->_dbSelected  = 'customer_colmena';
@@ -723,6 +731,7 @@ class Suite
             $this->_nameClient = 'Mutual';
             $this->_daysActiveSurvey = -7;
         }
+
         if($client == 'DEM001'){
             $this->_dateStartClient = '2021-01-01';
             $this->_dbSelected  = 'customer_demo';
@@ -731,6 +740,7 @@ class Suite
             $this->_nameClient = 'Demo';
             $this->_daysActiveSurvey = -365;
         }
+
         if($client == 'TRA001'){
             $this->_dateStartClient = '2022-01-01';
             $this->_dbSelected  = 'customer_colmena';
@@ -739,6 +749,7 @@ class Suite
             $this->_nameClient = 'Transvip';
             $this->_daysActiveSurvey = -7;
         }
+
         if($client == 'JET001'){
             $this->_dateStartClient = '2022-01-01';
             $this->_dbSelected  = 'customer_jetsmart';
@@ -746,6 +757,15 @@ class Suite
             $this->_startMaxNps = 6;
             $this->_nameClient = 'JetSmart';
             $this->_daysActiveSurvey = -7;
+        }
+        
+        if($client == 'DEN001'){
+            $this->_dateStartClient = '2022-01-01';
+            $this->_dbSelected  = 'customerscoops_dentalia';
+            $this->_startMinNps = 0;
+            $this->_startMaxNps = 6;
+            $this->_nameClient = 'Dentalia';
+            $this->_daysActiveSurvey = -15;
         }
     }
 
