@@ -7497,8 +7497,8 @@ class Dashboard extends Generic
                     'data' => $this->arrayPushToValues([],['GEN Z', 'GEN MILLE', 'GEN X', 'GEN BB', 'GEN SIL'], 'gene', ["genz", "genmille", "genx", "genbb", "gensil"], ['14-22', '23-38', '39-54', '55-73', '74-91'])
                 ];
 
-                $structGAPJetSmart =  $this->arrayPushToValues([],['Compra', 'Pago', 'Embarque', 'Confirmación', 'Check in', 'Registro equipaje', 'Abordaje', 'Vuelo', 'Llegada', 'Atención cliente',],'GAP', [], [], 9);
-                
+                $structGAPJetSmart =  $this->arrayPushToValues([],['Compra', 'Pago', 'Confirmación', 'Post Compra', 'Check in', 'Registro equipaje', 'Abordaje', 'Vuelo', 'Llegada', 'Atención cliente',],'GAP', [], [], 9);
+
                 $detailsProc = $this->OrdenAerolineas($db, $startDateFilterMonth, $endDateFilterMonth);
                 $bo14 = $this->BrandAwareness($db, $startDateFilterMonth, $endDateFilterMonth);
                 $detGend = $this->gapJetsmart($db, $request->survey,'csat', $dateIni, $dateEndIndicatorPrincipal, $structGAPJetSmart, $datafilters);
