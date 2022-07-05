@@ -7498,6 +7498,7 @@ class Dashboard extends Generic
                 ];
 
                 $structGAPJetSmart =  $this->arrayPushToValues([],['Compra', 'Pago', 'Embarque', 'Confirmación', 'Check in', 'Registro equipaje', 'Abordaje', 'Vuelo', 'Llegada', 'Atención cliente',],'GAP', [], [], 9);
+                
                 $detailsProc = $this->OrdenAerolineas($db, $startDateFilterMonth, $endDateFilterMonth);
                 $bo14 = $this->BrandAwareness($db, $startDateFilterMonth, $endDateFilterMonth);
                 $detGend = $this->gapJetsmart($db, $request->survey,'csat', $dateIni, $dateEndIndicatorPrincipal, $structGAPJetSmart, $datafilters);
