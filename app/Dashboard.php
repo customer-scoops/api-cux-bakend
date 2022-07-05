@@ -2684,12 +2684,18 @@ class Dashboard extends Generic
 
         $totalAcum = 0;
         $resp = [];
+        
+        if($datafilters != ''){
+            $datafilters = $datafilters . ' AND';
+        }
 
         $query = "SELECT $indicador 
-                  FROM $this->_dbSelected.$db 
-                  WHERE etapaencuesta = 'P2' AND date_survey  BETWEEN '$dateEnd' AND '$dateIni' $datafilters AND $indicador != 'null' AND $indicador != '' and json_valid($indicador) = 1";
-            
-        $data = DB::select($query);
+                  FROM $this->_dbSelected.$db AS a
+                  LEFT JOIN $this->_dbSelected." . $db . "_start AS b 
+                  ON a.token = b.token 
+                  WHERE $datafilters etapaencuesta = 'P2' AND date_survey  BETWEEN '$dateEnd' AND '$dateIni' AND $indicador != 'null' AND $indicador != '' and json_valid($indicador) = 1";
+
+            $data = DB::select($query);
 
         foreach ($data as $key => $value) {
             foreach(json_decode($value->obs_nps) as $key => $val){
@@ -4888,6 +4894,10 @@ class Dashboard extends Generic
             'contrato5' => 'Carga',
         ];
 
+        if($datafilters != ''){
+            $datafilters = $datafilters . ' AND';
+        }
+
         $query = "SELECT contrato as contrato, COUNT($npsInDb != 99) as Total,
                   ROUND(((COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
                   COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
@@ -4897,7 +4907,7 @@ class Dashboard extends Generic
                   COUNT(CASE WHEN a.$csatInDb BETWEEN $this->_minCsat AND $this->_maxMaxCsat THEN 1 END),0) AS isn
                   FROM $this->_dbSelected.$db as a
                   LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token
-                  WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and nps!= 99 and csat!= 99 and etapaencuesta = 'P2' $datafilters GROUP BY contrato";
+                  WHERE $datafilters date_survey BETWEEN '$dateEnd' AND '$dateIni' and nps!= 99 and csat!= 99 and etapaencuesta = 'P2' GROUP BY contrato";
 
         $data = DB::select($query);
         $datas = [];
