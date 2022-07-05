@@ -2693,22 +2693,26 @@ class Dashboard extends Generic
                   FROM $this->_dbSelected.$db AS a
                   LEFT JOIN $this->_dbSelected." . $db . "_start AS b 
                   ON a.token = b.token 
-                  WHERE $datafilters etapaencuesta = 'P2' AND date_survey  BETWEEN '$dateEnd' AND '$dateIni' AND $indicador != 'null' AND $indicador != '' and json_valid($indicador) = 1";
+                  WHERE $datafilters etapaencuesta = 'P2' AND date_survey  
+                  BETWEEN '$dateEnd' AND '$dateIni' AND $indicador != 'null' AND $indicador != '' and json_valid($indicador) = 1";
 
             $data = DB::select($query);
+        
+            foreach ($data as $key => $value) {
+                //print_r($value);
+                foreach($value as $key => $val){
 
-        foreach ($data as $key => $value) {
-            foreach(json_decode($value->obs_nps) as $key => $val){
-                if(isset($cuentaTotal[$val])){
-                    $cuentaTotal[$val]++;
-                    $totalAcum++;
+                    if(isset($cuentaTotal[$val])){
+                        $cuentaTotal[$val]++;
+                        $totalAcum++;
+                    }
+                    if(!isset($cuentaTotal[$val])){
+                        $cuentaTotal['Otros']++;
+                        $totalAcum++;
+                    }
                 }
-                if(!isset($cuentaTotal[$val])){
-                    $cuentaTotal['Otros']++;
-                    $totalAcum++;
-                }
-          }
-        }
+            }
+       
         if($totalAcum != 0){
             foreach ($cuentaTotal as $key => $value) {
                 $resp[] = [
