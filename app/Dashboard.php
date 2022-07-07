@@ -2697,21 +2697,39 @@ class Dashboard extends Generic
                   BETWEEN '$dateEnd' AND '$dateIni' AND $indicador != 'null' AND $indicador != '' and json_valid($indicador) = 1";
 
             $data = DB::select($query);
-        
-            foreach ($data as $key => $value) {
-                //print_r($value);
-                foreach($value as $key => $val){
 
-                    if(isset($cuentaTotal[$val])){
-                        $cuentaTotal[$val]++;
-                        $totalAcum++;
-                    }
-                    if(!isset($cuentaTotal[$val])){
-                        $cuentaTotal['Otros']++;
-                        $totalAcum++;
+            foreach ($data as $key => $value) {
+                //var_dump(json_decode($value->obs_nps));
+                if(gettype(json_decode($value->obs_nps)) == "string"){
+                    $cuentaTotal['Otros']++;
+                    $totalAcum++;
+                }
+                if(gettype($value) != "string"){
+                    foreach(json_decode($value->obs_nps) as $key => $val){
+                        if(isset($cuentaTotal[$val])){
+                            $cuentaTotal[$val]++;
+                            $totalAcum++;
+                        }
+                        if(!isset($cuentaTotal[$val])){
+                            $cuentaTotal['Otros']++;
+                            $totalAcum++;
+                        }
                     }
                 }
             }
+            // foreach ($data as $key => $value) {
+            //    //json_decode($value->obs_nps)
+            //     foreach($value as $key => $val){
+            //         if(isset($cuentaTotal[$val])){
+            //             $cuentaTotal[$val]++;
+            //             $totalAcum++;
+            //         }
+            //         if(!isset($cuentaTotal[$val])){
+            //             $cuentaTotal['Otros']++;
+            //             $totalAcum++;
+            //         }
+            //     }
+            // }
        
         if($totalAcum != 0){
             foreach ($cuentaTotal as $key => $value) {

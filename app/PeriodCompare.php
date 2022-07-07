@@ -145,14 +145,14 @@ class PeriodCompare
                 }
                 
             }
-            $query1 = "SELECT $query,date_survey, mes, WEEK(date_survey) AS week
+            $query1 = "SELECT $query,date_survey, mes, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek
                                 FROM $dbSelected.$db as A
                                 WHERE $where  GROUP BY $group";
                                 
-            $query2 = "SELECT $query2,date_survey, mes, WEEK(date_survey) AS week
+            $query2 = "SELECT $query2,date_survey, mes, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek
                                 FROM $dbSelected.$db2 as A
                                 WHERE $where  GROUP BY $group";
-            $queryPrin = "SELECT $select, mes, WEEK(date_survey) AS week FROM ($query1 UNION $query2) as A GROUP BY $group ORDER BY date_survey";
+            $queryPrin = "SELECT $select, mes, SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek FROM ($query1 UNION $query2) as A GROUP BY $group ORDER BY date_survey";
 
             //echo "SELECT $select, mes FROM ($query1 UNION $query2) as A GROUP BY $group ORDER BY date_survey";
           
@@ -219,7 +219,7 @@ class PeriodCompare
                 }
 
                 if(substr($db, 6, 3) == 'mut'){
-                $data = DB::select("SELECT $query,date_survey, a.mes,  WEEK(date_survey) AS week
+                $data = DB::select("SELECT $query,date_survey, a.mes,  SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek
                                 FROM $dbSelected.$db as a
                                 left join $dbSelected.".$db."_start as b
                                 on a.token = b.token   
@@ -229,7 +229,7 @@ class PeriodCompare
                 }
 
                 if(substr($db, 6, 3) != 'mut'){
-                $data = DB::select("SELECT $query,date_survey, mes,  WEEK(date_survey) AS week
+                $data = DB::select("SELECT $query,date_survey, mes,  SUBDATE(date_survey, WEEKDAY(date_survey)) as mondayWeek
                                     FROM $dbSelected.$db 
                                     WHERE $where AND etapaencuesta = 'P2' 
                                     GROUP BY $group
@@ -259,13 +259,14 @@ class PeriodCompare
                     }
                 }
 
-                $data = DB::select("SELECT $query, fechaservicio, MONTH(fechaservicio) as mes, WEEK(SUBDATE(fechaservicio, WEEKDAY(fechaservicio))) AS week
-                                FROM $dbSelected.$db as a
-                                LEFT JOIN  $dbSelected." . $db . "_start as b
-                                on a.token = b.token
-                                WHERE $where AND etapaencuesta = 'P2' 
-                                GROUP BY $group
-                                ORDER BY fechaservicio");
+                $data = DB::select("SELECT $query, fechaservicio, MONTH(fechaservicio) as mes, WEEK(SUBDATE(fechaservicio, WEEKDAY(fechaservicio))) AS week, 
+                                    SUBDATE(fechaservicio, WEEKDAY(fechaservicio)) as mondayWeek
+                                    FROM $dbSelected.$db as a
+                                    LEFT JOIN  $dbSelected." . $db . "_start as b
+                                    on a.token = b.token
+                                    WHERE $where AND etapaencuesta = 'P2' 
+                                    GROUP BY $group
+                                    ORDER BY fechaservicio");
             }
         }
 
@@ -335,7 +336,7 @@ class PeriodCompare
          
         foreach ($data as $key => $value){
            
-            $column["period".$value->week] = $value->week ;
+            $column["period".$value->week] = "Lun ". date('d',strtotime($value->mondayWeek)). '-' .date('m',strtotime($value->mondayWeek)) ;
             $periods = null;
 
             if($key == 0){
@@ -345,9 +346,12 @@ class PeriodCompare
                     foreach ($data as $index => $period){
                         $r      = 'csat'.$i;
                         $total  = $period->$r+$total;
-                        $detail["driver"]               = $suite->getInformationDriver($survey.'_'.$r);
+                        $detail["driver"]                = $suite->getInformationDriver($survey.'_'.$r);
                         $detail["period".$period->week]  =(int)$period->$r;
+                        //$detail["Lun ". date('d',strtotime($value->mondayWeek)). '-' .date('m',strtotime($value->mondayWeek)).' ('.$period->week.')']  =(int)$period->$r;
+                        //echo $period->week . '....' . $weekActive;exit;
                         if($period->week == $weekActive){
+                           
                             if($weekActive == 1){
                                 $diff = 0;
                             }
@@ -356,6 +360,18 @@ class PeriodCompare
                                     
                                 $valuePrevius = $detail["period".$weekPrev];
                                 $diff = $period->$r-$valuePrevius;
+                                }
+                                if(!isset($detail["period".$weekPrev])){
+                                    $diff = 0;
+                                }
+                            }
+                        }
+                        if($period->week != $weekActive){
+                            if($weekActive > 1){
+                                if(isset($detail["period".$weekPrev])){
+                                    
+                                $valuePrevius = $detail["period".$weekPrev];
+                                $diff = 0-$valuePrevius;
                                 }
                                 if(!isset($detail["period".$weekPrev])){
                                     $diff = 0;
