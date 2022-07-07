@@ -2696,41 +2696,28 @@ class Dashboard extends Generic
                   WHERE $datafilters etapaencuesta = 'P2' AND date_survey  
                   BETWEEN '$dateEnd' AND '$dateIni' AND $indicador != 'null' AND $indicador != '' and json_valid($indicador) = 1";
 
-            $data = DB::select($query);
+        $data = DB::select($query);
 
-            foreach ($data as $key => $value) {
-                //var_dump(json_decode($value->obs_nps));
-                if(gettype(json_decode($value->obs_nps)) == "string"){
-                    $cuentaTotal['Otros']++;
-                    $totalAcum++;
-                }
-                if(gettype($value) != "string"){
-                    foreach(json_decode($value->obs_nps) as $key => $val){
-                        if(isset($cuentaTotal[$val])){
-                            $cuentaTotal[$val]++;
-                            $totalAcum++;
-                        }
-                        if(!isset($cuentaTotal[$val])){
-                            $cuentaTotal['Otros']++;
-                            $totalAcum++;
-                        }
+        foreach ($data as $key => $value) {
+          
+            if(gettype(json_decode($value->obs_nps)) == "string"){
+                $cuentaTotal['Otros']++;
+                $totalAcum++;
+            }
+            
+            if(gettype(json_decode($value->obs_nps)) != "string"){
+                foreach(json_decode($value->obs_nps) as $key => $val){
+                    if(isset($cuentaTotal[$val])){
+                        $cuentaTotal[$val]++;
+                        $totalAcum++;
+                    }
+                    if(!isset($cuentaTotal[$val])){
+                        $cuentaTotal['Otros']++;
+                        $totalAcum++;
                     }
                 }
             }
-            // foreach ($data as $key => $value) {
-            //    //json_decode($value->obs_nps)
-            //     foreach($value as $key => $val){
-            //         if(isset($cuentaTotal[$val])){
-            //             $cuentaTotal[$val]++;
-            //             $totalAcum++;
-            //         }
-            //         if(!isset($cuentaTotal[$val])){
-            //             $cuentaTotal['Otros']++;
-            //             $totalAcum++;
-            //         }
-            //     }
-            // }
-       
+        }
         if($totalAcum != 0){
             foreach ($cuentaTotal as $key => $value) {
                 $resp[] = [
@@ -4933,14 +4920,27 @@ class Dashboard extends Generic
 
         $data = DB::select($query);
         $datas = [];
-
-        foreach ($data as $key => $value) {
-            $datas[] = [
-                'text' => $tipoContrato['contrato'.$value->contrato],
-                'nps' => $value->nps,
-                'isn' => $value->isn,
-                'quantity' => $value->Total,
-            ];
+         
+        if($data){
+            if($data[0]->contrato){
+                foreach ($data as $key => $value) {
+                    $datas[] = [
+                        'text' => $tipoContrato['contrato'.$value->contrato],
+                        'nps' => $value->nps,
+                        'isn' => $value->isn,
+                        'quantity' => $value->Total,
+                    ];
+                }
+            }
+            
+            if(!$data[0]->contrato){
+                $datas[] = [
+                    'text' => '',
+                    'nps' => '',
+                    'isn' => '',
+                    'quantity' => '',
+                ];
+            }
         }
 
         $height = 3;
