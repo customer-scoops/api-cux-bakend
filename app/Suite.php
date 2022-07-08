@@ -205,10 +205,10 @@ class Suite
                 }
         }
         if ($convertion > 0)
-            $convertionRate = round(($convertion / $ticketClosed) * 100);
+            $convertionRate = round(($convertion / $ticketClosed) * 100, 1);
         $closedRate = 0;
         if ($ticketCreated > 0)
-            $closedRate = round(($ticketClosed / $ticketCreated) * 100,1);
+            $closedRate = round(($ticketClosed / $ticketCreated) * 100, 1);
         return [
             'datas'  => [
                 'client'            => $this->_nameClient,
@@ -390,7 +390,8 @@ class Suite
                         "content"   => $value->Content
                     ),
                     "ejecutivo" => array(
-                        "name" => $value->nombreEjecutivo
+                        "name" => $value->nombreEjecutivo,
+                        "email" => isset($value->ejecutivo)? $value->ejecutivo : ""
                     ),
                 ];
             }
