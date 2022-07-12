@@ -1575,7 +1575,7 @@ class DashboardMutual extends Dashboard
         $venta = null;
         $Procedencia = null;
         $csat1 = $csat2 = $csat3 = $csat4 = $csat5 = null;
-
+        
         if ($this->getValueParams('_dbSelected')  == 'customer_colmena'  && substr($request->survey, 0, 3) == 'mut'  && ($request->survey != 'mutredsms')) {
             $name = 'Mutual';
             $nameCsat1 = 'Tiempo espera para tu atención';
@@ -1652,7 +1652,7 @@ class DashboardMutual extends Dashboard
             $performance        = $this->cardsPerformace( $dataNPSGraph, $dataIsnP , $request->survey, $datafilters);
             $npsConsolidado     = $this->cardCsatDriversMutual('ISN', $name, $dataIsn , $this->ButFilterWeeks, 12, 4);
             //echo $db;exit;
-            $npsBan             = (substr($request->survey, 3, 3) == 'con' && $this->consolidadoTotal == true) ? $this->cardNpsBanmedica($dataNPSGraph) : $this->CSATJourney($graphCSATDrivers);
+            $npsBan             = (substr($request->survey, 3, 3) == 'con' || $this->consolidadoTotal == true) ? $this->cardNpsBanmedica($dataNPSGraph) : $this->CSATJourney($graphCSATDrivers);
             $npsVid             = (substr($request->survey, 3, 3) == 'con' || $this->consolidadoTotal == true)? null : $this->CSATDrivers($graphCSATDrivers);
             $csatJourney        = $csat1;
             $csatDrivers        = $csat2;
