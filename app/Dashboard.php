@@ -1144,144 +1144,151 @@ class Dashboard extends Generic
     // } 
 
     //OKK
-    private function resumenNps($table,  $dateEnd, $dateIni, $indicador, $filter, $datafilters = null)
-    {
-        $activeP2 = " AND etapaencuesta = 'P2' ";
-        if(substr($table, 6, 3) == 'ban' || substr($table, 6, 3) == 'vid')
-            $activeP2 ='';
+    // private function resumenNps($table,  $dateEnd, $dateIni, $indicador, $filter, $datafilters = null)
+    // {
+    //     $activeP2 = " AND etapaencuesta = 'P2' ";
+    //     if(substr($table, 6, 3) == 'ban' || substr($table, 6, 3) == 'vid')
+    //         $activeP2 ='';
 
-        // $dateSurvey = 'date_survey';
-        // $groupBy = ' GROUP BY a.mes, a.annio ';
-        // if(substr($table, 6, 3) == 'tra' && substr($table, 10, 3) == 'via')
-        // {
-        //     $dateSurvey = 'fechaservicio';
-        //     $groupBy = '';
-        // }    
+    //     // $dateSurvey = 'date_survey';
+    //     // $groupBy = ' GROUP BY a.mes, a.annio ';
+    //     // if(substr($table, 6, 3) == 'tra' && substr($table, 10, 3) == 'via')
+    //     // {
+    //     //     $dateSurvey = 'fechaservicio';
+    //     //     $groupBy = '';
+    //     // }    
 
-        $table2 = '';
-        if ($datafilters)
-            $datafilters = " AND $datafilters";
+    //     $table2 = '';
+    //     if ($datafilters)
+    //         $datafilters = " AND $datafilters";
 
-        if ($filter == 'all') {
-            $table2 = $this->primaryTable($table);
+    //     if ($filter == 'all') {
+    //         $table2 = $this->primaryTable($table);
 
-            $query = "SELECT sum(NPS) AS NPS, SUM(total) as total, SUM(detractor) as detractor, SUM(promotor) AS promotor, SUM(neutral) AS neutral, AVG(promedio) AS promedio, $this->_fieldSelectInQuery 
-                      FROM (SELECT COUNT(CASE WHEN $indicador != 99 THEN 1 END) as total,
-                      ((count(if($indicador between 0 and  6, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador !=99 THEN 1 END)*$this->_porcentageBan) as detractor, 
-                      ((count(if($indicador = 9  or $indicador =10, $indicador,NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)*$this->_porcentageBan) as promotor,
-                      ((count(if($indicador = 7 OR $indicador = 8, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)*$this->_porcentageBan) as neutral,
-                      AVG($indicador) as promedio ,a.mes, a.annio, date_survey,   
-                      ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
-                      COUNT(CASE WHEN $indicador BETWEEN 0 AND 6 THEN 1 END)) /
-                      COUNT(CASE WHEN $indicador!=99 THEN $indicador END) * 100),1)*$this->_porcentageBan AS NPS, $this->_fieldSelectInQuery 
-                      FROM $this->_dbSelected.$table as a
-                      LEFT JOIN $this->_dbSelected." . $table . "_start as b
-                      on a.token = b.token
-                      WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' $datafilters
-                      UNION
-                      SELECT COUNT(CASE WHEN $indicador != 99 THEN 1 END) as total,
-                      ((count(if($indicador between 0 and  6, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador !=99 THEN 1 END)*$this->_porcentageVid) as detractor, 
-                      ((count(if($indicador = 9  or $indicador =10, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)*$this->_porcentageVid) as promotor,
-                      ((count(if($indicador = 7 OR $indicador = 8, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)*$this->_porcentageVid) as neutral,
-                      AVG($indicador) as promedio ,a.mes, a.annio, date_survey,  
-                      ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
-                      COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
-                      COUNT(CASE WHEN $indicador!=99 THEN $indicador END) * 100),1)*$this->_porcentageVid AS NPS, $this->_fieldSelectInQuery
-                      FROM $this->_dbSelected.$table2 as a
-                      LEFT JOIN $this->_dbSelected." . $table2 . "_start as b
-                      on a.token = b.token
-                      WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' $datafilters) AS A ";
+    //         $query = "SELECT sum(NPS) AS NPS, SUM(total) as total, SUM(detractor) as detractor, SUM(promotor) AS promotor, SUM(neutral) AS neutral, AVG(promedio) AS promedio, $this->_fieldSelectInQuery 
+    //                   FROM (SELECT COUNT(CASE WHEN $indicador != 99 THEN 1 END) as total,
+    //                   ((count(if($indicador between 0 and  6, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador !=99 THEN 1 END)*$this->_porcentageBan) as detractor, 
+    //                   ((count(if($indicador = 9  or $indicador =10, $indicador,NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)*$this->_porcentageBan) as promotor,
+    //                   ((count(if($indicador = 7 OR $indicador = 8, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)*$this->_porcentageBan) as neutral,
+    //                   AVG($indicador) as promedio ,a.mes, a.annio, date_survey,   
+    //                   ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
+    //                   COUNT(CASE WHEN $indicador BETWEEN 0 AND 6 THEN 1 END)) /
+    //                   COUNT(CASE WHEN $indicador!=99 THEN $indicador END) * 100),1)*$this->_porcentageBan AS NPS, $this->_fieldSelectInQuery 
+    //                   FROM $this->_dbSelected.$table as a
+    //                   LEFT JOIN $this->_dbSelected." . $table . "_start as b
+    //                   on a.token = b.token
+    //                   WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' $datafilters
+    //                   UNION
+    //                   SELECT COUNT(CASE WHEN $indicador != 99 THEN 1 END) as total,
+    //                   ((count(if($indicador between 0 and  6, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador !=99 THEN 1 END)*$this->_porcentageVid) as detractor, 
+    //                   ((count(if($indicador = 9  or $indicador =10, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)*$this->_porcentageVid) as promotor,
+    //                   ((count(if($indicador = 7 OR $indicador = 8, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)*$this->_porcentageVid) as neutral,
+    //                   AVG($indicador) as promedio ,a.mes, a.annio, date_survey,  
+    //                   ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
+    //                   COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) /
+    //                   COUNT(CASE WHEN $indicador!=99 THEN $indicador END) * 100),1)*$this->_porcentageVid AS NPS, $this->_fieldSelectInQuery
+    //                   FROM $this->_dbSelected.$table2 as a
+    //                   LEFT JOIN $this->_dbSelected." . $table2 . "_start as b
+    //                   on a.token = b.token
+    //                   WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' $datafilters) AS A ";
 
-            $data = DB::select($query);
-        }
+    //         $data = DB::select($query);
+    //     }
 
        
-        if ($filter != 'all') {
+    //     if ($filter != 'all') {
           
-            if(substr($table, 6, 7) == 'tra_via')
-            {
-                $data = DB::select("SELECT count(*) as total, 
-                                ((count(if($indicador <= $this->_maxNps, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador !=99 THEN 1 END)) as detractor, 
-                                ((count(if($indicador = $this->_minMaxNps or  $indicador = $this->_maxMaxNps , $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)) as promotor,
-                                ((count(if($indicador =  $this->_maxMediumNps OR $indicador = $this->_minMediumNps, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)) as neutral,
-                                AVG($indicador) as promedio,
-                                ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
-                                COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) / 
-                                (COUNT(CASE WHEN $indicador != 99 THEN $indicador END)) * 100),1) AS NPS,  $this->_fieldSelectInQuery
-                                FROM $this->_dbSelected.$table as a
-                                LEFT JOIN $this->_dbSelected." . $table . "_start as b
-                                on a.token = b.token
-                                WHERE fechaservicio BETWEEN '$dateIni' AND '$dateEnd' $datafilters $activeP2
-                                ORDER BY MONTH(fechaservicio), YEAR(fechaservicio) ASC"); //Ver si se le agrega "GROUP BY MONTH(fechaservicio), YEAR(fechaservicio)" despues de $activeP2
-            } 
+    //         if(substr($table, 6, 7) == 'tra_via')
+    //         {
+    //             $data = DB::select("SELECT count(*) as total, 
+    //                             ((count(if($indicador <= $this->_maxNps, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador !=99 THEN 1 END)) as detractor, 
+    //                             ((count(if($indicador = $this->_minMaxNps or  $indicador = $this->_maxMaxNps , $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)) as promotor,
+    //                             ((count(if($indicador =  $this->_maxMediumNps OR $indicador = $this->_minMediumNps, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)) as neutral,
+    //                             AVG($indicador) as promedio,
+    //                             ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
+    //                             COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) / 
+    //                             (COUNT(CASE WHEN $indicador != 99 THEN $indicador END)) * 100),1) AS NPS,  $this->_fieldSelectInQuery
+    //                             FROM $this->_dbSelected.$table as a
+    //                             LEFT JOIN $this->_dbSelected." . $table . "_start as b
+    //                             on a.token = b.token
+    //                             WHERE fechaservicio BETWEEN '$dateIni' AND '$dateEnd' $datafilters $activeP2
+    //                             ORDER BY MONTH(fechaservicio), YEAR(fechaservicio) ASC"); //Ver si se le agrega "GROUP BY MONTH(fechaservicio), YEAR(fechaservicio)" despues de $activeP2
+    //         } 
 
-            if(substr($table, 6, 7) != 'tra_via')
-            {
-                $data = DB::select("SELECT count(*) as total, 
-                                    ((count(if($indicador <= $this->_maxNps, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador !=99 THEN 1 END)) as detractor, 
-                                    ((count(if($indicador = $this->_minMaxNps or  $indicador = $this->_maxMaxNps , $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)) as promotor,
-                                    ((count(if($indicador =  $this->_maxMediumNps OR $indicador = $this->_minMediumNps, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)) as neutral,
-                                    AVG($indicador) as promedio,
-                                    ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
-                                    COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) / 
-                                    (COUNT(CASE WHEN $indicador != 99 THEN $indicador END)) * 100),1) AS NPS,  $this->_fieldSelectInQuery
-                                    FROM $this->_dbSelected.$table as a
-                                    LEFT JOIN $this->_dbSelected." . $table . "_start as b
-                                    on a.token = b.token
-                                    WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' $datafilters $activeP2
-                                    ORDER BY date_survey ASC");
-            }
-        }
+    //         if(substr($table, 6, 7) != 'tra_via')
+    //         {
+    //             $data = DB::select("SELECT count(*) as total, 
+    //                                 ((count(if($indicador <= $this->_maxNps, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador !=99 THEN 1 END)) as detractor, 
+    //                                 ((count(if($indicador = $this->_minMaxNps or  $indicador = $this->_maxMaxNps , $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)) as promotor,
+    //                                 ((count(if($indicador =  $this->_maxMediumNps OR $indicador = $this->_minMediumNps, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN 1 END)) as neutral,
+    //                                 AVG($indicador) as promedio,
+    //                                 ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
+    //                                 COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) / 
+    //                                 (COUNT(CASE WHEN $indicador != 99 THEN $indicador END)) * 100),1) AS NPS,  $this->_fieldSelectInQuery
+    //                                 FROM $this->_dbSelected.$table as a
+    //                                 LEFT JOIN $this->_dbSelected." . $table . "_start as b
+    //                                 on a.token = b.token
+    //                                 WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' $datafilters $activeP2
+    //                                 ORDER BY date_survey ASC");
+    //         }
+    //     }
 
-        if (($data == null) || $data[0]->total == null || $data[0]->total == 0) {
-            $npsActive = (isset($data[0]->NPS)) ? $data[0]->NPS : 0;
-            $npsPreviousPeriod = $this->npsPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $datafilters);
+    //     if (($data == null) || $data[0]->total == null || $data[0]->total == 0) {
+    //         $npsActive = (isset($data[0]->NPS)) ? $data[0]->NPS : 0;
+    //         $npsPreviousPeriod = $this->npsPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $datafilters);
             
-            return [
-                "name"          => "nps",
-                "value"         => 'N/A',
-                "percentageGraph"=>true,
-                "promotors"     => 0,
-                "neutrals"      => 0,
-                "detractors"    => 0,
-                "percentage"    => substr($table, 6, 3) != 'tra' ? $npsActive - $npsPreviousPeriod : $npsActive - $npsPreviousPeriod['nps'],
-                "smAvg"         => $this->AVGLast6MonthNPS($table, $table2, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter)
-            ];
-        }
+    //         return [
+    //             "name"          => "nps",
+    //             "value"         => 'N/A',
+    //             "percentageGraph"=>true,
+    //             "promotors"     => 0,
+    //             "neutrals"      => 0,
+    //             "detractors"    => 0,
+    //             "percentage"    => substr($table, 6, 3) != 'tra' ? $npsActive - $npsPreviousPeriod : $npsActive - $npsPreviousPeriod['nps'],
+    //             "smAvg"         => $this->AVGLast6MonthNPS($table, $table2, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter)
+    //         ];
+    //     }
 
-        if ($data[0]->total != 0) {
-            $npsActive = (isset($data[0]->NPS)) ? $data[0]->NPS : 0;
-            $npsPreviousPeriod = $this->npsPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $datafilters);
+    //     if ($data[0]->total != 0) {
+    //         $npsActive = (isset($data[0]->NPS)) ? $data[0]->NPS : 0;
+    //         $npsPreviousPeriod = $this->npsPreviousPeriod($table, $dateEnd, $dateIni, $indicador, $datafilters);
             
-            if ($npsPreviousPeriod  === null) {
-                $npsPreviousPeriod = 0;
-            }
+    //         if ($npsPreviousPeriod  === null) {
+    //             $npsPreviousPeriod = 0;
+    //         }
 
-            if (substr($table, 6, 3) == 'tra'){
-                $npsPreviousPeriod = $npsPreviousPeriod['nps'];
-            }
+    //         if (substr($table, 6, 3) == 'tra'){
+    //             $npsPreviousPeriod = $npsPreviousPeriod['nps'];
+    //         }
        
-            return [
-                "name"              => "nps",
-                "value"             => round($npsActive),
-                "percentageGraph"   => true,
-                "promotors"         => round($data[0]->promotor),
-                "neutrals"          => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - (round($data[0]->detractor) + round($data[0]->promotor)),
-                "detractors"        => round($data[0]->detractor),
-                "percentage"        => substr($table, 6, 3) == 'mut'? 0 : $npsActive - round($npsPreviousPeriod),
-                "smAvg"             => substr($table, 6, 3) == 'mut'? '0' :$this->AVGLast6MonthNPS($table, $table2, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter),
-                'NPSPReV'           => $npsPreviousPeriod,
-                // 'mes'               => $mes,
-                // 'annio'             => $annio,
-            ];
-        }
-    }
+    //         return [
+    //             "name"              => "nps",
+    //             "value"             => round($npsActive),
+    //             "percentageGraph"   => true,
+    //             "promotors"         => round($data[0]->promotor),
+    //             "neutrals"          => ((round($data[0]->promotor) == 0) && (round($data[0]->detractor) == 0)) ? round($data[0]->neutral) : 100 - (round($data[0]->detractor) + round($data[0]->promotor)),
+    //             "detractors"        => round($data[0]->detractor),
+    //             "percentage"        => substr($table, 6, 3) == 'mut'? 0 : $npsActive - round($npsPreviousPeriod),
+    //             "smAvg"             => substr($table, 6, 3) == 'mut'? '0' :$this->AVGLast6MonthNPS($table, $table2, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $indicador, $filter),
+    //             'NPSPReV'           => $npsPreviousPeriod,
+    //             // 'mes'               => $mes,
+    //             // 'annio'             => $annio,
+    //         ];
+    //     }
+    // }
 
     //OKK
+    // private function infoNps($table,  $dateIni, $dateEnd, $indicador, $filter, $dataFilters = NULL)
+    // {
+    //     $generalDataNps             = $this->resumenNps($table,  $dateIni, $dateEnd, $indicador, $filter, $dataFilters);
+    //     $generalDataNps['graph']    = $this->graphNps($table,  $indicador, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $filter, 'one');
+
+    //     return $generalDataNps;
+    // }
     private function infoNps($table,  $dateIni, $dateEnd, $indicador, $filter, $dataFilters = NULL)
     {
-        $generalDataNps             = $this->resumenNps($table,  $dateIni, $dateEnd, $indicador, $filter, $dataFilters);
         $generalDataNps['graph']    = $this->graphNps($table,  $indicador, date('Y-m-d'), date('Y-m-d', strtotime(date('Y-m-d') . "- 5 month")), $filter, 'one');
+        $generalDataNps             = $this->resumenNps($generalDataNps['graph']);
 
         return $generalDataNps;
     }
@@ -1364,33 +1371,34 @@ class Dashboard extends Generic
 
         if ($filter == 'all') {
             $indicador2 = $indicador;
-
-            $data = DB::select("SELECT SUM(NPS) AS NPS, SUM(total) as total,SUM(detractor) as detractor,SUM(promotor) as promotor,SUM(neutral) as neutral, mes , annio, sum(Cdet) as Cdet, sum(Cpro) as Cpro, sum(Cneu) as Cneu, WEEK(date_survey) AS week, $this->_fieldSelectInQuery
+           
+            $data = DB::select("SELECT SUM(NPS) AS NPS, SUM(total) as total,SUM(detractor) as detractor,SUM(promotor) as promotor,SUM(neutral) as neutral, mes , 
+                                annio, sum(Cdet) as Cdet, sum(Cpro) as Cpro, sum(Cneu) as Cneu, WEEK(date_survey) AS week, $this->_fieldSelectInQuery
                                 FROM (SELECT ROUND(((COUNT(CASE WHEN $indicador BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
                                 COUNT(CASE WHEN $indicador BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) / 
-                                (COUNT($indicador) - COUNT(CASE WHEN $indicador=99 THEN 1 END)) * 100),1)*$this->_porcentageBan AS NPS, 
-                                count(if($indicador < 7, $indicador, NULL)) as Cdet,
-					            count(if($indicador> 8 AND $indicador <=10, $indicador, NULL)) as Cpro,
-					            count(if($indicador=8 OR $indicador=7, $indicador, NULL)) as Cneu,
-                                count(*) as total, 
-                                ((count(if($indicador < 7, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)*$this->_porcentageBan) as detractor, 
-                                ((count(if($indicador > 8, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)*$this->_porcentageBan) as promotor, 
-                                ((count(if($indicador <= 8 AND $indicador >=7, $indicador, NULL))*100)/count(CASE WHEN $indicador != 99 THEN $indicador END)*$this->_porcentageBan) as neutral, a.mes, a.annio,date_survey,WEEK(date_survey) AS week, $this->_fieldSelectInQuery
+                                COUNT(CASE WHEN $indicador!=99 THEN 1 END) * 100),1)*$this->_porcentageBan AS NPS, 
+                                COUNT(if($indicador between $this->_minNps AND $this->_maxNps , $indicador, NULL)) as Cdet,
+					            COUNT(if($indicador = $this->_minMaxNps AND $indicador = $this->_maxMaxNps, $indicador, NULL)) as Cpro,
+					            COUNT(if($indicador = $this->_minMediumNps OR $indicador = $this->_maxMediumNps, $indicador, NULL)) as Cneu,
+                                COUNT(nps != 99) as total, 
+                                ((COUNT(if($indicador < 7, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN $indicador END)*$this->_porcentageBan) as detractor, 
+                                ((COUNT(if($indicador > $this->_minMaxNps, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN $indicador END)*$this->_porcentageBan) as promotor, 
+                                ((COUNT(if($indicador <= $this->_minMaxNps AND $indicador >=7, $indicador, NULL))*100)/COUNT(CASE WHEN $indicador != 99 THEN $indicador END)*$this->_porcentageBan) as neutral, a.mes, a.annio,date_survey,WEEK(date_survey) AS week, $this->_fieldSelectInQuery
                                 FROM $this->_dbSelected.$table as a
-                                LEFT JOIN $this->_dbSelected.".$table."_start as b ON a.token = b.token 
+                                LEFT JOIN $this->_dbSelected.".$table."_start AS b ON a.token = b.token 
                                 WHERE $where $datafilters
                                 GROUP BY $group
                                 UNION
                                 SELECT ROUND(((COUNT(CASE WHEN $indicador2 BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) - 
                                 COUNT(CASE WHEN $indicador2 BETWEEN $this->_minNps AND $this->_maxNps THEN 1 END)) / 
                                 (COUNT($indicador2) - COUNT(CASE WHEN $indicador2=99 THEN 1 END)) * 100),1)*$this->_porcentageVid AS NPS, 
-                                count(if($indicador < 7, $indicador, NULL)) as Cdet,
-                                count(if($indicador> 8 AND $indicador <=10, $indicador, NULL)) as Cpro,
-                                count(if($indicador=8 OR $indicador=7, $indicador, NULL)) as Cneu,
-                                count(*) as total, 
-                                ((count(if($indicador2 < 7, $indicador2, NULL))*100)/count(CASE WHEN $indicador2 != 99 THEN $indicador2 END)*$this->_porcentageVid) as detractor, 
-                                ((count(if($indicador2 > 8, $indicador2, NULL))*100)/count(CASE WHEN $indicador2 != 99 THEN $indicador2 END)*$this->_porcentageVid) as promotor, 
-                                ((count(if($indicador2 <= 8 AND $indicador2 >=7, $indicador2, NULL))*100)/count(CASE WHEN $indicador2 != 99 THEN $indicador2 END)*$this->_porcentageVid) as neutral,              
+                                COUNT(if($indicador between $this->_minNps AND $this->_maxNps , $indicador, NULL)) as Cdet,
+                                COUNT(if($indicador = $this->_minMaxNps AND $indicador = $this->_maxMaxNps, $indicador, NULL)) as Cpro,
+					            COUNT(if($indicador = $this->_minMediumNps OR $indicador = $this->_maxMediumNps, $indicador, NULL)) as Cneu,
+                                COUNT(nps != 99) as total, 
+                                ((COUNT(if($indicador2 < 7, $indicador2, NULL))*100)/COUNT(CASE WHEN $indicador2 != 99 THEN $indicador2 END)*$this->_porcentageVid) as detractor, 
+                                ((COUNT(if($indicador2 > $this->_minMaxNps, $indicador2, NULL))*100)/COUNT(CASE WHEN $indicador2 != 99 THEN $indicador2 END)*$this->_porcentageVid) as promotor, 
+                                ((COUNT(if($indicador2 <= $this->_minMaxNps AND $indicador2 >=7, $indicador2, NULL))*100)/COUNT(CASE WHEN $indicador2 != 99 THEN $indicador2 END)*$this->_porcentageVid) as neutral,              
                                 a.mes, a.annio,date_survey, WEEK(date_survey) AS week, $this->_fieldSelectInQuery
                                 FROM $this->_dbSelected.$table2 as a
                                 LEFT JOIN $this->_dbSelected." . $table2 . "_start as b ON a.token = b.token 
@@ -1401,7 +1409,7 @@ class Dashboard extends Generic
         if ($data) {
             if ($data[0]->total === null) {
                 foreach ($data as $key => $value) {
-                    if ($struct != 'one') {
+                    if ($struct == 'one') {
                         $graphNPS[] = [
                             'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('d',strtotime($value->mondayWeek)). '-' .date('m',strtotime($value->mondayWeek)) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                             'values' => [
@@ -1412,7 +1420,7 @@ class Dashboard extends Generic
                             ],
                         ];
                     }
-                    if ($struct == 'one') {
+                    if ($struct != 'one') {
                         $graphNPS[] = [
                             "value" => $value->NPS
                         ];
@@ -1421,7 +1429,7 @@ class Dashboard extends Generic
             }
             if ($data[0]->total !== null) {
                 foreach ($data as $key => $value) {
-                    if ($struct != 'one') {
+                    if ($struct == 'one') {
                         $graphNPS[] = [
                             'xLegend'  => (trim($group) != 'week') ? 'Mes ' . $value->mes . '-' . $value->annio . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')' : 'Lun ' . date('d',strtotime($value->mondayWeek)). '-' .date('m',strtotime($value->mondayWeek)) . ' (' . ($value->Cdet + $value->Cpro + $value->Cneu) . ')',
                             'values' => [
@@ -1432,7 +1440,7 @@ class Dashboard extends Generic
                             ],
                         ];
                     }
-                    if ($struct == 'one') {
+                    if ($struct != 'one') {
                         $graphNPS[] = [
                             "value" => $value->NPS
                         ];
@@ -1461,6 +1469,48 @@ class Dashboard extends Generic
         }
 
         return $graphNPS;
+    }
+
+    private function resumenNps($resp){
+       //print_r($resp);
+       //echo '--'.$resp[sizeof($resp)-1]['values']['promoters'].'--';
+        $sum = $count = 0;
+
+        if($resp != null){
+            foreach ($resp as $key => $value) {
+                $count++;
+                $sum += $value['values']['nps'];
+    
+                $graphNPS[] = [
+                    "value" => $value['values']['nps']
+                ];
+            }
+            //if($resp[sizeof($resp)-1]['xLegend'],4,1)
+            return [
+                "name"              => "nps",
+                "value"             => $resp[sizeof($resp)-1]['values']['nps'] != null ? $resp[sizeof($resp)-1]['values']['nps'] : 'N/A',
+                "percentageGraph"   => true,
+                "promotors"         => substr($resp[sizeof($resp)-1]['xLegend'],4,1) == date('n') ? $resp[sizeof($resp)-1]['values']['promoters'] : 0,
+                "neutrals"          => substr($resp[sizeof($resp)-1]['xLegend'],4,1) == date('n') ? $resp[sizeof($resp)-1]['values']['neutrals'] : 0,
+                "detractors"        => substr($resp[sizeof($resp)-1]['xLegend'],4,1) == date('n') ? $resp[sizeof($resp)-1]['values']['detractors'] : 0,
+                "percentage"        => substr($resp[sizeof($resp)-1]['xLegend'],4,1) == date('n') ? round($resp[sizeof($resp)-1]['values']['nps']-$resp[sizeof($resp)-2]['values']['nps'],0) : 0,
+                "smAvg"             => isset($count)? round($sum / $count ) : null,
+                "graph"             => $graphNPS
+            ];
+        }
+
+        if($resp == null){
+            return [
+                "name"              => "nps",
+                "value"             => 'N/A',
+                "percentageGraph"   => true,
+                "promotors"         => 0,
+                "neutrals"          => 0,
+                "detractors"        => 0,
+                "percentage"        => 0,
+                "smAvg"             => null,
+            ];
+        }
     }
 
 
