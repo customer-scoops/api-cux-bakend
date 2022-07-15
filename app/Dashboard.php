@@ -3434,7 +3434,11 @@ class Dashboard extends Generic
         $startDate  = $request->get('startDate');
         $endDate    = $request->get('endDate');
         $client     = $this->_jwt[env('AUTH0_AUD')]->client;
-
+        echo "SELECT `app`, `rol`, `email`, `date`, `time` 
+        FROM customerscoops_general_info.log_users 
+        WHERE `date` BETWEEN '$startDate' AND '$endDate' AND company = '$client' 
+        AND SUBSTRING_INDEX(SUBSTR(`email`, INSTR(`email`, '@') + 1),'.',1) NOT IN ('customerscoops', 'gmail')
+        ORDER BY `date` ASC"; exit;
         $data = DB::select("SELECT `app`, `rol`, `email`, `date`, `time` 
                             FROM customerscoops_general_info.log_users 
                             WHERE `date` BETWEEN '$startDate' AND '$endDate' AND company = '$client' 
@@ -3518,7 +3522,8 @@ class Dashboard extends Generic
         //if(!isset($startDate)&& !isset($endDate) && !isset($survey)){return ['datas'=>'unauthorized', 'status'=>Response::HTTP_NOT_ACCEPTABLE];}
         $curl = curl_init();
         curl_setopt_array($curl, array(
-        CURLOPT_URL =>"https://customerscoops.com/text_mining/text_analytics_new.php?startDate=$startDate&endDate=$endDate&survey=$survey",
+        // CURLOPT_URL =>"https://customerscoops.com/text_mining/text_analytics_new.php?startDate=$startDate&endDate=$endDate&survey=$survey",
+        CURLOPT_URL =>"http://localhost/text-mining/public/api1/index?startDate=2022-07-18&endDate=2022-07-31&survey=banasi",
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => '',
         CURLOPT_MAXREDIRS => 10,
@@ -3530,7 +3535,7 @@ class Dashboard extends Generic
         ));
         $response = curl_exec($curl);
         curl_close($curl);
-
+        
         if($response)
             return ['datas'=>json_decode($response), 'status'=>Response::HTTP_OK];
     }

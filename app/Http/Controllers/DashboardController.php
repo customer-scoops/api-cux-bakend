@@ -102,7 +102,7 @@ class DashboardController extends Controller
         $endDate    = $request->get('endDate');
         
         if(!isset($startDate) && !isset($endDate)){return $this->generic('Not datas filters', Response::HTTP_UNPROCESSABLE_ENTITY);}
-
+        
         $resp = $this->_dashboard->downloadExcelLogin($request);
 
         return response($resp, 200)
