@@ -1575,7 +1575,7 @@ class DashboardMutual extends Dashboard
         $venta = null;
         $Procedencia = null;
         $csat1 = $csat2 = $csat3 = $csat4 = $csat5 = null;
-
+        
         if ($this->getValueParams('_dbSelected')  == 'customer_colmena'  && substr($request->survey, 0, 3) == 'mut'  && ($request->survey != 'mutredsms')) {
             $name = 'Mutual';
             $nameCsat1 = 'Tiempo espera para tu atención';

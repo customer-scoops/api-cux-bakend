@@ -205,10 +205,10 @@ class Suite
                 }
         }
         if ($convertion > 0)
-            $convertionRate = (($convertion / $ticketClosed) * 100);
+            $convertionRate = round(($convertion / $ticketClosed) * 100, 1);
         $closedRate = 0;
         if ($ticketCreated > 0)
-            $closedRate = round(($ticketClosed / $ticketCreated) * 100,1);
+            $closedRate = round(($ticketClosed / $ticketCreated) * 100, 1);
         return [
             'datas'  => [
                 'client'            => $this->_nameClient,
@@ -254,12 +254,16 @@ class Suite
                 $dbQuery->whereBetween('nps', [$this->_startMinNps,$this->_startMaxNps]);
             $dbQuery->where('date','>=', $this->_dateStartClient);
             
-            if($client == 'BAN001' || $client == 'VID001')
+            if($client == 'BAN001' || $client == 'VID001'){
                 if(in_array('Loyalty',$jwt[env('AUTH0_AUD')]->roles)){
                     $dbQuery->where('ejecutivo', $jwt[env('AUTH0_AUD')]->email);
                 }
-                // Filtramos
+            }
+            
+            // Filtramos
+            
             $fechaAgendada= false;
+            
             if($request->get('filters') !== null) {
                 $filters = (json_decode($request->get('filters')));
                 if ($filters) {
@@ -386,7 +390,8 @@ class Suite
                         "content"   => $value->Content
                     ),
                     "ejecutivo" => array(
-                        "name" => $value->nombreEjecutivo
+                        "name" => $value->nombreEjecutivo,
+                        "email" => isset($value->ejecutivo)? $value->ejecutivo : ""
                     ),
                 ];
             }
