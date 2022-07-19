@@ -118,6 +118,9 @@ class Dashboard extends Generic
             'contrato3' => 'Freelance Nuevo',
             'contrato4' => 'Leasing Nuevo',
             'contrato5' => 'Carga',
+            //JetSmart Genero
+            'genderMale'      => 'Masculino',
+            'genderFemale'    => 'Femenino',
         ];
 
         if (array_key_exists($cod, $arr)) {
@@ -289,6 +292,86 @@ class Dashboard extends Generic
             }
             return $response;
         }
+        //Filtros Jetsmart
+        if ($this->_dbSelected  == 'customer_jetsmart') {
+            
+            if(substr($survey, 3, 3) != 'vue'){
+                
+                //$filtersInCache = \Cache::get('customer_jetsmart-varios');
+                $filtersInCache = '';
+                if($filtersInCache){
+                    return $filtersInCache;
+                }
+                $data = DB::select("SELECT DISTINCT(gender)
+                                    FROM $this->_dbSelected.".$db."_start
+                                    WHERE gender != '' ");
+
+                $Gender = ['filter' => 'Genero', 'datas' => $this->contentfilter($data, 'gender')];
+
+                // $data = DB::select("SELECT DISTINCT(tiposervicio)
+                //                     FROM $this->_dbSelected.adata_tra_via_start
+                //                     WHERE tiposervicio = 'TAXI' or tiposervicio = 'MINIBUS'");
+
+                // $TipoServicio = ['filter' => 'TipoServicio', 'datas' => $this->contentfilter($data, 'tiposervicio')];
+
+                // $data = DB::select("SELECT DISTINCT(condicionservicio)
+                //                     FROM $this->_dbSelected.adata_tra_via_start
+                //                     WHERE condicionservicio != '' ");
+
+                // $CondServicio = ['filter' => 'CondicionServicio', 'datas' => $this->contentfilter($data, 'condicionservicio')];
+
+                // $data = DB::select("SELECT DISTINCT(zon)
+                //                     FROM $this->_dbSelected.adata_tra_via_start
+                //                     WHERE zon != '' ");
+
+                // $Zona = ['filter' => 'Zona', 'datas' => $this->contentfilter($data, 'zon')];
+
+                // $data = DB::select("SELECT DISTINCT(sentido)
+                //                     FROM $this->_dbSelected.adata_tra_via_start
+                //                     WHERE sentido != '' ");
+
+                // $Sentido = ['filter' => 'Sentido', 'datas' => $this->contentfilter($data, 'sentido')];
+
+                // $data = DB::select("SELECT DISTINCT(tipoReserva)
+                //                     FROM $this->_dbSelected.adata_tra_via_start
+                //                     WHERE tipoReserva != '' and tipoReserva != '0' ");
+
+                // $Reserva = ['filter' => 'Reserva', 'datas' => $this->contentfilter($data, 'tipoReserva')];
+
+                // $data = DB::select("SELECT DISTINCT(canal)
+                //                     FROM $this->_dbSelected.adata_tra_via_start
+                //                     WHERE canal != '' and canal != '' ");
+
+                // $CanalT = ['filter' => 'Canal', 'datas' => $this->contentfilter($data, 'canal')];
+
+                // $data = DB::select("SELECT DISTINCT(convenio)
+                //                     FROM $this->_dbSelected.adata_tra_via_start
+                //                     WHERE convenio != '' and convenio != '0' ");
+
+                // $Convenio = ['filter' => 'Convenio', 'datas' => $this->contentfilter($data, 'convenio')];
+
+                $response = ['filters' => [(object)$Gender], 'status' => Response::HTTP_OK];
+                \Cache::put('customer_jetsmart-varios', $response, $this->expiresAtCache);
+            }
+
+            if(substr($survey, 3, 3) == 'vue'){
+                $filtersInCache = \Cache::get('customer_jetsmart-vue');
+                // if($filtersInCache){
+                //     return $filtersInCache;
+                // }
+
+                // $data = DB::select("SELECT DISTINCT(contrato)
+                // FROM $this->_dbSelected.adata_tra_cond_start
+                // WHERE contrato != '' and contrato != '0' ");
+                
+                // $contrato = ['filter' => 'Contrato', 'datas' => $this->contentfilter($data, 'contrato')];
+
+                // $response = ['filters' => [(object)$contrato], 'status' => Response::HTTP_OK];
+                \Cache::put('customer_jetsmart-vue', $response, $this->expiresAtCache);
+            }
+            return $response;
+        }
+
         return ['filters' =>[]];
     }
 
@@ -2161,7 +2244,7 @@ class Dashboard extends Generic
     private function gapJetsmart($db, $survey,$indicador,$dateIni, $dateEnd, $struct, $datafilters = null){
         if ($datafilters)
             $datafilters = " AND $datafilters";
-
+        
         $dataArr = [];
         $query = '';
 
@@ -2177,9 +2260,11 @@ class Dashboard extends Generic
 
         }
         
-        $data = DB::select("SELECT $query FROM $this->_dbSelected.$db WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND etapaencuesta = 'P2' $datafilters"); //Cambiar mes = 3 por la variable $mes
-        for($i = 1; $i <= $endCsat; $i++)
-        {
+        $data = DB::select("SELECT $query FROM $this->_dbSelected.$db AS a
+                            LEFT JOIN $this->_dbSelected." . $db . "_start AS b
+                            ON a.token = b.token   WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' AND etapaencuesta = 'P2' $datafilters"); //Cambiar mes = 3 por la variable $mes
+        
+        for($i = 1; $i <= $endCsat; $i++){
             $ind =  $indicador.strval($i);
 
             if($struct[$i-1]['name'] != 'N/A')
@@ -6749,6 +6834,13 @@ class Dashboard extends Generic
         return $where;
         }
 
+        //TRANSVIP
+        if(substr($request->survey,0,3) == 'jet'){
+        $where .= $this->structfilter($request, 'gender',       'Genero',       $where);
+            //dd($where);
+        return $where;
+        }
+
         //BANMEDICA
         $where .= $this->structfilter($request, 'sex',       'Genero',   $where);
         $where .= $this->structfilter($request, 'region',    'Regiones', $where);
@@ -7300,11 +7392,11 @@ class Dashboard extends Generic
         }
 
         $datafilters = $this->infofilters($request);
-
+        //echo $datafilters;exit;
         if ($request->filterWeeks !== null) {
             $interval = is_numeric($request->filterWeeks) ? $request->filterWeeks : 9;
             if ($datafilters != '') {
-                if(substr($request->survey, 3, 3) == 'via')
+                if(substr($request->survey, 3, 3) == 'via' && substr($request->survey, 0, 3) == 'tra')
                 {
                     $datafilters .= ' and fechaservicio between date_sub(NOW(), interval 9 week) and NOW() ';
                     $group = " week ";
@@ -7316,7 +7408,7 @@ class Dashboard extends Generic
                 }
             }
             if ($datafilters == '') {
-                if(substr($request->survey, 3, 3) == 'via')
+                if(substr($request->survey, 3, 3) == 'via' && substr($request->survey, 0, 3) == 'tra')
                 {
                     $datafilters .= ' fechaservicio between date_sub(NOW(), interval 9 week) and NOW() ';
                     $group = " week ";
