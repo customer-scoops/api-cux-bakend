@@ -312,8 +312,8 @@ class Dashboard extends Generic
                     'BB'    => 'BB',
                     'SIL'   => 'SIL',
                  ];
-                //$filtersInCache = \Cache::get('customer_jetsmart-varios');
-                $filtersInCache = '';
+                $filtersInCache = \Cache::get('customer_jetsmart-varios');
+
                 if($filtersInCache){
                     return $filtersInCache;
                 }
@@ -331,7 +331,9 @@ class Dashboard extends Generic
             }
 
             if(substr($survey, 3, 3) == 'vue'){
+                
                 $filtersInCache = \Cache::get('customer_jetsmart-vue');
+                
                 if($filtersInCache){
                     return $filtersInCache;
                 }
