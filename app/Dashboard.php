@@ -1978,7 +1978,7 @@ class Dashboard extends Generic
         $activeP2 = " AND etapaencuesta = 'P2' ";
         if(substr($table, 6, 3) == 'ban' || substr($table, 6, 3) == 'vid')
             $activeP2 ='';
-            
+
         $data = DB::select("SELECT
                             ROUND(COUNT(CASE WHEN $indicador BETWEEN 1 AND 2 THEN 1 END)/COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END)*100, 0) as nretorna,
                             ROUND(COUNT(CASE WHEN $indicador = 3 THEN 1 END)/COUNT(CASE WHEN $indicador BETWEEN 1 AND 5 THEN 1 END)*100, 0) as nsabe,
@@ -4860,6 +4860,9 @@ class Dashboard extends Generic
 
     private function statsJetSmart($db, $npsInDb, $csatInDb,  $cbiInDb,$dateIni, $dateEnd, $fieldFilter, $text, $datafilters = null)
     {
+        if ($datafilters)
+            $datafilters = " AND $datafilters";
+        
         if(substr($db, 6, 7) == 'jet_vue'){
             $query = "SELECT COUNT($fieldFilter != 0) as Total,
                         ROUND(((COUNT(CASE WHEN a.$npsInDb BETWEEN $this->_minMaxNps AND $this->_maxMaxNps THEN 1 END) -
@@ -4871,7 +4874,7 @@ class Dashboard extends Generic
                         COUNT(CASE WHEN a.$cbiInDb BETWEEN $this->_minCes AND $this->_maxMaxCes THEN 1 END),0) AS CBI
                         FROM $this->_dbSelected.$db as a
                         LEFT JOIN $this->_dbSelected." . $db . "_start as b on a.token = b.token
-                        WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and $fieldFilter != 0 and nps!= 99 and csat!= 99 and etapaencuesta = 'P2' AND $datafilters";
+                        WHERE date_survey BETWEEN '$dateEnd' AND '$dateIni' and $fieldFilter != 0 and nps!= 99 and csat!= 99 and etapaencuesta = 'P2' $datafilters";
         }
 
         if(substr($db, 6, 7) == 'jet_cpe' && $text != 'Otros'){
