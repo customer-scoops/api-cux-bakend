@@ -1229,7 +1229,7 @@ class DashboardMutual extends Dashboard
 
                     //Filtro si gerenciamedica es hos y la survey es amb se carga area atencion
                     if(isset($jwt[env('AUTH0_AUD')]->gerenciaMedica)){
-                        if($jwt[env('AUTH0_AUD')]->gerenciaMedica == 'Hospital' && $dbC = 'amb'){
+                        if($jwt[env('AUTH0_AUD')]->gerenciaMedica == 'HOSPITAL' && $dbC = 'amb'){
 
                             $data = DB::select("SELECT DISTINCT UPPER(aatencion) AS aatencion
                                 FROM ".$this->getValueParams('_dbSelected').".adata_mut_" . $dbC . "_start
@@ -1238,7 +1238,7 @@ class DashboardMutual extends Dashboard
                             $this->_fieldSelectInQuery = 'aatencion';
 
                             $AreAtencionn = ['filter' => 'Area_Atencion', 'datas' => $this->contentfilter($data, 'aatencion')];
-
+                            
                             return ['filters' => [(object)$AreAtencionn], 'status' => Response::HTTP_OK];
                         }
                     }
