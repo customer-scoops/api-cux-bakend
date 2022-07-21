@@ -6407,7 +6407,7 @@ class Dashboard extends Generic
 
         if($filterClient == 'all'){
             $db2 = $this->primaryTable($db);
-            $querydataTop = "SELECT $indicator, sum(CNPS) as CNPS, annio from (SELECT UPPER($indicatordb) as  $indicator,
+            $querydataTop = "SELECT $indicator, ROUND(sum(CNPS)) as CNPS, annio from (SELECT UPPER($indicatordb) as  $indicator,
                             round((count(case when nps = 9 OR nps =10 then 1 end)-count(case when nps between  0 and  6 then 1 end)) / count(case when nps != 99 then 1 end) *100,1)*.77 as CNPS,
                             b.annio
                             FROM $this->_dbSelected.".$db."_start as a
@@ -6428,7 +6428,7 @@ class Dashboard extends Generic
                             order by CNPS DESC
                             LIMIT 5 ";            
         
-            $querydataBottom = "SELECT $indicator, sum(CNPS) as CNPS, total, annio from (SELECT UPPER($indicatordb) as  $indicator, count(UPPER($indicatordb)) as total,
+            $querydataBottom = "SELECT $indicator, ROUND(sum(CNPS)) as CNPS, total, annio from (SELECT UPPER($indicatordb) as  $indicator, count(UPPER($indicatordb)) as total,
                                 round((count(case when nps = 9 OR nps =10 then 1 end)-count(case when nps between  0 and  6 then 1 end)) / count(case when nps != 99 then 1 end) *100,1)*.77 as CNPS,
                                 b.annio
                                 FROM $this->_dbSelected.".$db."_start as a
