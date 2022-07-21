@@ -6442,7 +6442,7 @@ class Dashboard extends Generic
                                 where date_survey between '$startDateFilterMonth' and '$endDateFilterMonth' and etapaencuesta = 'P2' and $indicatordb != '' $datafilters
                                 group by  $indicator) AS A
                                 group by  $indicator
-                                order by CNPS DESC
+                                order by CNPS ASC
                                 LIMIT 5";
         }
 
@@ -6475,7 +6475,7 @@ class Dashboard extends Generic
             }
         }
 
-        $tableStruct = ["Posición", $indicator, "CNPS"];
+        $tableStruct = ["Posición", $indicator, "NPS"];
         $tableKeys = ["pos", "text", "cnps"];
 
         for($i = 0; $i < count($tableStruct); $i++){
