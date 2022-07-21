@@ -1104,8 +1104,7 @@ class DashboardMutual extends Dashboard
         }
     }
 
-    public function filters($request, $jwt, $datafilters = null)
-    {
+    public function filters($request, $jwt, $datafilters = null){
         $survey = $request->get('survey');
         $Gerencia =         [];
         $macrosegmento =    [];
@@ -1118,123 +1117,143 @@ class DashboardMutual extends Dashboard
         $ZonaHos =          [];
         $dbC = substr($survey, 3, 6);
 
-      if ($this->getValueParams('_dbSelected')  == 'customer_colmena' && substr($survey, 0, 3) == 'mut'  && $survey != 'mutred') {
+        if ($this->getValueParams('_dbSelected')  == 'customer_colmena' && substr($survey, 0, 3) == 'mut'  && $survey != 'mutred') {
 
-        if ($survey == "muthos" || $survey == "muturg" || $survey == "mutamb" || $survey == "mutimg" || $survey == "mutreh") {
-            if ($request->client) {
-                $dbC = substr($request->client, 3, 6);
+            if ($survey == "muthos" || $survey == "muturg" || $survey == "mutamb" || $survey == "mutimg" || $survey == "mutreh") {
+                if ($request->client) {
+                    $dbC = substr($request->client, 3, 6);
+                }
             }
-        }
-      
-        if ($dbC == 'be' || $dbC == 'ges') {
-            $data = DB::select("SELECT DISTINCT(macroseg)
-                                FROM ".$this->getValueParams('_dbSelected').".adata_mut_".$dbC."_start
-                                WHERE macroseg != '0' and macroseg != '9' and macroseg != '8'");
 
-            $this->_fieldSelectInQuery = 'macroseg';
+            if ($dbC == 'be' || $dbC == 'ges') {
+                $data = DB::select("SELECT DISTINCT(macroseg)
+                FROM ".$this->getValueParams('_dbSelected').".adata_mut_".$dbC."_start
+                WHERE macroseg != '0' and macroseg != '9' and macroseg != '8'");
 
-            $macrosegmento = ['filter' => 'Macrosegmento', 'datas' => $this->contentfilter($data, 'macroseg')];
-        }
+                $this->_fieldSelectInQuery = 'macroseg';
 
-        if ($dbC == 'eri' || $dbC == 'cas') {
-            $data = DB::select("SELECT DISTINCT(tatencion)
-                                FROM ".$this->getValueParams('_dbSelected').".adata_mut_".$dbC."_start
-                                WHERE tatencion != '0' AND tatencion != 'NO APLICA'");
+                $macrosegmento = ['filter' => 'Macrosegmento', 'datas' => $this->contentfilter($data, 'macroseg')];
+            }
 
-            $this->_fieldSelectInQuery = 'tatencion';
+            if ($dbC == 'eri' || $dbC == 'cas') {
+                $data = DB::select("SELECT DISTINCT(tatencion)
+                FROM ".$this->getValueParams('_dbSelected').".adata_mut_".$dbC."_start
+                WHERE tatencion != '0' AND tatencion != 'NO APLICA'");
 
-            $modAtencion = ['filter' => 'Modalidad_Atencion', 'datas' => $this->contentfilter($data, 'tatencion')];
+                $this->_fieldSelectInQuery = 'tatencion';
 
-            return ['filters' => [(object)$modAtencion], 'status' => Response::HTTP_OK];
-        }
+                $modAtencion = ['filter' => 'Modalidad_Atencion', 'datas' => $this->contentfilter($data, 'tatencion')];
 
-        if ($dbC == 'ges') {
-            $data = DB::select("SELECT DISTINCT(tipcliente)
-                                FROM ".$this->getValueParams('_dbSelected').".adata_mut_" . $dbC . "_start 
-                                WHERE tipcliente!='9' AND tipcliente!='0' AND tipcliente!='Otro'");
+                return ['filters' => [(object)$modAtencion], 'status' => Response::HTTP_OK];
+            }
 
-            $this->_fieldSelectInQuery = 'tipcliente';
+            if ($dbC == 'ges') {
+                $data = DB::select("SELECT DISTINCT(tipcliente)
+                FROM ".$this->getValueParams('_dbSelected').".adata_mut_" . $dbC . "_start 
+                WHERE tipcliente!='9' AND tipcliente!='0' AND tipcliente!='Otro'");
 
-            $tipoCliente = ['filter' => 'Tipo_Cliente', 'datas' => $this->contentfilter($data, 'tipcliente')];
-        }
+                $this->_fieldSelectInQuery = 'tipcliente';
 
-        if ($dbC == 'ges') {
-            $data = DB::select("SELECT DISTINCT(canal)
-                                FROM ".$this->getValueParams('_dbSelected').".adata_mut_" . $dbC . "_start
-                                WHERE canal != '0' and canal != '10'");
-            $this->_fieldSelectInQuery = 'canal';
+                $tipoCliente = ['filter' => 'Tipo_Cliente', 'datas' => $this->contentfilter($data, 'tipcliente')];
+            }
 
-            $tipoCanal = ['filter' => 'Canal', 'datas' => $this->contentfilter($data, 'canal')];
+            if ($dbC == 'ges') {
+                $data = DB::select("SELECT DISTINCT(canal)
+                FROM ".$this->getValueParams('_dbSelected').".adata_mut_" . $dbC . "_start
+                WHERE canal != '0' and canal != '10'");
+                $this->_fieldSelectInQuery = 'canal';
 
-            return ['filters' => [(object)$tipoCliente, (object)$macrosegmento, (object)$tipoCanal], 'status' => Response::HTTP_OK];
-        }
+                $tipoCanal = ['filter' => 'Canal', 'datas' => $this->contentfilter($data, 'canal')];
+
+                return ['filters' => [(object)$tipoCliente, (object)$macrosegmento, (object)$tipoCanal], 'status' => Response::HTTP_OK];
+            }
 
             if ($dbC == 'hos' || $dbC == 'amb' || $dbC == 'urg' || $dbC == 'reh'|| $dbC == 'img' || $dbC == 'con') {
                 $cond = '';
-                if ($datafilters != null && strpos($datafilters,'zonal') != false)
-                {
+                if ($datafilters != null && strpos($datafilters,'zonal') != false){
                     $cond = " AND zonal = '". $request->get('Zona')."'"; 
                 }
                 //echo (isset($jwt[env('AUTH0_AUD')]->gerenciaMedica));
                 if((in_array('Manager', $jwt[env('AUTH0_AUD')]->roles)) || isset($jwt[env('AUTH0_AUD')]->centros) || isset($jwt[env('AUTH0_AUD')]->gerenciaMedica)){
-                //if($jwt[env('AUTH0_AUD')]->gerenciaMedica != 'HOSPITAL'){
-                
+                    //if($jwt[env('AUTH0_AUD')]->gerenciaMedica != 'HOSPITAL'){
+
                     if(isset($jwt[env('AUTH0_AUD')]->zona)){
                         $cond = " AND zonal = '". $jwt[env('AUTH0_AUD')]->zona."'"; 
                     }
 
                     if(isset($jwt[env('AUTH0_AUD')]->centros)){
                         $long = sizeof($jwt[env('AUTH0_AUD')]->centros);
-                    
+
                         if($long == 1){ 
                             $obj = [$jwt[env('AUTH0_AUD')]->centros[0] =>  $jwt[env('AUTH0_AUD')]->centros[0]];
                         }
+                        
                         if($long > 1){
                             $obj = array($jwt[env('AUTH0_AUD')]->centros[0] =>  $jwt[env('AUTH0_AUD')]->centros[0]);
+                            
                             for($i=1; $i<$long; $i++){
                                 $obj = array_merge($obj,array($jwt[env('AUTH0_AUD')]->centros[$i] =>  $jwt[env('AUTH0_AUD')]->centros[$i]));
                             }
                         }
+                        
                         $CenAtencionn = ['filter' => 'Centro_Atencion', 'datas' => $obj];
                     }
 
                     if(empty($jwt[env('AUTH0_AUD')]->centros)){            
                         $data = DB::select("SELECT DISTINCT UPPER(catencion) AS catencion
-                                        FROM ".$this->getValueParams('_dbSelected').".adata_mut_" . $dbC . "_start
-                                        WHERE catencion != '' and catencion != '0' $cond");
+                                FROM ".$this->getValueParams('_dbSelected').".adata_mut_" . $dbC . "_start
+                                WHERE catencion != '' and catencion != '0' $cond");
                         $this->_fieldSelectInQuery = 'catencion';
 
                         $CenAtencionn = ['filter' => 'Centro_Atencion', 'datas' => $this->contentfilter($data, 'catencion')];
                     }
 
                     $ZonaHos = null;
+                    
                     if(empty($jwt[env('AUTH0_AUD')]->zona)){
                         $data = DB::select("SELECT DISTINCT(zonal)
-                                            FROM ".$this->getValueParams('_dbSelected').".adata_mut_" . $dbC . "_start
-                                            WHERE zonal != '0' AND zonal != ''");
-                                            
+                                    FROM ".$this->getValueParams('_dbSelected').".adata_mut_" . $dbC . "_start
+                                    WHERE zonal != '0' AND zonal != ''");
+                                    
                         $this->_fieldSelectInQuery = 'zonal';
-    
+
                         $ZonaHos = ['filter' => 'Zona', 'datas' => $this->contentfilter($data, 'zonal')];
                     }
-                
-            //}
-            if(isset($jwt[env('AUTH0_AUD')]->gerenciaMedica)){
-                if($jwt[env('AUTH0_AUD')]->gerenciaMedica == 'CAS'){
-                    return ['filters' => [(object)$CenAtencionn, (object)$ZonaHos], 'status' => Response::HTTP_OK];
-                }
-            }
-            $gerencia =$this->gerenciaMedica($jwt, $dbC);
-            array_push($gerencia['filters'],(object)$CenAtencionn);
-            return($gerencia);
-            //return  array_push($gerencia['filters'],(object)$CenAtencionn);
-            
-        }
-        } 
 
-        if((empty($jwt[env('AUTH0_AUD')]->zona)) && (in_array('Manager', $jwt[env('AUTH0_AUD')]->roles))){
-            return $this->gerenciaMedica($jwt, $dbC);
-        }
+                    //}
+                    if(isset($jwt[env('AUTH0_AUD')]->gerenciaMedica)){
+                        if($jwt[env('AUTH0_AUD')]->gerenciaMedica == 'CAS'){
+                            return ['filters' => [(object)$CenAtencionn, (object)$ZonaHos], 'status' => Response::HTTP_OK];
+                        }
+                    }
+
+                    //Filtro si gerenciamedica es hos y la survey es amb se carga area atencion
+                    if(isset($jwt[env('AUTH0_AUD')]->gerenciaMedica)){
+                        if($jwt[env('AUTH0_AUD')]->gerenciaMedica == 'Hospital' && $dbC = 'amb'){
+
+                            $data = DB::select("SELECT DISTINCT UPPER(aatencion) AS aatencion
+                                FROM ".$this->getValueParams('_dbSelected').".adata_mut_" . $dbC . "_start
+                                WHERE aatencion != '' and aatencion != '0'");
+                            
+                            $this->_fieldSelectInQuery = 'aatencion';
+
+                            $AreAtencionn = ['filter' => 'Area_Atencion', 'datas' => $this->contentfilter($data, 'aatencion')];
+
+                            return ['filters' => [(object)$AreAtencionn], 'status' => Response::HTTP_OK];
+                        }
+                    }
+                    
+                    $gerencia =$this->gerenciaMedica($jwt, $dbC);
+                    array_push($gerencia['filters'],(object)$CenAtencionn);
+                    return($gerencia);
+                    //return  array_push($gerencia['filters'],(object)$CenAtencionn);
+
+                }
+            } 
+
+            if((empty($jwt[env('AUTH0_AUD')]->zona)) && (in_array('Manager', $jwt[env('AUTH0_AUD')]->roles))){
+                return $this->gerenciaMedica($jwt, $dbC);
+            }
             return ['filters' => [(object)$macrosegmento], 'status' => Response::HTTP_OK];
         }
         return ['filters' =>[]];
