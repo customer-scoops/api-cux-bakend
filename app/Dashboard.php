@@ -1261,7 +1261,7 @@ class Dashboard extends Generic
                       LEFT JOIN $this->_dbSelected." . $table2 . "_start as b
                       on a.token = b.token
                       WHERE date_survey BETWEEN '$dateIni' AND '$dateEnd' $datafilters) AS A ";
-
+            
             $data = DB::select($query);
         }
 
@@ -6280,6 +6280,9 @@ class Dashboard extends Generic
         if (substr($datafilters, 30, 3) == 'NOW') {
             $datafilters = '';
         }
+        $activeP2 = " AND etapaencuesta = 'P2' ";
+        if(substr($db, 6, 3) == 'ban' || substr($db, 6, 3) == 'vid')
+            $activeP2 ='';
         //algo para probar
         $arrayTop =[];
         
@@ -6294,7 +6297,7 @@ class Dashboard extends Generic
                                     FROM $this->_dbSelected." . $db . "_start as a
                                     left join $this->_dbSelected.$db as b
                                     on a.token = b.token
-                                    where date_survey between '$startDateFilterMonth' and '$endDateFilterMonth' and etapaencuesta = 'P2' and $indicatordb != '' $datafilters
+                                    where date_survey between '$startDateFilterMonth' and '$endDateFilterMonth' $activeP2 and $indicatordb != '' $datafilters
                                     group by  $indicator
                                     order by CNPS DESC
                                     LIMIT 5 ";
@@ -6305,7 +6308,7 @@ class Dashboard extends Generic
                                         FROM $this->_dbSelected." . $db . "_start as a
                                         left join $this->_dbSelected.$db as b
                                         on a.token = b.token
-                                        where date_survey between '$startDateFilterMonth' and '$endDateFilterMonth' and etapaencuesta = 'P2' and $indicatordb != '' $datafilters
+                                        where date_survey between '$startDateFilterMonth' and '$endDateFilterMonth' $activeP2 and $indicatordb != '' $datafilters
                                         group by  $indicator
                                         order by CNPS asc
                                         LIMIT 5) as a
@@ -6320,7 +6323,7 @@ class Dashboard extends Generic
                                     FROM $this->_dbSelected." . $db . "_start as a
                                     left join $this->_dbSelected.$db as b
                                     on a.token = b.token
-                                    where fechaservicio between '$startDateFilterMonth' and '$endDateFilterMonth' and etapaencuesta = 'P2' and $indicatordb != '' $datafilters
+                                    where fechaservicio between '$startDateFilterMonth' and '$endDateFilterMonth' $activeP2 and $indicatordb != '' $datafilters
                                     group by  $indicator
                                     order by CNPS DESC
                                     LIMIT 5 ";
@@ -6331,7 +6334,7 @@ class Dashboard extends Generic
                                         FROM $this->_dbSelected." . $db . "_start as a
                                         left join $this->_dbSelected.$db as b
                                         on a.token = b.token
-                                        where fechaservicio between '$startDateFilterMonth' and '$endDateFilterMonth' and etapaencuesta = 'P2' and $indicatordb != '' $datafilters
+                                        where fechaservicio between '$startDateFilterMonth' and '$endDateFilterMonth' $activeP2 and $indicatordb != '' $datafilters
                                         group by  $indicator
                                         order by CNPS asc
                                         LIMIT 5) as a
@@ -6350,7 +6353,7 @@ class Dashboard extends Generic
                             FROM $this->_dbSelected." . $db . "_start as a
                             left join $this->_dbSelected.$db as b
                             on a.token = b.token
-                            where date_survey between '$startDateFilterMonth' and '$endDateFilterMonth' and etapaencuesta = 'P2' and $indicatordb != '' $datafilters
+                            where date_survey between '$startDateFilterMonth' and '$endDateFilterMonth' $activeP2 and $indicatordb != '' $datafilters
                             group by  $indicator
                             order by total DESC
                             LIMIT 10 ";
@@ -6403,43 +6406,44 @@ class Dashboard extends Generic
         }
 
         if($filterClient == 'all'){
+            $db2 = $this->primaryTable($db);
             $querydataTop = "SELECT $indicator, sum(CNPS) as CNPS, annio from (SELECT UPPER($indicatordb) as  $indicator,
-                            round((count(case when nps = 9 OR nps =10 then 1 end)-count(case when nps between  0 and  6 then 1 end)) / count(case when nps != 99 then 1 end) *100) as CNPS,
+                            round((count(case when nps = 9 OR nps =10 then 1 end)-count(case when nps between  0 and  6 then 1 end)) / count(case when nps != 99 then 1 end) *100,1)*.77 as CNPS,
                             b.annio
                             FROM $this->_dbSelected.".$db."_start as a
                             left join $this->_dbSelected.$db as b
                             on a.token = b.token
-                            where date_survey between '$startDateFilterMonth' and '$endDateFilterMonth' and etapaencuesta = 'P2' and $indicatordb != '' $datafilters
+                            where date_survey between '$startDateFilterMonth' and '$endDateFilterMonth' $activeP2 and $indicatordb != '' $datafilters
                             group by  $indicator
                             UNION
                             SELECT UPPER($indicatordb) as  $indicator,
-                            round((count(case when nps = 9 OR nps =10 then 1 end)-count(case when nps between  0 and  6 then 1 end)) / count(case when nps != 99 then 1 end) *100) as CNPS,
+                            round((count(case when nps = 9 OR nps =10 then 1 end)-count(case when nps between  0 and  6 then 1 end)) / count(case when nps != 99 then 1 end) *100,1)*.23 as CNPS,
                             b.annio
-                            FROM $this->_dbSelected.".$db."_start as a
-                            left join $this->_dbSelected.$db as b
+                            FROM $this->_dbSelected.".$db2."_start as a
+                            left join $this->_dbSelected.$db2 as b
                             on a.token = b.token
-                            where date_survey between '$startDateFilterMonth' and '$endDateFilterMonth' and etapaencuesta = 'P2' and $indicatordb != '' $datafilters
+                            where date_survey between '$startDateFilterMonth' and '$endDateFilterMonth' $activeP2 and $indicatordb != '' $datafilters
                             group by  $indicator) as a
                             group by  $indicator
                             order by CNPS DESC
                             LIMIT 5 ";            
         
             $querydataBottom = "SELECT $indicator, sum(CNPS) as CNPS, total, annio from (SELECT UPPER($indicatordb) as  $indicator, count(UPPER($indicatordb)) as total,
-                                round((count(case when nps = 9 OR nps =10 then 1 end)-count(case when nps between  0 and  6 then 1 end)) / count(case when nps != 99 then 1 end) *100) as CNPS,
+                                round((count(case when nps = 9 OR nps =10 then 1 end)-count(case when nps between  0 and  6 then 1 end)) / count(case when nps != 99 then 1 end) *100,1)*.77 as CNPS,
                                 b.annio
                                 FROM $this->_dbSelected.".$db."_start as a
                                 left join $this->_dbSelected.$db as b
                                 on a.token = b.token
-                                where date_survey between '$startDateFilterMonth' and '$endDateFilterMonth' and etapaencuesta = 'P2' and $indicatordb != '' $datafilters
+                                where date_survey between '$startDateFilterMonth' and '$endDateFilterMonth' $activeP2 and $indicatordb != '' $datafilters
                                 group by  $indicator
                                 UNION
                                 SELECT UPPER($indicatordb) as  $indicator, count(UPPER($indicatordb)) as total,
-                                round((count(case when nps = 9 OR nps =10 then 1 end)-count(case when nps between  0 and  6 then 1 end)) / count(case when nps != 99 then 1 end) *100) as CNPS,
+                                round((count(case when nps = 9 OR nps =10 then 1 end)-count(case when nps between  0 and  6 then 1 end)) / count(case when nps != 99 then 1 end) *100,1)*.23 as CNPS,
                                 b.annio
-                                FROM $this->_dbSelected.".$db."_start as a
-                                left join $this->_dbSelected.$db as b
+                                FROM $this->_dbSelected.".$db2."_start as a
+                                left join $this->_dbSelected.$db2 as b
                                 on a.token = b.token
-                                where date_survey between '$startDateFilterMonth' and '$endDateFilterMonth' and etapaencuesta = 'P2' and $indicatordb != '' $datafilters
+                                where date_survey between '$startDateFilterMonth' and '$endDateFilterMonth' $activeP2 and $indicatordb != '' $datafilters
                                 group by  $indicator) AS A
                                 group by  $indicator
                                 order by CNPS ASC
