@@ -730,7 +730,7 @@ class Dashboard extends Generic
             'datas'     => $data,
             'status'    => Response::HTTP_OK
         ];
-        }
+    }
 
     public function getEndCsat($survey){
         $datas = [
@@ -4679,16 +4679,16 @@ class Dashboard extends Generic
             }
             
             if ($i != $endCsatAtr["end"]) {
-                $query .= " ROUND((COUNT(if($indAtrib = $this->_maxMaxCes, 1, NULL))* 100)/COUNT(if($indAtrib !=99, 1, NULL)),0) AS  $indAtrib, 
-                           ROUND(((count(if($indAtrib between $this->_minCes and $this->_minMediumCes,  $indAtrib, NULL))*100)/count(case when $indAtrib != 99 THEN  $indAtrib END)),0) as detractor$i, 
-                           ROUND(((count(if($indAtrib = $this->_maxMaxCes, $indAtrib, NULL))*100)/count(if($indAtrib !=99,1,NULL ))),0) as promotor$i, 
-                           ROUND(((count(if($indAtrib = $this->_minMaxCes  or $indAtrib = $this->_minMaxCes,  $indAtrib, NULL))*100)/count(case when  $indAtrib != 99 THEN $indAtrib END)),0) as neutral$i,";
+                $query .= " ROUND((COUNT(if($indAtrib = $this->_maxMaxCes, 1, NULL))* 100)/COUNT(if($indAtrib !=99 and $indAtrib !=-1, 1, NULL)),0) AS  $indAtrib, 
+                           ROUND(((count(if($indAtrib between $this->_minCes and $this->_minMediumCes,  $indAtrib, NULL))*100)/count(case when $indAtrib != 99 and $indAtrib !=-1 THEN  $indAtrib END)),0) as detractor$i, 
+                           ROUND(((count(if($indAtrib = $this->_maxMaxCes, $indAtrib, NULL))*100)/count(if($indAtrib !=99 and $indAtrib !=-1 ,1,NULL ))),0) as promotor$i, 
+                           ROUND(((count(if($indAtrib = $this->_minMaxCes  or $indAtrib = $this->_minMaxCes,  $indAtrib, NULL))*100)/count(case when  $indAtrib != 99 and $indAtrib !=-1 THEN $indAtrib END)),0) as neutral$i,";
             }
             if ($i == $endCsatAtr["end"]) {
-                $query .= " ROUND((COUNT(if($indAtrib = $this->_maxMaxCes, 1, NULL))* 100)/COUNT(if($indAtrib !=99, 1, NULL)),0) AS  $indAtrib, 
-                           ROUND(((count(if($indAtrib between $this->_minCes and $this->_minMediumCes,  $indAtrib, NULL))*100)/count(case when $indAtrib != 99 THEN  $indAtrib END)),0) as detractor$i, 
-                           ROUND(((count(if($indAtrib = $this->_maxMaxCes, $indAtrib, NULL))*100)/count(if($indAtrib !=99,1,NULL ))),0) as promotor$i, 
-                           ROUND(((count(if($indAtrib = $this->_minMaxCes  or $indAtrib = $this->_minMaxCes,  $indAtrib, NULL))*100)/count(case when  $indAtrib != 99 THEN  $indAtrib END)),0) as neutral$i ";
+                $query .= " ROUND((COUNT(if($indAtrib = $this->_maxMaxCes, 1, NULL))* 100)/COUNT(if($indAtrib !=99 and $indAtrib !=-1, 1, NULL)),0) AS  $indAtrib, 
+                           ROUND(((count(if($indAtrib between $this->_minCes and $this->_minMediumCes,  $indAtrib, NULL))*100)/count(case when $indAtrib != 99 and $indAtrib !=-1 THEN  $indAtrib END)),0) as detractor$i, 
+                           ROUND(((count(if($indAtrib = $this->_maxMaxCes, $indAtrib, NULL))*100)/count(if($indAtrib !=99 and $indAtrib !=-1,1,NULL ))),0) as promotor$i, 
+                           ROUND(((count(if($indAtrib = $this->_minMaxCes  or $indAtrib = $this->_minMaxCes,  $indAtrib, NULL))*100)/count(case when  $indAtrib != 99 and $indAtrib !=-1 THEN  $indAtrib END)),0) as neutral$i ";
             }
         }
      
