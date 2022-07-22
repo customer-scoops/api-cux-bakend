@@ -635,15 +635,16 @@ class Dashboard extends Generic
                             "percentage"    => $datas['insAct'] == 'N/A' ? round(-$datas['ins']) : round($datas['insAct']-$datas['ins']),
                         ]];
                     }
-
-                    $data[] = [
-                        'client'        => $this->_nameClient, 'clients'  => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
-                        "title"         => ucwords(strtolower($value['name'])),
-                        "identifier"    => $value['base'],
-                        "principalIndicator" => $infoNps,
-                        "journeyMap"    => $this->GraphCSATDrivers($db,$db2,$value['base'],$csatInDb,date('Y-m-d'),date('Y-m-01'),$this->_initialFilter,'one'),
-                        "otherGraphs"   => $otherGraph
-                    ];
+                    if (substr($value['base'],0,3) != 'jet'){
+                        $data[] = [
+                            'client'        => $this->_nameClient, 'clients'  => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
+                            "title"         => ucwords(strtolower($value['name'])),
+                            "identifier"    => $value['base'],
+                            "principalIndicator" => $infoNps,
+                            "journeyMap"    => $this->GraphCSATDrivers($db,$db2,$value['base'],$csatInDb,date('Y-m-d'),date('Y-m-01'),$this->_initialFilter,'one'),
+                            "otherGraphs"   => $otherGraph
+                        ];
+                    }
                     
                     if (substr($value['base'],0,3) == 'jet'){
                         $infoNps = [$this->cbiResp($db, '', date('Y-m-d'),date('Y-m-01')), $this->infoNps($db,date('Y-m-d'),date('Y-m-01'),$npsInDb,$this->_initialFilter)];

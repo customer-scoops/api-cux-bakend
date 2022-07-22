@@ -41,7 +41,7 @@ class DashboardController extends Controller
     public function decorator($data){
        // dd($data);exit;
         foreach($data['datas'] as $key => $value){
-            if($data['datas'][$key]['title'] = 'Relacional'){
+            if($data['datas'][$key]['title'] == 'Relacional'){
                 $data['datas'][$key]['indicators']    = 
                 [
                     [
@@ -54,18 +54,18 @@ class DashboardController extends Controller
                         "performances"=> [
                             [
                                 "name" => "cbi",
-                                "value" => 40,
-                                "m2m" => 12,
+                                "value" => 73,
+                                "m2m" => 1,
                             ],
                             [
                                 "name" => "nps",
-                                "value" => 60,
-                                "m2m" => -57,
+                                "value" => 42,
+                                "m2m" => -1,
                             ],
                             [
                                 "name" => "csat",
-                                "value" => 80,
-                                "m2m" => 77,
+                                "value" => 66,
+                                "m2m" => 3,
                             ],
                         ],
                       ],
@@ -80,25 +80,30 @@ class DashboardController extends Controller
                         "performances"=> [
                             [
                                 "name" => "cbi",
-                                "value" => 40,
-                                "m2m" => 12,
+                                "value" => 66,
+                                "m2m" => -5,
                             ],
                             [
                                 "name" => "nps",
-                                "value" => 60,
-                                "m2m" => -57,
+                                "value" => 27,
+                                "m2m" => -8,
                             ],
                             [
                                 "name" => "csat",
-                                "value" => 80,
-                                "m2m" => 77,
+                                "value" => 58,
+                                "m2m" => -3,
                             ],
+                            [
+                                "name" => "ces",
+                                "value" => 61,
+                                "m2m" => 11,
+                            ]
                         ],
                       ],
                     ],
                 ];
             }
-            if($data['datas'][$key]['title'] = 'Ecommerce Peru'){
+            if($data['datas'][$key]['title'] == 'Ecommerce Peru'){
                 $data['datas'][$key]['indicators']    = 
                 [
                     [
@@ -107,22 +112,22 @@ class DashboardController extends Controller
                         "type" => "performance",
                         "props" => [
                         "icon" => "arrow-right",
-                        "text" => "desempeño global",
+                        "text" => "desempeño Peru",
                         "performances"=> [
                             [
                                 "name" => "cbi",
-                                "value" => 40,
-                                "m2m" => 12,
+                                "value" => 80,
+                                "m2m" => 6,
                             ],
                             [
                                 "name" => "nps",
-                                "value" => 60,
-                                "m2m" => -57,
+                                "value" => 57,
+                                "m2m" => 11,
                             ],
                             [
                                 "name" => "csat",
-                                "value" => 80,
-                                "m2m" => 77,
+                                "value" => 71,
+                                "m2m" => 9,
                             ],
                         ],
                       ],
