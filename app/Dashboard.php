@@ -3588,21 +3588,30 @@ class Dashboard extends Generic
 
             return ['datas'=>'unauthorized', 'status'=>Response::HTTP_NOT_ACCEPTABLE];
         }
-        //if(!isset($startDate)&& !isset($endDate) && !isset($survey)){return ['datas'=>'unauthorized', 'status'=>Response::HTTP_NOT_ACCEPTABLE];}
-        $curl = curl_init();
-        curl_setopt_array($curl, array(
-        CURLOPT_URL =>"https://customerscoops.com/text_mining/text_analytics_new.php?startDate=$startDate&endDate=$endDate&survey=$survey",
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '',
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => 'GET',
-        //CURLOPT_POSTFIELDS => array('nom' => $nombre,'mail' => $mail,'token' => $hash,'encuesta' => $encuesta),
-        ));
-        $response = curl_exec($curl);
-        curl_close($curl);
+
+        if(substr($survey,0,3) != 'jet'){
+            //if(!isset($startDate)&& !isset($endDate) && !isset($survey)){return ['datas'=>'unauthorized', 'status'=>Response::HTTP_NOT_ACCEPTABLE];}
+            $curl = curl_init();
+            curl_setopt_array($curl, array(
+            CURLOPT_URL =>"https://customerscoops.com/text_mining/text_analytics_new.php?startDate=$startDate&endDate=$endDate&survey=$survey",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'GET',
+            //CURLOPT_POSTFIELDS => array('nom' => $nombre,'mail' => $mail,'token' => $hash,'encuesta' => $encuesta),
+            ));
+            $response = curl_exec($curl);
+            curl_close($curl);
+        }
+
+        if(substr($survey,0,3) == 'jet'){
+            $textMining = new TextMining($request);
+            $response = $textMining->response($request);
+            //dd($response);
+        }
 
         if($response)
             return ['datas'=>json_decode($response), 'status'=>Response::HTTP_OK];
