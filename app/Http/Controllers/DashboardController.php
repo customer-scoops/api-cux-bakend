@@ -41,8 +41,7 @@ class DashboardController extends Controller
     public function decorator($data){
        // dd($data);exit;
         foreach($data['datas'] as $key => $value){
-            //print_r($value);exit;
-            //array_push($data['datas'][$key],[
+            if($data['datas'][$key]['title'] = 'Relacional'){
                 $data['datas'][$key]['indicators']    = 
                 [
                     [
@@ -71,8 +70,65 @@ class DashboardController extends Controller
                         ],
                       ],
                     ],
+                    [
+                        "height" => 1,
+                        "width" => 12,
+                        "type" => "performance",
+                        "props" => [
+                        "icon" => "arrow-right",
+                        "text" => "desempeño Chile",
+                        "performances"=> [
+                            [
+                                "name" => "cbi",
+                                "value" => 40,
+                                "m2m" => 12,
+                            ],
+                            [
+                                "name" => "nps",
+                                "value" => 60,
+                                "m2m" => -57,
+                            ],
+                            [
+                                "name" => "csat",
+                                "value" => 80,
+                                "m2m" => 77,
+                            ],
+                        ],
+                      ],
+                    ],
                 ];
-            //]);
+            }
+            if($data['datas'][$key]['title'] = 'Ecommerce Peru'){
+                $data['datas'][$key]['indicators']    = 
+                [
+                    [
+                        "height" => 1,
+                        "width" => 12,
+                        "type" => "performance",
+                        "props" => [
+                        "icon" => "arrow-right",
+                        "text" => "desempeño global",
+                        "performances"=> [
+                            [
+                                "name" => "cbi",
+                                "value" => 40,
+                                "m2m" => 12,
+                            ],
+                            [
+                                "name" => "nps",
+                                "value" => 60,
+                                "m2m" => -57,
+                            ],
+                            [
+                                "name" => "csat",
+                                "value" => 80,
+                                "m2m" => 77,
+                            ],
+                        ],
+                      ],
+                    ]
+                ];
+            }
         }
         //dd($data);exit;
         return $data;

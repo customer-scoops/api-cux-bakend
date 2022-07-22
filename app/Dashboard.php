@@ -635,16 +635,6 @@ class Dashboard extends Generic
                             "percentage"    => $datas['insAct'] == 'N/A' ? round(-$datas['ins']) : round($datas['insAct']-$datas['ins']),
                         ]];
                     }
-                    
-                    if (substr($value['base'],0,3) == 'jet'){
-                        $infoNps = [$this->cbiResp($db, '', date('Y-m-d'),date('Y-m-01')), $this->infoNps($db,date('Y-m-d'),date('Y-m-01'),$npsInDb,$this->_initialFilter)];
-        
-                        if (substr($value['base'],3,3) == 'com') 
-                            $otherGraph = [$this->infoCsat($db,date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->_initialFilter), $this->ces($db,date('Y-m-d'),date('Y-m-01'), $cesInDb)];
-                        
-                        if (substr($value['base'],3,3) == 'via' || substr($value['base'],3,3) == 'vue')
-                            $otherGraph = [$this->infoCsat($db,date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->_initialFilter)];
-                    }
 
                     $data[] = [
                         'client'        => $this->_nameClient, 'clients'  => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
@@ -654,6 +644,32 @@ class Dashboard extends Generic
                         "journeyMap"    => $this->GraphCSATDrivers($db,$db2,$value['base'],$csatInDb,date('Y-m-d'),date('Y-m-01'),$this->_initialFilter,'one'),
                         "otherGraphs"   => $otherGraph
                     ];
+                    
+                    if (substr($value['base'],0,3) == 'jet'){
+                        $infoNps = [$this->cbiResp($db, '', date('Y-m-d'),date('Y-m-01')), $this->infoNps($db,date('Y-m-d'),date('Y-m-01'),$npsInDb,$this->_initialFilter)];
+                        $region = 'Peru';
+                        if (substr($value['base'],3,3) == 'com'){ 
+                            $region = 'Chile';
+                            $otherGraph = [$this->infoCsat($db,date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->_initialFilter), $this->ces($db,date('Y-m-d'),date('Y-m-01'), $cesInDb)];
+                        }
+
+                        if (substr($value['base'],3,3) == 'via' || substr($value['base'],3,3) == 'vue'){
+                            $region = 'Chile';
+                            $otherGraph = [$this->infoCsat($db,date('Y-m-d'),date('Y-m-01'), $csatInDb,$this->_initialFilter)];
+                        }
+
+                        $data[] = [
+                            "client"                => $this->_nameClient, 'clients'  => isset($jwt[env('AUTH0_AUD')]->clients) ? $jwt[env('AUTH0_AUD')]->clients: null,
+                            "title"                 => ucwords(strtolower($value['name'])),
+                            "identifier"            => $value['base'],
+                            "region"                => $region,
+                            "principalIndicator"    => $infoNps,
+                            "journeyMap"            => $this->GraphCSATDrivers($db,$db2,$value['base'],$csatInDb,date('Y-m-d'),date('Y-m-01'),$this->_initialFilter,'one'),
+                            "otherGraphs"           => $otherGraph
+                        ];
+                    }
+
+                    
             }
         }
         return [
