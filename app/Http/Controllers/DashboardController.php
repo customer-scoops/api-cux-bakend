@@ -26,11 +26,58 @@ class DashboardController extends Controller
             $dashboarMut = new DashboardMutual($request->dataJwt, $request);
             $data = $dashboarMut->generalInfo($request, $request->dataJwt);
         }
-        if(TRIM($request->dataJwt[env('AUTH0_AUD')]->client) != 'MUT001'){
+
+        if(TRIM($request->dataJwt[env('AUTH0_AUD')]->client) == 'JET001'){
+            $data= $this->decorator($this->_dashboard->generalInfo($request, $request->dataJwt));
+        }  
+
+        if(TRIM($request->dataJwt[env('AUTH0_AUD')]->client) != 'MUT001' && TRIM($request->dataJwt[env('AUTH0_AUD')]->client) != 'JET001'  ){
          $data = $this->_dashboard->generalInfo($request, $request->dataJwt);
         }
+
         return $this->generic($data['datas'], $data['status']);
     }
+
+    public function decorator($data){
+       // dd($data);exit;
+        foreach($data['datas'] as $key => $value){
+            //print_r($value);exit;
+            //array_push($data['datas'][$key],[
+                $data['datas'][$key]['indicators']    = 
+                [
+                    [
+                        "height" => 1,
+                        "width" => 12,
+                        "type" => "performance",
+                        "props" => [
+                        "icon" => "arrow-right",
+                        "text" => "desempeño global",
+                        "performances"=> [
+                            [
+                                "name" => "cbi",
+                                "value" => 40,
+                                "m2m" => 12,
+                            ],
+                            [
+                                "name" => "nps",
+                                "value" => 60,
+                                "m2m" => -57,
+                            ],
+                            [
+                                "name" => "csat",
+                                "value" => 80,
+                                "m2m" => 77,
+                            ],
+                        ],
+                      ],
+                    ],
+                ];
+            //]);
+        }
+        //dd($data);exit;
+        return $data;
+    } 
+
     public function indexBackCards(Request $request)
     {
         if(TRIM($request->dataJwt[env('AUTH0_AUD')]->client) == 'MUT001'){
@@ -43,6 +90,9 @@ class DashboardController extends Controller
         
         return $this->generic($data['datas'], $data['status']);
     }
+
+    
+
     //CX-INTELLIGENCE AND WORD CLUOD
     public function detailsDashCxWord(Request $request)
     {
